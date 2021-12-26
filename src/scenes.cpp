@@ -1,12 +1,45 @@
 #include "raylib.h"
 #include "scenes.hpp"
+#include "utility.hpp"
 
-// Actual implementation of Scene
-class TitleScreen: public Scene {
+// Actual implementations of Scene
+class MainMenu: public Scene {
+    private:
+        SceneManager* parent;
+
     public:
+        MainMenu(SceneManager* p) {
+            parent = p;
+        }
+
+        void update() {
+            // TODO: stub
+        }
+
+        void draw() {
+            // TODO: stub
+            DrawText("Main Menu", 590, 340, 20, BLACK);
+        }
+};
+
+class TitleScreen: public Scene {
+    private:
+        SceneManager* parent;
+        Timer* timer;
+
+    public:
+        TitleScreen(SceneManager* p) {
+            parent = p;
+            timer = new Timer(2.0f);
+            timer->start();
+        }
+
         void update() {
             // TODO: add timer that will automatically switch to main menu after
             // some time has been passed since title's update
+            if (timer->tick()) {
+                parent->set_current_scene(new MainMenu(parent));
+            }
         }
 
         void draw() {
@@ -21,7 +54,8 @@ class TitleScreen: public Scene {
 SceneManager::SceneManager() {
     // Setting current_scene to null, to avoid segfault below.
     current_scene = nullptr;
-    set_current_scene(new TitleScreen());
+    // "this" is cpp's version of "self"
+    set_current_scene(new TitleScreen(this));
     show_fps = true;
 }
 
