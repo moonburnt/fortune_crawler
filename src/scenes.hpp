@@ -13,9 +13,10 @@ class Scene {
 };
 
 class SceneManager {
-    // We are using pointer to scene, to allow for inheritance
+    // We are using pointer to Scene, to make it work with Scene's children
     private:
         Scene* current_scene;
+        bool show_fps;
 
     public:
         SceneManager();

@@ -22,6 +22,7 @@ SceneManager::SceneManager() {
     // Setting current_scene to null, to avoid segfault below.
     current_scene = nullptr;
     set_current_scene(new TitleScreen());
+    show_fps = true;
 }
 
 // There are two ways to work with scenes: to add scene manually each time,
@@ -37,9 +38,15 @@ void SceneManager::set_current_scene(Scene* scene) {
 void SceneManager::run_update_loop() {
     while (!WindowShouldClose()) {
         current_scene->update();
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
         current_scene->draw();
+
+        if (show_fps) DrawText(
+            TextFormat("FPS: %02i", GetFPS()),
+            1200, 4, 20, BLACK
+        );
         EndDrawing();
     }
 }
