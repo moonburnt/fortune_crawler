@@ -22,4 +22,6 @@ class SceneManager {
         SceneManager();
         void set_current_scene(Scene* scene);
         void run_update_loop();
+        bool active;
+        bool is_active();
 };
