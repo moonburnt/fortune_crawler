@@ -24,4 +24,8 @@ class SceneManager {
         void run_update_loop();
         bool active;
         bool is_active();
+        // This one exists solely coz otherwise constructor will segfault the
+        // application, coz TitleScreen require graphics to be initialized, and
+        // default instance of SceneManager will get initialized prior that.
+        void set_default_scene();
 };

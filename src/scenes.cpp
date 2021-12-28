@@ -45,15 +45,32 @@ class MainMenu: public Scene {
     private:
         SceneManager* parent;
         TextButton* exit_button;
+        TextButton* start_button;
 
         void call_exit() {
             exit_button->reset_state();
             sc_mgr.active = false;
         }
 
+        void start_game() {
+            // TODO, stub
+            start_button->reset_state();
+        }
+
     public:
         MainMenu(SceneManager* p) {
             parent = p;
+
+            start_button = new TextButton(
+                &loader.sprites["button_default"],
+                &loader.sprites["button_hover"],
+                &loader.sprites["button_pressed"],
+                &loader.sounds["button_hover"],
+                &loader.sounds["button_clicked"],
+                Rectangle{0, 0, 256, 64},
+                "Start"
+            );
+
             exit_button = new TextButton(
                 &loader.sprites["button_default"],
                 &loader.sprites["button_hover"],
@@ -61,20 +78,39 @@ class MainMenu: public Scene {
                 &loader.sounds["button_hover"],
                 &loader.sounds["button_clicked"],
                 Rectangle{0, 0, 256, 64},
-                "Exit",
-                Vector2{116, 20}
+                "Exit"
             );
-            exit_button->set_pos(Vector2{600, 300});
+
+            float center_x = GetScreenWidth() / 2;
+            float center_y = GetScreenHeight() / 2;
+
+            start_button->set_pos(
+                Vector2{center_x - start_button->get_rect().width/2, center_y-100}
+            );
+            exit_button->set_pos(
+                Vector2{center_x - exit_button->get_rect().width/2, center_y}
+            );
+
+
         }
 
         void update() {
+            start_button->update();
             exit_button->update();
 
-            if (exit_button->is_clicked()) call_exit();
+            if (start_button->is_clicked()) {
+                start_game();
+                return;
+            }
+
+            if (exit_button->is_clicked()) {
+                call_exit();
+                return;
+            }
         }
 
         void draw() {
-            // DrawText("Main Menu", 590, 340, 20, BLACK);
+            start_button->draw();
             exit_button->draw();
         }
 
@@ -83,6 +119,7 @@ class MainMenu: public Scene {
             // It's important to delete local vars initialized with new there,
             // to deal with memory leaks
             delete exit_button;
+            delete start_button;
         }
 };
 
@@ -92,10 +129,19 @@ class TitleScreen: public Scene {
     private:
         SceneManager* parent;
         Timer* timer;
+        std::string greeter_msg;
+        Vector2 greeter_pos;
 
     public:
         TitleScreen(SceneManager* p) {
             parent = p;
+
+            greeter_msg = "This game has been made with raylib\0";
+            greeter_pos = center_text(
+                &greeter_msg,
+                Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
+            );
+
             timer = new Timer(2.0f);
             timer->start();
         }
@@ -109,7 +155,11 @@ class TitleScreen: public Scene {
         }
 
         void draw() {
-            DrawText("Hello, World", 590, 340, 20, BLACK);
+            DrawText(
+                greeter_msg.c_str(),
+                greeter_pos.x, greeter_pos.y,
+                DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+            );
         }
 };
 
@@ -120,8 +170,13 @@ SceneManager::SceneManager() {
     // Setting current_scene to null, to avoid segfault below.
     current_scene = nullptr;
     // "this" is cpp's version of "self"
-    set_current_scene(new TitleScreen(this));
+    // set_current_scene(new TitleScreen(this));
     show_fps = true;
 
     active = true;
+}
+
+// See explanation of why this is a dedicated function in header
+void SceneManager::set_default_scene() {
+    set_current_scene(new TitleScreen(this));
 }

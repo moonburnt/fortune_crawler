@@ -17,6 +17,7 @@ int main() {
     loader.load_sprites();
     loader.load_sounds();
 
+    sc_mgr.set_default_scene();
     sc_mgr.run_update_loop();
 
     CloseWindow();

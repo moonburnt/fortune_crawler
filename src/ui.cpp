@@ -1,6 +1,7 @@
 #include <unordered_map>
 #include <string>
 #include "raylib.h"
+#include "utility.hpp"
 #include "ui.hpp"
 
 // It's not necessary to use "this" in these, but it may be good for readability
@@ -70,6 +71,14 @@ void Button::set_pos(Vector2 position)  {
     rect.y = position.y+y_diff;
 }
 
+Vector2 Button::get_pos() {
+    return pos;
+}
+
+Rectangle Button::get_rect() {
+    return rect;
+}
+
 // Getter for private clicked var. This allows to make it readable, but prevent
 // overwriting from outside
 bool Button::is_clicked() {
@@ -99,12 +108,41 @@ TextButton::TextButton(
     text_pos = msg_pos;
 }
 
+TextButton::TextButton(
+    Texture2D* texture_default,
+    Texture2D* texture_hover,
+    Texture2D* texture_pressed,
+    Sound* sfx_hover,
+    Sound* sfx_click,
+    Rectangle rectangle,
+    std::string msg
+) : Button(
+        texture_default,
+        texture_hover,
+        texture_pressed,
+        sfx_hover,
+        sfx_click,
+        rectangle
+    ) {
+    text = msg;
+    // I'm not sure if this should be based on center of rect or on center of
+    // texture. For now it's done like that, may change in future. TODO
+    text_pos = center_text(
+        &text,
+        Vector2{texture_default->width/2.0f, texture_default->height/2.0f}
+    );
+}
+
 void TextButton::draw() {
     // And this is how we call parent's functions from child functions.
     // Keep in mind that, to shadow parent's method, we must explicitely specify
     // it in children's description.
     Button::draw();
-    DrawText(text.c_str(), text_pos.x, text_pos.y, 20, BLACK);
+    DrawText(
+        text.c_str(),
+        text_pos.x, text_pos.y,
+        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+    );
 }
 
 void TextButton::set_pos(Vector2 position) {

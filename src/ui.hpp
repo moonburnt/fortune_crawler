@@ -42,6 +42,12 @@ class Button {
         void reset_state();
         void set_pos(Vector2 position);
         bool is_clicked();
+        // This getter is necessary to use pos from outside without being able
+        // to overwrite its value directly (coz its meant to be done together
+        // with changing position of other button's elements)
+        Vector2 get_pos();
+        // Same there
+        Rectangle get_rect();
 };
 
 class TextButton : public Button {
@@ -59,6 +65,18 @@ class TextButton : public Button {
             Rectangle rectangle,
             std::string msg,
             Vector2 msg_pos
+        );
+        // This is how we define alternative constructor. It will be used
+        // automatically, if amount/order of items received by constructor match.
+        // This may be useful, since cpp doesn't have kwargs.
+        TextButton(
+            Texture2D* texture_default,
+            Texture2D* texture_hover,
+            Texture2D* texture_pressed,
+            Sound* sfx_hover,
+            Sound* sfx_click,
+            Rectangle rectangle,
+            std::string msg
         );
 
         void draw();

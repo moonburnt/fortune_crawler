@@ -1,3 +1,4 @@
+#include <string>
 #include "raylib.h"
 #include "utility.hpp"
 
@@ -28,4 +29,32 @@ bool Timer::tick() {
     }
 
     return completed;
+}
+
+Vector2 center_text(std::string* text, Vector2 center) {
+    Vector2 msg_size = MeasureTextEx(
+        GetFontDefault(),
+        text->c_str(),
+        DEFAULT_TEXT_SIZE,
+        DEFAULT_TEXT_SIZE/10
+    );
+
+    return Vector2{
+        (center.x-msg_size.x/2),
+        (center.y-msg_size.y/2)
+    };
+}
+
+int center_text_h(std::string* text, int center) {
+    int msg_width = MeasureText(
+        text->c_str(),
+        DEFAULT_TEXT_SIZE
+    );
+
+    return center-msg_width/2;
+}
+
+void center_rect_ip(Rectangle* rect, Vector2 center) {
+    rect->x = center.x - rect->x/2;
+    rect->y = center.y - rect->y/2;
 }
