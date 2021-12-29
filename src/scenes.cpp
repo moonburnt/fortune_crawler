@@ -6,6 +6,7 @@
 #include "loader.hpp"
 extern AssetsLoader loader;
 #include "ui.hpp"
+#include "level.hpp"
 
 // There are two ways to work with scenes: to add scene manually each time,
 // initializing it from zero and clearing up other scenes from memory.
@@ -55,6 +56,7 @@ class MainMenu: public Scene {
         void start_game() {
             // TODO, stub
             start_button->reset_state();
+            sc_mgr.set_current_scene(new Level(&sc_mgr));
         }
 
     public:
