@@ -3,7 +3,7 @@
 class Level : public Scene {
     private:
         SceneManager* parent;
-
+        GameMap* map;
         // void exit_to_menu();
 
     public:

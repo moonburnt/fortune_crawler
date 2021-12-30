@@ -1,11 +1,13 @@
 #include <unordered_map>
 #include <string>
+#include <vector>
 #include "raylib.h"
 #include "scenes.hpp"
 #include "utility.hpp"
 #include "loader.hpp"
 extern AssetsLoader loader;
 #include "ui.hpp"
+#include "mapgen.hpp"
 #include "level.hpp"
 
 // There are two ways to work with scenes: to add scene manually each time,
