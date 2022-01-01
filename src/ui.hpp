@@ -1,5 +1,10 @@
 #pragma once
 
+#include <raylib.h>
+
+#include <string>
+#include <unordered_map>
+
 // UI primitives.
 enum class ButtonStates {
     idle,

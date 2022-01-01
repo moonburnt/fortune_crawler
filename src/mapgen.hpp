@@ -1,5 +1,10 @@
 #pragma once
 
+#include <raylib.h>
+
+#include <vector>
+#include <unordered_map>
+
 enum class TileType {
     floor,
     // wall,

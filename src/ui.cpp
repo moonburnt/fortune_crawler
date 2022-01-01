@@ -1,8 +1,10 @@
-#include <unordered_map>
-#include <string>
-#include "raylib.h"
-#include "utility.hpp"
 #include "ui.hpp"
+#include "utility.hpp"
+
+#include <raylib.h>
+
+#include <string>
+#include <unordered_map>
 
 // It's not necessary to use "this" in these, but it may be good for readability
 void Button::reset_state() {
