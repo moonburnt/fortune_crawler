@@ -1,5 +1,3 @@
-#include <unordered_map>
-#include <string>
 #include "raylib.h"
 #include "loader.hpp"
 

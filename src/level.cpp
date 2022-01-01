@@ -3,10 +3,6 @@
 
 #include <raylib.h>
 
-#include <unordered_map>
-#include <string>
-#include <vector>
-
 Level::Level(SceneManager* p) {
     parent = p;
 
