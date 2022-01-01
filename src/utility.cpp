@@ -31,12 +31,12 @@ bool Timer::tick() {
     return completed;
 }
 
-Vector2 center_text(std::string* text, Vector2 center) {
+Vector2 center_text(const std::string& text, Vector2 center) {
     Vector2 msg_size = MeasureTextEx(
         GetFontDefault(),
-        text->c_str(),
+        text.c_str(),
         DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_SIZE/10
+        DEFAULT_TEXT_SIZE / 10.0f
     );
 
     return Vector2{
@@ -45,9 +45,9 @@ Vector2 center_text(std::string* text, Vector2 center) {
     };
 }
 
-int center_text_h(std::string* text, int center) {
+int center_text_h(const std::string& text, int center) {
     int msg_width = MeasureText(
-        text->c_str(),
+        text.c_str(),
         DEFAULT_TEXT_SIZE
     );
 

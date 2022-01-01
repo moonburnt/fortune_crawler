@@ -130,7 +130,7 @@ TextButton::TextButton(
     // I'm not sure if this should be based on center of rect or on center of
     // texture. For now it's done like that, may change in future. TODO
     text_pos = center_text(
-        &text,
+        text,
         Vector2{texture_default->width/2.0f, texture_default->height/2.0f}
     );
 }
