@@ -4,8 +4,9 @@ ASSETS_DIR = Assets
 GAME_NAME = luck_crawler
 
 CC = g++
-CFLAGS = -Wall -Wextra -Wpedantic -Werror -std=c++17
-LDFLAGS = -lm -lraylib -ljson-c
+DEPS = json-c raylib
+CFLAGS = -Wall -Wextra -Wpedantic -Werror -std=c++17 $(shell pkg-config --cflags $(DEPS))
+LDFLAGS = -lm $(shell pkg-config --libs $(DEPS))
 
 SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
 HEADERS := $(SRC_DIR)/*.hpp
