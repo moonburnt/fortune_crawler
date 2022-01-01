@@ -86,8 +86,8 @@ class MainMenu: public Scene {
                 "Exit"
             );
 
-            float center_x = GetScreenWidth() / 2;
-            float center_y = GetScreenHeight() / 2;
+            float center_x = GetScreenWidth() / 2.0f;
+            float center_y = GetScreenHeight() / 2.0f;
 
             start_button->set_pos(
                 Vector2{center_x - start_button->get_rect().width/2, center_y-100}
@@ -143,7 +143,7 @@ class TitleScreen: public Scene {
 
             greeter_msg = "This game has been made with raylib\0";
             greeter_pos = center_text(
-                &greeter_msg,
+                greeter_msg,
                 Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
             );
 
