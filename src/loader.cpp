@@ -12,7 +12,7 @@
 #define SPRITE_FORMAT ".png"
 #define SFX_FORMAT ".ogg"
 
-void AssetsLoader::load_sprites() {
+void AssetLoader::load_sprites() {
     int sprites_amount;
 
     char** sprite_files = GetDirectoryFiles(SPRITE_PATH, &sprites_amount);
@@ -31,7 +31,7 @@ void AssetsLoader::load_sprites() {
     ClearDirectoryFiles();
 }
 
-void AssetsLoader::load_sounds() {
+void AssetLoader::load_sounds() {
     int amount;
 
     char** dir_files = GetDirectoryFiles(SFX_PATH, &amount);
