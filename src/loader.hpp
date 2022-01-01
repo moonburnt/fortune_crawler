@@ -15,6 +15,6 @@ class AssetLoader {
         void load_sprites();
         void load_sounds();
 
-    // Default instance of loader, use extern to use it in other modules
+    // Default instance of loader
     static AssetLoader loader;
 };

@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+SceneManager SceneManager::sc_mgr;
+
 // There are two ways to work with scenes: to add scene manually each time,
 // initializing it from zero and clearing up other scenes from memory.
 // Or to keep all scenes initialized in some storage. For now, we are going for
@@ -41,9 +43,6 @@ void SceneManager::run_update_loop() {
     }
 }
 
-// Default instance of scene manager. Use extern to share it
-SceneManager sc_mgr;
-
 // Actual implementations of Scene
 class MainMenu: public Scene {
     private:
@@ -53,13 +52,12 @@ class MainMenu: public Scene {
 
         void call_exit() {
             exit_button->reset_state();
-            sc_mgr.active = false;
+            parent->active = false;
         }
 
         void start_game() {
-            // TODO, stub
             start_button->reset_state();
-            sc_mgr.set_current_scene(new Level(&sc_mgr));
+            parent->set_current_scene(new Level(parent));
         }
 
     public:
@@ -67,21 +65,21 @@ class MainMenu: public Scene {
             parent = p;
 
             start_button = new TextButton(
-                &loader.sprites["button_default"],
-                &loader.sprites["button_hover"],
-                &loader.sprites["button_pressed"],
-                &loader.sounds["button_hover"],
-                &loader.sounds["button_clicked"],
+                &AssetLoader::loader.sprites["button_default"],
+                &AssetLoader::loader.sprites["button_hover"],
+                &AssetLoader::loader.sprites["button_pressed"],
+                &AssetLoader::loader.sounds["button_hover"],
+                &AssetLoader::loader.sounds["button_clicked"],
                 Rectangle{0, 0, 256, 64},
                 "Start"
             );
 
             exit_button = new TextButton(
-                &loader.sprites["button_default"],
-                &loader.sprites["button_hover"],
-                &loader.sprites["button_pressed"],
-                &loader.sounds["button_hover"],
-                &loader.sounds["button_clicked"],
+                &AssetLoader::loader.sprites["button_default"],
+                &AssetLoader::loader.sprites["button_hover"],
+                &AssetLoader::loader.sprites["button_pressed"],
+                &AssetLoader::loader.sounds["button_hover"],
+                &AssetLoader::loader.sounds["button_clicked"],
                 Rectangle{0, 0, 256, 64},
                 "Exit"
             );

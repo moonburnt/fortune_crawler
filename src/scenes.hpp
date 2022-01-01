@@ -29,4 +29,7 @@ class SceneManager {
         // application, coz TitleScreen require graphics to be initialized, and
         // default instance of SceneManager will get initialized prior that.
         void set_default_scene();
+
+    // Default instance of scene manager
+    static SceneManager sc_mgr;
 };
