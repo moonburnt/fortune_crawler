@@ -4,7 +4,6 @@
 #include "raylib.h"
 #include "mapgen.hpp"
 #include "loader.hpp"
-extern AssetsLoader loader;
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
@@ -39,7 +38,7 @@ GameMap::GameMap(
     object_tiles = objects;
     creature_tiles = creatures;
     player = new Tile(
-        &loader.sprites["player_tile"],
+        &AssetLoader::loader.sprites["player_tile"],
         TileType::player,
         player_spawnpoint
     );
@@ -116,7 +115,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
             player_spawnpoint.y *= tile_size.y;
             structure_tiles.push_back(
                 new Tile(
-                    &loader.sprites["entrance_tile"],
+                    &AssetLoader::loader.sprites["entrance_tile"],
                     TileType::entrance,
                     player_spawnpoint
                 )
@@ -126,7 +125,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
         else if (kv.first == TileType::exit) {
             structure_tiles.push_back(
                 new Tile(
-                    &loader.sprites["exit_tile"],
+                    &AssetLoader::loader.sprites["exit_tile"],
                     TileType::exit,
                     Vector2{
                         tile_size.x*kv.second.at(0).x,
@@ -141,7 +140,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
         for (auto current_tile: kv.second) {
             floor_tiles.push_back(
                 new Tile(
-                    &loader.sprites["floor_tile"],
+                    &AssetLoader::loader.sprites["floor_tile"],
                     TileType::floor,
                     Vector2{
                         tile_size.x*current_tile.x,
@@ -155,7 +154,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
             if (kv.first == TileType::treasure) {
                 structure_tiles.push_back(
                     new Tile(
-                        &loader.sprites["treasure_tile"],
+                        &AssetLoader::loader.sprites["treasure_tile"],
                         TileType::treasure,
                         Vector2{
                             tile_size.x*current_tile.x,
@@ -167,7 +166,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
             else if (kv.first == TileType::enemy) {
                 creature_tiles.push_back(
                     new Tile(
-                        &loader.sprites["enemy_tile"],
+                        &AssetLoader::loader.sprites["enemy_tile"],
                         TileType::enemy,
                         Vector2{
                             tile_size.x*current_tile.x,
@@ -179,7 +178,7 @@ GameMap* MapGenerator::generate(Vector2 tile_size) {
             else if (kv.first == TileType::boss) {
                 creature_tiles.push_back(
                     new Tile(
-                        &loader.sprites["boss_tile"],
+                        &AssetLoader::loader.sprites["boss_tile"],
                         TileType::boss,
                         Vector2{
                             tile_size.x*current_tile.x,

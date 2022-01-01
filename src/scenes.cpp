@@ -67,21 +67,21 @@ class MainMenu: public Scene {
             parent = p;
 
             start_button = new TextButton(
-                &loader.sprites["button_default"],
-                &loader.sprites["button_hover"],
-                &loader.sprites["button_pressed"],
-                &loader.sounds["button_hover"],
-                &loader.sounds["button_clicked"],
+                &AssetLoader::loader.sprites["button_default"],
+                &AssetLoader::loader.sprites["button_hover"],
+                &AssetLoader::loader.sprites["button_pressed"],
+                &AssetLoader::loader.sounds["button_hover"],
+                &AssetLoader::loader.sounds["button_clicked"],
                 Rectangle{0, 0, 256, 64},
                 "Start"
             );
 
             exit_button = new TextButton(
-                &loader.sprites["button_default"],
-                &loader.sprites["button_hover"],
-                &loader.sprites["button_pressed"],
-                &loader.sounds["button_hover"],
-                &loader.sounds["button_clicked"],
+                &AssetLoader::loader.sprites["button_default"],
+                &AssetLoader::loader.sprites["button_hover"],
+                &AssetLoader::loader.sprites["button_pressed"],
+                &AssetLoader::loader.sounds["button_hover"],
+                &AssetLoader::loader.sounds["button_clicked"],
                 Rectangle{0, 0, 256, 64},
                 "Exit"
             );

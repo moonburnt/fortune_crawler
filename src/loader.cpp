@@ -12,6 +12,8 @@
 #define SPRITE_FORMAT ".png"
 #define SFX_FORMAT ".ogg"
 
+AssetLoader AssetLoader::loader;
+
 void AssetLoader::load_sprites() {
     int sprites_amount;
 
@@ -50,6 +52,3 @@ void AssetLoader::load_sounds() {
 
     ClearDirectoryFiles();
 }
-
-// Default instance of loader, use extern to use it in other modules
-AssetsLoader loader;

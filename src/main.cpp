@@ -2,7 +2,6 @@
 #include <string>
 #include "raylib.h"
 #include "loader.hpp"
-extern AssetsLoader loader;
 
 #include "scenes.hpp"
 extern SceneManager sc_mgr;
@@ -14,8 +13,8 @@ int main() {
     // Initialize audio device. This needs to be done before loading sounds.
     InitAudioDevice();
 
-    loader.load_sprites();
-    loader.load_sounds();
+    AssetLoader::loader.load_sprites();
+    AssetLoader::loader.load_sounds();
 
     sc_mgr.set_default_scene();
     sc_mgr.run_update_loop();
