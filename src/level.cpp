@@ -1,13 +1,11 @@
+#include "level.hpp"
+#include "mapgen.hpp"
+
+#include <raylib.h>
+
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "raylib.h"
-#include "mapgen.hpp"
-#include "scenes.hpp"
-extern SceneManager sc_mgr;
-#include "level.hpp"
-// #include "loader.hpp"
-// extern AssetsLoader loader;
 
 Level::Level(SceneManager* p) {
     parent = p;

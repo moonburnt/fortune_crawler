@@ -1,5 +1,10 @@
 #pragma once
 
+#include <raylib.h>
+
+#include <string>
+#include <unordered_map>
+
 class AssetsLoader {
     // private:
     //     std::unordered_map<std::string, Texture2D> sprites;

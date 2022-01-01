@@ -1,6 +1,6 @@
-#include <string>
-#include "raylib.h"
 #include "utility.hpp"
+
+#include <raylib.h>
 
 Timer::Timer(float length) {
     started = false;

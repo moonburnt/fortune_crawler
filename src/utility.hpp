@@ -1,5 +1,9 @@
 #pragma once
 
+#include <raylib.h>
+
+#include <string>
+
 #define DEFAULT_TEXT_SIZE 20
 #define DEFAULT_TEXT_COLOR BLACK
 

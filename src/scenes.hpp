@@ -8,6 +8,7 @@ class Scene {
         // Thats how we define abstract functions
         virtual void update() = 0;
         virtual void draw() = 0;
+
         // This is a scene's destructor. Which can be overriden, but not necessary.
         virtual ~Scene() = default;
 };
