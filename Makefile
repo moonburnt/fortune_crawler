@@ -1,7 +1,7 @@
 SRC_DIR = src
 BUILD_DIR = build
 ASSETS_DIR = Assets
-GAME_NAME = luck_crawler
+GAME_NAME = fortune_crawler
 
 CC = g++
 DEPS = json-c raylib

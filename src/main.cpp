@@ -4,7 +4,7 @@
 #include "scenes.hpp"
 
 int main() {
-    InitWindow(1280, 720, "Luck Crawler");
+    InitWindow(1280, 720, "Fortune Crawler");
     SetTargetFPS(60);
 
     // Initialize audio device. This needs to be done before loading sounds.
