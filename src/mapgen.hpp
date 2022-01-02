@@ -5,49 +5,94 @@
 #include <vector>
 #include <unordered_map>
 
-enum class TileType {
+struct Point {
+    int x;
+    int y;
+};
+
+enum class ObjectCategory {
     floor,
-    // wall,
+    obstacle,
+    creature,
+    item
+};
+
+enum class FloorType {
+    abyss,
+    floor
+};
+
+enum class ObstacleType {
+    wall
+};
+
+enum class CreatureType {
     player,
-    entrance,
-    exit,
-    treasure,
-    trap,
     enemy,
     boss
 };
 
-class Tile {
+enum class ItemType {
+    entrance,
+    exit,
+    treasure,
+    trap
+};
+
+class MapObject {
     private:
-        Vector2 pos;
+        bool has_texture;
+
+    protected:
         Texture2D* texture;
-        TileType type;
+        ObjectCategory category;
 
     public:
-        Tile(Texture2D* sprite, TileType tile_type);
+        MapObject(ObjectCategory cat);
+        MapObject(ObjectCategory cat, Texture2D* sprite);
 
-        void set_pos(Vector2 position);
+        void draw(Point pos);
+};
 
-        Tile(Texture2D* sprite, TileType tile_type, Vector2 position);
+class Floor: public MapObject {
+    public:
+        FloorType type;
+        Floor();
+        Floor(FloorType tile_type, Texture2D* sprite);
+};
 
-        //In current implementation, tiles have no update() function, since they
-        //are static images without any logic attached. This may change later
-        void draw();
+class Obstacle: public MapObject {
+    public:
+        ObstacleType type;
+        Obstacle(ObstacleType tile_type, Texture2D* sprite);
+};
+
+class Creature: public MapObject {
+    public:
+        CreatureType type;
+        Creature(CreatureType tile_type, Texture2D* sprite);
+};
+
+class Item: public MapObject {
+    public:
+        ItemType type;
+        Item(ItemType tile_type, Texture2D* sprite);
 };
 
 class GameMap {
     private:
-        std::vector<Tile*>floor_tiles;
-        std::vector<Tile*>object_tiles;
-        std::vector<Tile*>creature_tiles;
-        Tile* player;
+        Point map_size;
+        Point tile_size;
+        int grid_size;
+        std::unordered_map<int, MapObject*>map_objects;
+        std::vector<std::vector<int>>grid;
 
     public:
         GameMap(
-            std::vector<Tile*>floor,
-            std::vector<Tile*>objects,
-            std::vector<Tile*>creatures,
-            Vector2 player_spawnpoint
+            Point m_size,
+            Point t_size,
+            std::unordered_map<int, MapObject*>map_elems,
+            std::vector<std::vector<int>>grid_layout
         );
 
         void update();
@@ -55,18 +100,4 @@ class GameMap {
         void draw();
 };
 
-class MapGenerator {
-    private:
-        std::unordered_map<int, TileType> tile_relationships;
-        std::unordered_map<TileType, std::vector<Vector2>> map_elements;
-        Vector2 map_size;
-
-    public:
-        MapGenerator();
-
-        void add_relationship(Color color, TileType tile_type);
-
-        void process_template(Image map_file);
-
-        GameMap* generate(Vector2 tile_size);
-};
+GameMap* generate_map(Image map_file, Point tile_size);

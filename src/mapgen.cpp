@@ -5,43 +5,56 @@
 #include "mapgen.hpp"
 #include "loader.hpp"
 
+#include <stdio.h>
+
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
 
-Tile::Tile(Texture2D* sprite, TileType tile_type) {
+MapObject::MapObject(ObjectCategory cat) {
+    category = cat;
+    has_texture = false;
+}
+
+MapObject::MapObject(ObjectCategory cat, Texture2D* sprite) {
+    category = cat;
     texture = sprite;
-    type = tile_type;
+    has_texture = true;
 }
 
-void Tile::set_pos(Vector2 position) {
-    pos = position;
+void MapObject::draw(Point pos) {
+    if (has_texture) DrawTexture(*texture, pos.x, pos.y, WHITE);
 }
 
-Tile::Tile(Texture2D* sprite, TileType tile_type, Vector2 position) {
-    texture = sprite;
-    type = tile_type;
-    set_pos(position);
+Floor::Floor() : MapObject(ObjectCategory::floor) {
+    type = FloorType::abyss;
+};
+
+Floor::Floor(FloorType tile_type, Texture2D* sprite) :
+    MapObject(ObjectCategory::floor, sprite) {
+        type = tile_type;
 }
 
-void Tile::draw() {
-    DrawTexture(*texture, pos.x, pos.y, WHITE);
+Creature::Creature(CreatureType tile_type, Texture2D* sprite) :
+    MapObject(ObjectCategory::creature, sprite) {
+        type = tile_type;
 }
 
+Item::Item(ItemType tile_type, Texture2D* sprite) :
+    MapObject(ObjectCategory::item, sprite) {
+        type = tile_type;
+}
 
 GameMap::GameMap(
-    std::vector<Tile*>floor,
-    std::vector<Tile*>objects,
-    std::vector<Tile*>creatures,
-    Vector2 player_spawnpoint
+    Point m_size,
+    Point t_size,
+    std::unordered_map<int, MapObject*>map_elems,
+    std::vector<std::vector<int>>grid_layout
 ) {
-    floor_tiles = floor;
-    object_tiles = objects;
-    creature_tiles = creatures;
-    player = new Tile(
-        &AssetLoader::loader.sprites["player_tile"],
-        TileType::player,
-        player_spawnpoint
-    );
+    map_size = m_size;
+    tile_size = t_size;
+    map_objects = map_elems;
+    grid = grid_layout;
+    grid_size = static_cast<int>(grid.size());
 }
 
 void GameMap::update() {
@@ -49,149 +62,102 @@ void GameMap::update() {
 }
 
 void GameMap::draw() {
-    for (auto current_tile: floor_tiles) {
-        current_tile->draw();
+    for (int current_tile = 0; current_tile < grid_size; current_tile++) {
+        for (auto item: grid[current_tile]) {
+            int x = current_tile / map_size.x;
+            int y = current_tile - x*map_size.x;
+            map_objects[item]->draw(Point{x*tile_size.x, y*tile_size.y});
+        }
     }
-
-    for (auto current_tile: object_tiles) {
-        current_tile->draw();
-    }
-
-    for (auto current_tile: creature_tiles) {
-        current_tile->draw();
-    }
-
-    player->draw();
 }
 
+GameMap* generate_map(Image map_file, Point tile_size) {
+    Point map_size = {map_file.width, map_file.height};
 
-MapGenerator::MapGenerator() {};
+    std::vector<std::vector<int>>grid;
+    std::unordered_map<int, MapObject*>map_objects;
 
-void MapGenerator::add_relationship(Color color, TileType tile_type) {
-    tile_relationships[ColorToInt(color)] = tile_type;
-}
+    map_objects[0] = new Floor();
+    map_objects[1] = new Floor(
+        FloorType::floor,
+        &AssetLoader::loader.sprites["floor_tile"]
+    );
+    int current_map_object = map_objects.size();
 
-void MapGenerator::process_template(Image map_file) {
-    map_size.x = map_file.width;
-    map_size.y = map_file.height;
+    int i = 0;
 
     for (auto current_x = 0; current_x < map_size.x; current_x++) {
         for (auto current_y = 0; current_y < map_size.y; current_y++) {
-
+            grid.push_back({});
             int pix_color = ColorToInt(
                 GetImageColor(map_file, current_x, current_y)
             );
 
-            if (tile_relationships.count(pix_color)) {
-                map_elements[tile_relationships[pix_color]].push_back(
-                    Vector2{
-                        static_cast<float>(current_x),
-                        static_cast<float>(current_y)
-                    }
-                );
+            if (pix_color == ColorToInt(Color{203, 219, 252, 255})) {
+                grid[i].push_back({1});
             }
+            else if (pix_color == ColorToInt(Color{0, 255, 9, 255})) {
+                grid[i].push_back({1});
+
+                map_objects[current_map_object] = new Item(
+                    ItemType::entrance,
+                    &AssetLoader::loader.sprites["entrance_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+
+                map_objects[current_map_object] = new Creature(
+                    CreatureType::player,
+                    &AssetLoader::loader.sprites["player_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+            }
+            else if (pix_color == ColorToInt(Color{0, 242, 255, 255})) {
+                grid[i].push_back({1});
+
+                map_objects[current_map_object] = new Item(
+                    ItemType::exit,
+                    &AssetLoader::loader.sprites["exit_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+            }
+            else if (pix_color == ColorToInt(Color{255, 0, 0, 255})) {
+                grid[i].push_back({1});
+
+                map_objects[current_map_object] = new Creature(
+                    CreatureType::enemy,
+                    &AssetLoader::loader.sprites["enemy_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+            }
+            else if (pix_color == ColorToInt(Color{255, 233, 0, 255})) {
+                grid[i].push_back({1});
+
+                map_objects[current_map_object] = new Item(
+                    ItemType::treasure,
+                    &AssetLoader::loader.sprites["treasure_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+            }
+            else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
+                grid[i].push_back({1});
+
+                map_objects[current_map_object] = new Creature(
+                    CreatureType::boss,
+                    &AssetLoader::loader.sprites["boss_tile"]
+                );
+                grid[i].push_back(current_map_object);
+                current_map_object++;
+            }
+            else grid[i].push_back({0});
+
+            i++;
         }
     }
-}
 
-// This function is kinda jank, idk how to make it more flexible. TODO
-GameMap* MapGenerator::generate(Vector2 tile_size) {
-    // These are the separate vectors due to draw order
-    std::vector<Tile*>floor_tiles;
-    std::vector<Tile*>structure_tiles;
-    std::vector<Tile*>creature_tiles;
-    Vector2 player_spawnpoint;
-
-    for (auto &kv: map_elements) {
-        bool unique_or_floor = false;
-
-        // Unique structures, only one of which can exist on map
-        // TODO: maybe dont fetch the very first one, but random one?
-        // Just so in case multiple tiles of that color exist, the one to actually
-        // use will be picked by RNGesus. This could add some variety
-        if (kv.first == TileType::entrance) {
-            player_spawnpoint = kv.second.at(0);
-            player_spawnpoint.x *= tile_size.x;
-            player_spawnpoint.y *= tile_size.y;
-            structure_tiles.push_back(
-                new Tile(
-                    &AssetLoader::loader.sprites["entrance_tile"],
-                    TileType::entrance,
-                    player_spawnpoint
-                )
-            );
-            unique_or_floor = true;
-        }
-        else if (kv.first == TileType::exit) {
-            structure_tiles.push_back(
-                new Tile(
-                    &AssetLoader::loader.sprites["exit_tile"],
-                    TileType::exit,
-                    Vector2{
-                        tile_size.x*kv.second.at(0).x,
-                        tile_size.y*kv.second.at(0).y
-                    }
-                )
-            );
-            unique_or_floor = true;
-        }
-        else if (kv.first == TileType::floor) unique_or_floor = true;
-
-        for (auto current_tile: kv.second) {
-            floor_tiles.push_back(
-                new Tile(
-                    &AssetLoader::loader.sprites["floor_tile"],
-                    TileType::floor,
-                    Vector2{
-                        tile_size.x*current_tile.x,
-                        tile_size.y*current_tile.y
-                    }
-                )
-            );
-
-            if (unique_or_floor) continue;
-
-            if (kv.first == TileType::treasure) {
-                structure_tiles.push_back(
-                    new Tile(
-                        &AssetLoader::loader.sprites["treasure_tile"],
-                        TileType::treasure,
-                        Vector2{
-                            tile_size.x*current_tile.x,
-                            tile_size.y*current_tile.y
-                        }
-                    )
-                );
-            }
-            else if (kv.first == TileType::enemy) {
-                creature_tiles.push_back(
-                    new Tile(
-                        &AssetLoader::loader.sprites["enemy_tile"],
-                        TileType::enemy,
-                        Vector2{
-                            tile_size.x*current_tile.x,
-                            tile_size.y*current_tile.y
-                        }
-                    )
-                );
-            }
-            else if (kv.first == TileType::boss) {
-                creature_tiles.push_back(
-                    new Tile(
-                        &AssetLoader::loader.sprites["boss_tile"],
-                        TileType::boss,
-                        Vector2{
-                            tile_size.x*current_tile.x,
-                            tile_size.y*current_tile.y
-                        }
-                    )
-                );
-            }
-
-        }
-
-
-    }
-
-    return new GameMap(floor_tiles, structure_tiles, creature_tiles, player_spawnpoint);
-}
+    return new GameMap(map_size, tile_size, map_objects, grid);
+};
