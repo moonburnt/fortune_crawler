@@ -1,6 +1,7 @@
 SRC_DIR = src
 BUILD_DIR = build
 ASSETS_DIR = Assets
+MAPS_DIR = maps
 GAME_NAME = fortune_crawler
 
 CC = g++
@@ -14,6 +15,7 @@ OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
 
 all: dir $(BUILD_DIR)/$(GAME_NAME)
 	cp -r $(ASSETS_DIR) $(BUILD_DIR)
+	cp -r $(MAPS_DIR) $(BUILD_DIR)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<

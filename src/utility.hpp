@@ -25,6 +25,8 @@ class Timer : public CounterBase {
         Timer(float length);
         void start();
         bool tick();
+        void stop();
+        bool is_started();
 };
 
 // Get position that will be perfect text's center.

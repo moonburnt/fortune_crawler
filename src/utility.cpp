@@ -31,6 +31,15 @@ bool Timer::tick() {
     return completed;
 }
 
+void Timer::stop() {
+    started = false;
+    completed = false;
+}
+
+bool Timer::is_started() {
+    return started;
+}
+
 Vector2 center_text(const std::string& text, Vector2 center) {
     Vector2 msg_size = MeasureTextEx(
         GetFontDefault(),

@@ -1,14 +1,15 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "raylib.h"
 #include "mapgen.hpp"
 #include "loader.hpp"
 
-#include <stdio.h>
-
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
+
+bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
 MapObject::MapObject(ObjectCategory cat) {
     category = cat;
@@ -19,6 +20,10 @@ MapObject::MapObject(ObjectCategory cat, Texture2D* sprite) {
     category = cat;
     texture = sprite;
     has_texture = true;
+}
+
+ObjectCategory MapObject::get_category() {
+    return category;
 }
 
 void MapObject::draw(Point pos) {
@@ -55,18 +60,111 @@ GameMap::GameMap(
     map_objects = map_elems;
     grid = grid_layout;
     grid_size = static_cast<int>(grid.size());
+
+    for (int current_tile = 0; current_tile < grid_size; current_tile++) {
+        for (auto item: grid[current_tile]) {
+            if (map_objects[item]->get_category() == ObjectCategory::creature) {
+                // Boss should be stationary
+                if (static_cast<Creature*>(map_objects[item])->type == CreatureType::enemy)
+                    enemy_indexes.push_back(current_tile);
+            }
+        }
+    }
 }
 
-void GameMap::update() {
-    //TODO: stub
+int GameMap::get_player_id() {
+    // This may act weirdly if player is not there, but that should happen
+    int player_id;
+
+    for (auto &kv: map_objects) {
+
+        if (kv.second->get_category() == ObjectCategory::creature &&
+            static_cast<Creature*>(kv.second)->type == CreatureType::player) {
+            player_id = kv.first;
+            break;
+        }
+    }
+
+    return player_id;
+}
+
+std::vector<int>* GameMap::get_tile_content(int grid_index) {
+    // Protection against out-of-bounds index values
+    grid_index = std::clamp(grid_index, 0, grid_size);
+
+    return &grid[grid_index];
+}
+
+Point GameMap::index_to_pos(int index) {
+    index = std::clamp(index, 0, grid_size);
+
+    int x = index / map_size.x;
+    int y = index - x * map_size.x;
+    return Point{x * tile_size.x, y * tile_size.y};
+}
+
+int GameMap::pos_to_index(Point pos) {
+    int x = pos.x/tile_size.x;
+    int y = pos.y/tile_size.y;
+    return std::clamp((x*map_size.x + y), 0, grid_size);
+}
+
+Point GameMap::get_player_tile() {
+    // Same possible caveats as in get_player_id()
+    int player_tile_index;
+
+    int player_id = get_player_id();
+
+    bool player_found = false;
+
+    for (int index = 0; index < grid_size; index++) {
+        for (auto tile_i: grid[index]) {
+            if (player_found) break;
+
+            if (grid[index][tile_i] == player_id) {
+                player_tile_index = index;
+                player_found = true;
+                break;
+            }
+        }
+    }
+
+    return index_to_pos(player_tile_index);
+}
+
+Point GameMap::get_tile_size() {
+    return tile_size;
+}
+
+bool GameMap::is_tile_blocked(Point tile) {
+    int index = pos_to_index(tile);
+
+    for (auto item: grid[index]) {
+        if (map_objects[item]->get_category() == ObjectCategory::obstacle) return true;
+        else if (
+            map_objects[item]->get_category() == ObjectCategory::floor &&
+            static_cast<Floor*>(map_objects[item])->type == FloorType::abyss
+            ) return true;
+    }
+    return false;
+}
+
+void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
+    int object_id = grid[grid_index][tile_index];
+    // I think this will work?
+    grid[grid_index].erase(grid[grid_index].begin()+tile_index);
+    grid[new_grid_index].push_back(object_id);
 }
 
 void GameMap::draw() {
     for (int current_tile = 0; current_tile < grid_size; current_tile++) {
         for (auto item: grid[current_tile]) {
-            int x = current_tile / map_size.x;
-            int y = current_tile - x*map_size.x;
-            map_objects[item]->draw(Point{x*tile_size.x, y*tile_size.y});
+            map_objects[item]->draw(index_to_pos(current_tile));
+        }
+
+        if (SHOW_GRID) {
+            Point pos = index_to_pos(current_tile);
+            DrawRectangleLines(pos.x, pos.y, tile_size.x, tile_size.y, BLACK);
         }
     }
 }

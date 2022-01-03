@@ -42,12 +42,13 @@ enum class ItemType {
 class MapObject {
     private:
         bool has_texture;
+        Texture2D* texture;
 
     protected:
-        Texture2D* texture;
         ObjectCategory category;
 
     public:
+        ObjectCategory get_category();
         MapObject(ObjectCategory cat);
         MapObject(ObjectCategory cat, Texture2D* sprite);
 
@@ -71,6 +72,8 @@ class Creature: public MapObject {
     public:
         CreatureType type;
         Creature(CreatureType tile_type, Texture2D* sprite);
+
+        void update();
 };
 
 class Item: public MapObject {
@@ -88,6 +91,8 @@ class GameMap {
         std::vector<std::vector<int>>grid;
 
     public:
+        std::vector<int>enemy_indexes;
+
         GameMap(
             Point m_size,
             Point t_size,
@@ -95,7 +100,18 @@ class GameMap {
             std::vector<std::vector<int>>grid_layout
         );
 
-        void update();
+        int get_player_id();
+
+        std::vector<int>* get_tile_content(int grid_index);
+
+        Point index_to_pos(int index);
+        int pos_to_index(Point pos);
+
+        Point get_player_tile();
+        Point get_tile_size();
+        bool is_tile_blocked(Point tile);
+
+        void move_object(int grid_index, int tile_index, int new_grid_index);
 
         void draw();
 };
