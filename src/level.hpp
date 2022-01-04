@@ -10,9 +10,16 @@ class Level : public Scene {
     private:
         SceneManager* parent;
         GameMap* map;
+
+        int current_turn;
         bool is_player_turn;
+
         std::string turn_title;
         Vector2 turn_title_pos;
+
+        std::string turn_num_title;
+        Vector2 turn_num_title_pos;
+
         Timer* turn_switch_timer;
 
         int player_id;

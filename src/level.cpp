@@ -14,6 +14,7 @@ Level::Level(SceneManager* p) {
     player_tile = map->get_player_tile();
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
+    current_turn = 0;
     change_turn();
 };
 
@@ -23,7 +24,7 @@ void Level::change_turn() {
         turn_title = "Enemy's Turn";
         turn_title_pos = {
             static_cast<float>(center_text_h(turn_title, GetScreenWidth()/2)),
-            20
+            40
         };
     }
     else {
@@ -31,6 +32,13 @@ void Level::change_turn() {
         turn_title = "Player's Turn";
         turn_title_pos = {
             static_cast<float>(center_text_h(turn_title, GetScreenWidth()/2)),
+            40
+        };
+        // This may backfire on multiple players
+        current_turn++;
+        turn_num_title = TextFormat("Current Turn: %i", current_turn);
+        turn_num_title_pos = {
+            static_cast<float>(center_text_h(turn_num_title, GetScreenWidth()/2)),
             20
         };
     }
@@ -100,6 +108,11 @@ void Level::update() {
 
 void Level::draw() {
     map->draw();
+    DrawText(
+        turn_num_title.c_str(),
+        turn_num_title_pos.x, turn_num_title_pos.y,
+        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+    );
     DrawText(
         turn_title.c_str(),
         turn_title_pos.x, turn_title_pos.y,
