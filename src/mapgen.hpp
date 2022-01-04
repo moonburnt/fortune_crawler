@@ -84,6 +84,7 @@ class Item: public MapObject {
 
 class GameMap {
     private:
+        Vector2 map_real_size;
         Point map_size;
         Point tile_size;
         int grid_size;
@@ -106,6 +107,11 @@ class GameMap {
 
         Point index_to_pos(int index);
         int pos_to_index(Point pos);
+        // This one doesnt have safety checks
+        Point vec_to_tile(Vector2 vec);
+
+        // Returns true if vec is part of map, false if its out of bounds
+        bool is_vec_on_map(Vector2 vec);
 
         Point get_player_tile();
         Point get_tile_size();

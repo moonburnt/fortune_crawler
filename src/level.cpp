@@ -31,20 +31,6 @@ void Level::set_camera() {
     camera.rotation = 0.0f;
 };
 
-Point Level::mouse_to_tile() {
-    Vector2 real_mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
-    Point ts = map->get_tile_size();
-    Point ms = map->get_map_size();
-    // return Point{
-    //     static_cast<int>(real_mouse_pos.x/ts.x),
-    //     static_cast<int>(real_mouse_pos.y/ts.y)
-    // };
-    return Point{
-        std::clamp(static_cast<int>(real_mouse_pos.x/ts.x), 0, ms.x),
-        std::clamp(static_cast<int>(real_mouse_pos.y/ts.y), 0, ms.y)
-    };
-};
-
 Level::Level(SceneManager* p) {
     parent = p;
 
@@ -68,6 +54,11 @@ Level::Level(SceneManager* p) {
     right_bg.width = left_bg.width;
     right_bg.height = left_bg.height;
 
+    playground_vec_start.x = left_bg.width;
+    playground_vec_start.y = left_bg.y;
+    playground_vec_end.x = playground_vec_start.x+left_bg.height;
+    playground_vec_end.y = playground_vec_start.y+left_bg.height;
+
     selected_tile_text = "Selected Tile: ";
     selected_tile_pos.x =
         center_text_h(selected_tile_text+"00 x 00", right_bg.x+right_bg.width/2);
@@ -77,6 +68,13 @@ Level::Level(SceneManager* p) {
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
     change_turn();
+};
+
+bool Level::is_vec_on_playground(Vector2 vec) {
+    return (
+        (playground_vec_start.x < vec.x) && (vec.x < playground_vec_end.x) &&
+        (playground_vec_start.y < vec.y) && (vec.y < playground_vec_end.y)
+    );
 };
 
 void Level::change_turn() {
@@ -211,11 +209,17 @@ void Level::draw() {
     );
 
     // This isn't really efficient, may need some improvements. TODO
-    Point mtt = mouse_to_tile();
-    DrawText(
-        TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.x, mtt.y),
-        selected_tile_pos.x,
-        selected_tile_pos.y,
-        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
-    );
+    Vector2 mouse_pos = GetMousePosition();
+    if (is_vec_on_playground(mouse_pos)) {
+        Vector2 real_mouse_pos = GetScreenToWorld2D(mouse_pos, camera);
+        if (map->is_vec_on_map(real_mouse_pos)) {
+            Point mtt = map->vec_to_tile(real_mouse_pos);
+            DrawText(
+                TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.x, mtt.y),
+                selected_tile_pos.x,
+                selected_tile_pos.y,
+                DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+            );
+        }
+    }
 };

@@ -31,6 +31,8 @@ class Level : public Scene {
 
         Rectangle left_bg;
         Rectangle right_bg;
+        Vector2 playground_vec_start;
+        Vector2 playground_vec_end;
 
         // Initial camera configuration. Must be only used during init
         void set_camera();
@@ -39,7 +41,8 @@ class Level : public Scene {
 
         void change_turn();
 
-        Point mouse_to_tile();
+        // Returns true if vec is not on side screens, false otherwise
+        bool is_vec_on_playground(Vector2 vec);
 
     public:
         Level(SceneManager* p);

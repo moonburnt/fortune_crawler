@@ -59,6 +59,10 @@ GameMap::GameMap(
 ) {
     map_size = m_size;
     tile_size = t_size;
+    map_real_size = Vector2{
+        static_cast<float>(map_size.x*tile_size.x),
+        static_cast<float>(map_size.y*tile_size.y)
+    };
     map_objects = map_elems;
     grid = grid_layout;
     grid_size = static_cast<int>(grid.size());
@@ -109,6 +113,20 @@ int GameMap::pos_to_index(Point pos) {
     int x = pos.x/tile_size.x;
     int y = pos.y/tile_size.y;
     return std::clamp((x*map_size.x + y), 0, grid_size);
+}
+
+Point GameMap::vec_to_tile(Vector2 vec) {
+    return Point{
+        static_cast<int>(vec.x)/tile_size.x,
+        static_cast<int>(vec.y)/tile_size.y
+    };
+}
+
+bool GameMap::is_vec_on_map(Vector2 vec) {
+    return (
+        (0 < vec.x) && (vec.x < map_real_size.x) &&
+        (0 < vec.y) && (vec.y < map_real_size.y)
+    );
 }
 
 Point GameMap::get_player_tile() {
