@@ -26,6 +26,9 @@ class Level : public Scene {
         Point player_tile;
         Camera2D camera;
 
+        Rectangle left_bg;
+        Rectangle right_bg;
+
         // Initial camera configuration. Must be only used during init
         void set_camera();
         // Center camera around player

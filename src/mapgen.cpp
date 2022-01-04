@@ -11,6 +11,8 @@
 
 bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
+#define GRID_COLOR {63, 63, 116, 255}
+
 MapObject::MapObject(ObjectCategory cat) {
     category = cat;
     has_texture = false;
@@ -164,7 +166,7 @@ void GameMap::draw() {
 
         if (SHOW_GRID) {
             Point pos = index_to_pos(current_tile);
-            DrawRectangleLines(pos.x, pos.y, tile_size.x, tile_size.y, BLACK);
+            DrawRectangleLines(pos.x, pos.y, tile_size.x, tile_size.y, GRID_COLOR);
         }
     }
 }

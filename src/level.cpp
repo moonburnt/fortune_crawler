@@ -10,6 +10,9 @@
 // too close. Everything less makes no sense.
 #define CAMERA_ZOOM 1.0f
 
+#define SIDE_BG_COLOR {203, 219, 252, 255}
+#define CORNER_COLOR {34, 32, 52, 255}
+
 void Level::center_camera() {
     camera.target = Vector2{
         static_cast<float>(player_tile.x),
@@ -31,11 +34,25 @@ void Level::set_camera() {
 Level::Level(SceneManager* p) {
     parent = p;
 
-    //TODO. Current version is but hardcoded placeholder
+    // TODO. Current version is but hardcoded placeholder
     map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     player_id = map->get_player_id();
     player_tile = map->get_player_tile();
     set_camera();
+
+    // Maybe I shouldnt do it like that. But for now, borders on sides should
+    // make visible part of screen form a perfect rectangle.
+    // This would obviously cause issues on rectangular/vertical screens.
+    // Idk how to solve it for now. TODO
+    left_bg.x = 0.0f;
+    left_bg.y = 0.0f;
+    left_bg.width = (GetScreenWidth()-GetScreenHeight())/2.0f;
+    left_bg.height = GetScreenHeight();
+
+    right_bg.x = GetScreenWidth() - left_bg.width;
+    right_bg.y = 0.0f;
+    right_bg.width = left_bg.width;
+    right_bg.height = left_bg.height;
 
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
@@ -48,23 +65,23 @@ void Level::change_turn() {
         is_player_turn = false;
         turn_title = "Enemy's Turn";
         turn_title_pos = {
-            static_cast<float>(center_text_h(turn_title, GetScreenWidth()/2)),
-            40
+            static_cast<float>(center_text_h(turn_title, right_bg.x+right_bg.width/2)),
+            50
         };
     }
     else {
         is_player_turn = true;
         turn_title = "Player's Turn";
         turn_title_pos = {
-            static_cast<float>(center_text_h(turn_title, GetScreenWidth()/2)),
-            40
+            static_cast<float>(center_text_h(turn_title, right_bg.x+right_bg.width/2)),
+            50
         };
         // This may backfire on multiple players
         current_turn++;
         turn_num_title = TextFormat("Current Turn: %i", current_turn);
         turn_num_title_pos = {
-            static_cast<float>(center_text_h(turn_num_title, GetScreenWidth()/2)),
-            20
+            static_cast<float>(center_text_h(turn_num_title, right_bg.x+right_bg.width/2)),
+            30
         };
     }
     turn_switch_timer->start();
@@ -138,6 +155,30 @@ void Level::draw() {
     BeginMode2D(camera);
     map->draw();
     EndMode2D();
+
+    DrawRectangleRec(
+        left_bg,
+        SIDE_BG_COLOR
+    );
+    DrawLine(
+        left_bg.width,
+        left_bg.y,
+        left_bg.width,
+        left_bg.height,
+        CORNER_COLOR
+    );
+
+    DrawRectangleRec(
+        right_bg,
+        SIDE_BG_COLOR
+    );
+    DrawLine(
+        right_bg.x,
+        right_bg.y,
+        right_bg.x,
+        right_bg.height,
+        CORNER_COLOR
+    );
 
     DrawText(
         turn_num_title.c_str(),
