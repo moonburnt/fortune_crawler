@@ -8,7 +8,7 @@
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
 // too close. Everything less makes no sense.
-#define CAMERA_ZOOM 1.0f
+#define CAMERA_ZOOM 2.0f
 
 #define SIDE_BG_COLOR {203, 219, 252, 255}
 #define CORNER_COLOR {34, 32, 52, 255}
@@ -29,6 +29,20 @@ void Level::set_camera() {
         GetScreenHeight()/2.0f - tile_size.y/2.0f*camera.zoom
     };
     camera.rotation = 0.0f;
+};
+
+Point Level::mouse_to_tile() {
+    Vector2 real_mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
+    Point ts = map->get_tile_size();
+    Point ms = map->get_map_size();
+    // return Point{
+    //     static_cast<int>(real_mouse_pos.x/ts.x),
+    //     static_cast<int>(real_mouse_pos.y/ts.y)
+    // };
+    return Point{
+        std::clamp(static_cast<int>(real_mouse_pos.x/ts.x), 0, ms.x),
+        std::clamp(static_cast<int>(real_mouse_pos.y/ts.y), 0, ms.y)
+    };
 };
 
 Level::Level(SceneManager* p) {
@@ -53,6 +67,11 @@ Level::Level(SceneManager* p) {
     right_bg.y = 0.0f;
     right_bg.width = left_bg.width;
     right_bg.height = left_bg.height;
+
+    selected_tile_text = "Selected Tile: ";
+    selected_tile_pos.x =
+        center_text_h(selected_tile_text+"00 x 00", right_bg.x+right_bg.width/2);
+    selected_tile_pos.y = GetScreenHeight()-50;
 
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
@@ -188,6 +207,15 @@ void Level::draw() {
     DrawText(
         turn_title.c_str(),
         turn_title_pos.x, turn_title_pos.y,
+        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+    );
+
+    // This isn't really efficient, may need some improvements. TODO
+    Point mtt = mouse_to_tile();
+    DrawText(
+        TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.x, mtt.y),
+        selected_tile_pos.x,
+        selected_tile_pos.y,
         DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
     );
 };

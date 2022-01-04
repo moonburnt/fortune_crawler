@@ -109,6 +109,7 @@ class GameMap {
 
         Point get_player_tile();
         Point get_tile_size();
+        Point get_map_size();
         bool is_tile_blocked(Point tile);
 
         void move_object(int grid_index, int tile_index, int new_grid_index);

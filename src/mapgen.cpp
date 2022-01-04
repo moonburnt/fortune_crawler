@@ -138,6 +138,10 @@ Point GameMap::get_tile_size() {
     return tile_size;
 }
 
+Point GameMap::get_map_size() {
+    return map_size;
+}
+
 bool GameMap::is_tile_blocked(Point tile) {
     int index = pos_to_index(tile);
 
