@@ -24,8 +24,13 @@ class Level : public Scene {
 
         int player_id;
         Point player_tile;
+        Camera2D camera;
 
-    private:
+        // Initial camera configuration. Must be only used during init
+        void set_camera();
+        // Center camera around player
+        void center_camera();
+
         void change_turn();
 
     public:

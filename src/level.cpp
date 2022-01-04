@@ -5,6 +5,29 @@
 #include <algorithm>
 #include <iterator>
 
+// TODO: make this configurable from settings
+// Sane values would be 1.0 -> 3.0, everything bigger would make things render
+// too close. Everything less makes no sense.
+#define CAMERA_ZOOM 1.0f
+
+void Level::center_camera() {
+    camera.target = Vector2{
+        static_cast<float>(player_tile.x),
+        static_cast<float>(player_tile.y)
+    };
+};
+
+void Level::set_camera() {
+    center_camera();
+    Point tile_size = map->get_tile_size();
+    camera.zoom = CAMERA_ZOOM;
+    camera.offset = Vector2{
+        GetScreenWidth()/2.0f - tile_size.x/2.0f*camera.zoom,
+        GetScreenHeight()/2.0f - tile_size.y/2.0f*camera.zoom
+    };
+    camera.rotation = 0.0f;
+};
+
 Level::Level(SceneManager* p) {
     parent = p;
 
@@ -12,6 +35,8 @@ Level::Level(SceneManager* p) {
     map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     player_id = map->get_player_id();
     player_tile = map->get_player_tile();
+    set_camera();
+
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
@@ -99,6 +124,9 @@ void Level::update() {
                 map->pos_to_index(new_pos)
             );
             player_tile = new_pos;
+
+            center_camera();
+
             change_turn();
         }
     }
@@ -107,7 +135,10 @@ void Level::update() {
 };
 
 void Level::draw() {
+    BeginMode2D(camera);
     map->draw();
+    EndMode2D();
+
     DrawText(
         turn_num_title.c_str(),
         turn_num_title_pos.x, turn_num_title_pos.y,
