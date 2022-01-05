@@ -29,6 +29,13 @@ class Level : public Scene {
         std::string player_tile_text;
         Vector2 player_tile_text_pos;
 
+        std::string tile_content_title;
+        Vector2 tile_content_pos;
+        int tile_content_vert_gap;
+
+        int last_selected_tile;
+        std::vector<std::string>last_selected_descriptions;
+
         Timer* turn_switch_timer;
 
         int player_id;

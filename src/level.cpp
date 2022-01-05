@@ -60,7 +60,13 @@ Level::Level(SceneManager* p) {
     selected_tile_text = "Selected Tile: ";
     selected_tile_pos.x =
         center_text_h(selected_tile_text+"00 x 00", right_bg.x+right_bg.width/2);
-    selected_tile_pos.y = GetScreenHeight()-50;
+    selected_tile_pos.y = GetScreenHeight()-200;
+
+    tile_content_vert_gap = 30;
+
+    tile_content_title = "Contains: ";
+    tile_content_pos.x = selected_tile_pos.x;
+    tile_content_pos.y = selected_tile_pos.y + tile_content_vert_gap;
 
     player_info_title = "Player Info:";
     player_info_pos.x =
@@ -75,6 +81,7 @@ Level::Level(SceneManager* p) {
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
+    last_selected_tile = -1;
     change_turn();
 };
 
@@ -231,6 +238,29 @@ void Level::draw() {
                 DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
             );
             map->select_tile(mtt);
+
+            int selected_tile = map->tile_to_index(mtt);
+            if (selected_tile != last_selected_tile) {
+                last_selected_tile = selected_tile;
+                last_selected_descriptions =
+                                map->get_tile_descriptions(last_selected_tile);
+            }
+
+            DrawText(
+                tile_content_title.c_str(),
+                tile_content_pos.x, tile_content_pos.y,
+                DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+            );
+
+            Vector2 desc_item_pos = tile_content_pos;
+            for (auto description: last_selected_descriptions) {
+                desc_item_pos.y += tile_content_vert_gap;
+                DrawText(
+                    TextFormat(" - %s", description.c_str()),
+                    desc_item_pos.x, desc_item_pos.y,
+                    DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+                );
+            }
         }
         else map->deselect_tile();
     }

@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 
+#include <string>
 #include <vector>
 #include <unordered_map>
 
@@ -48,9 +49,10 @@ class MapObject {
         ObjectCategory category;
 
     public:
+        std::string description;
         ObjectCategory get_category();
-        MapObject(ObjectCategory cat);
-        MapObject(ObjectCategory cat, Texture2D* sprite);
+        MapObject(ObjectCategory cat, std::string desc);
+        MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite);
 
         void draw(Vector2 pos);
 };
@@ -59,19 +61,19 @@ class Floor: public MapObject {
     public:
         FloorType type;
         Floor();
-        Floor(FloorType tile_type, Texture2D* sprite);
+        Floor(FloorType tile_type, std::string desc, Texture2D* sprite);
 };
 
 class Obstacle: public MapObject {
     public:
         ObstacleType type;
-        Obstacle(ObstacleType tile_type, Texture2D* sprite);
+        Obstacle(ObstacleType tile_type, std::string desc, Texture2D* sprite);
 };
 
 class Creature: public MapObject {
     public:
         CreatureType type;
-        Creature(CreatureType tile_type, Texture2D* sprite);
+        Creature(CreatureType tile_type, std::string desc, Texture2D* sprite);
 
         void update();
 };
@@ -79,7 +81,7 @@ class Creature: public MapObject {
 class Item: public MapObject {
     public:
         ItemType type;
-        Item(ItemType tile_type, Texture2D* sprite);
+        Item(ItemType tile_type, std::string desc, Texture2D* sprite);
 };
 
 class GameMap {
@@ -106,6 +108,9 @@ class GameMap {
         int get_player_id();
 
         std::vector<int>* get_tile_content(int grid_index);
+
+        // Get descriptions of items in specified tile
+        std::vector<std::string> get_tile_descriptions(int grid_index);
 
         // These do have safety clamps to avoid out-of-bounds issues
         Point index_to_tile(int index);

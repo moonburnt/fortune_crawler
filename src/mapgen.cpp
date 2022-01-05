@@ -13,13 +13,15 @@ bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
 #define GRID_COLOR {63, 63, 116, 255}
 
-MapObject::MapObject(ObjectCategory cat) {
+MapObject::MapObject(ObjectCategory cat, std::string desc) {
     category = cat;
+    description = desc;
     has_texture = false;
 }
 
-MapObject::MapObject(ObjectCategory cat, Texture2D* sprite) {
+MapObject::MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite) {
     category = cat;
+    description = desc;
     texture = sprite;
     has_texture = true;
 }
@@ -32,22 +34,22 @@ void MapObject::draw(Vector2 pos) {
     if (has_texture) DrawTextureV(*texture, pos, WHITE);
 }
 
-Floor::Floor() : MapObject(ObjectCategory::floor) {
+Floor::Floor() : MapObject(ObjectCategory::floor, "abyss") {
     type = FloorType::abyss;
 };
 
-Floor::Floor(FloorType tile_type, Texture2D* sprite) :
-    MapObject(ObjectCategory::floor, sprite) {
+Floor::Floor(FloorType tile_type, std::string desc, Texture2D* sprite) :
+    MapObject(ObjectCategory::floor, desc, sprite) {
         type = tile_type;
 }
 
-Creature::Creature(CreatureType tile_type, Texture2D* sprite) :
-    MapObject(ObjectCategory::creature, sprite) {
+Creature::Creature(CreatureType tile_type, std::string desc, Texture2D* sprite) :
+    MapObject(ObjectCategory::creature, desc, sprite) {
         type = tile_type;
 }
 
-Item::Item(ItemType tile_type, Texture2D* sprite) :
-    MapObject(ObjectCategory::item, sprite) {
+Item::Item(ItemType tile_type, std::string desc, Texture2D* sprite) :
+    MapObject(ObjectCategory::item, desc, sprite) {
         type = tile_type;
 }
 
@@ -101,6 +103,17 @@ std::vector<int>* GameMap::get_tile_content(int grid_index) {
     grid_index = std::clamp(grid_index, 0, grid_size);
 
     return &grid[grid_index];
+}
+
+std::vector<std::string> GameMap::get_tile_descriptions(int grid_index) {
+    grid_index = std::clamp(grid_index, 0, grid_size);
+
+    std::vector<std::string>descriptions;
+
+    for (auto item: grid[grid_index]) {
+        descriptions.push_back(map_objects[item]->description);
+    }
+    return descriptions;
 }
 
 Point GameMap::index_to_tile(int index) {
@@ -242,6 +255,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
     map_objects[0] = new Floor();
     map_objects[1] = new Floor(
         FloorType::floor,
+        "floor",
         &AssetLoader::loader.sprites["floor_tile"]
     );
     int current_map_object = map_objects.size();
@@ -263,6 +277,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Item(
                     ItemType::entrance,
+                    "entrance",
                     &AssetLoader::loader.sprites["entrance_tile"]
                 );
                 grid[i].push_back(current_map_object);
@@ -270,6 +285,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Creature(
                     CreatureType::player,
+                    "player",
                     &AssetLoader::loader.sprites["player_tile"]
                 );
                 grid[i].push_back(current_map_object);
@@ -280,6 +296,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Item(
                     ItemType::exit,
+                    "exit",
                     &AssetLoader::loader.sprites["exit_tile"]
                 );
                 grid[i].push_back(current_map_object);
@@ -290,6 +307,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Creature(
                     CreatureType::enemy,
+                    "enemy",
                     &AssetLoader::loader.sprites["enemy_tile"]
                 );
                 grid[i].push_back(current_map_object);
@@ -300,6 +318,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Item(
                     ItemType::treasure,
+                    "treasure",
                     &AssetLoader::loader.sprites["treasure_tile"]
                 );
                 grid[i].push_back(current_map_object);
@@ -310,6 +329,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
                 map_objects[current_map_object] = new Creature(
                     CreatureType::boss,
+                    "boss",
                     &AssetLoader::loader.sprites["boss_tile"]
                 );
                 grid[i].push_back(current_map_object);
