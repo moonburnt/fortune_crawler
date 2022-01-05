@@ -76,6 +76,8 @@ GameMap::GameMap(
             }
         }
     }
+
+    has_selected_pos = false;
 }
 
 int GameMap::get_player_id() {
@@ -202,6 +204,16 @@ void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
     grid[new_grid_index].push_back(object_id);
 }
 
+void GameMap::select_tile(Point tile) {
+    selected_pos.x = tile.x*tile_size.x;
+    selected_pos.y = tile.y*tile_size.y;
+    has_selected_pos = true;
+}
+
+void GameMap::deselect_tile() {
+    has_selected_pos = false;
+}
+
 void GameMap::draw() {
     for (int current_tile = 0; current_tile < grid_size; current_tile++) {
         for (auto item: grid[current_tile]) {
@@ -213,6 +225,12 @@ void GameMap::draw() {
             DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
         }
     }
+
+    if (has_selected_pos) DrawRectangleLines(
+        selected_pos.x, selected_pos.y,
+        tile_size.x, tile_size.y,
+        BLACK
+    );
 }
 
 GameMap* generate_map(Image map_file, Point tile_size) {

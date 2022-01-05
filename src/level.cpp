@@ -217,6 +217,7 @@ void Level::draw() {
         DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
     );
 
+    // I may want to move this above everything else in draw cycle
     // This isn't really efficient, may need some improvements. TODO
     Vector2 mouse_pos = GetMousePosition();
     if (is_vec_on_playground(mouse_pos)) {
@@ -229,8 +230,11 @@ void Level::draw() {
                 selected_tile_pos.y,
                 DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
             );
+            map->select_tile(mtt);
         }
+        else map->deselect_tile();
     }
+    else map->deselect_tile();
 
     DrawText(
         player_info_title.c_str(),

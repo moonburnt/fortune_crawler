@@ -90,6 +90,8 @@ class GameMap {
         int grid_size;
         std::unordered_map<int, MapObject*>map_objects;
         std::vector<std::vector<int>>grid;
+        bool has_selected_pos;
+        Vector2 selected_pos;
 
     public:
         std::vector<int>enemy_indexes;
@@ -124,6 +126,10 @@ class GameMap {
         bool is_tile_blocked(Point tile);
 
         void move_object(int grid_index, int tile_index, int new_grid_index);
+
+        // Set specified tile to be highlighted
+        void select_tile(Point tile);
+        void deselect_tile();
 
         void draw();
 };
