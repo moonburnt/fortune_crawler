@@ -28,8 +28,8 @@ ObjectCategory MapObject::get_category() {
     return category;
 }
 
-void MapObject::draw(Point pos) {
-    if (has_texture) DrawTexture(*texture, pos.x, pos.y, WHITE);
+void MapObject::draw(Vector2 pos) {
+    if (has_texture) DrawTextureV(*texture, pos, WHITE);
 }
 
 Floor::Floor() : MapObject(ObjectCategory::floor) {
@@ -101,18 +101,16 @@ std::vector<int>* GameMap::get_tile_content(int grid_index) {
     return &grid[grid_index];
 }
 
-Point GameMap::index_to_pos(int index) {
+Point GameMap::index_to_tile(int index) {
     index = std::clamp(index, 0, grid_size);
 
     int x = index / map_size.x;
     int y = index - x * map_size.x;
-    return Point{x * tile_size.x, y * tile_size.y};
+    return Point{x, y};
 }
 
-int GameMap::pos_to_index(Point pos) {
-    int x = pos.x/tile_size.x;
-    int y = pos.y/tile_size.y;
-    return std::clamp((x*map_size.x + y), 0, grid_size);
+int GameMap::tile_to_index(Point pos) {
+    return std::clamp((pos.x*map_size.x + pos.y), 0, grid_size);
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
@@ -120,6 +118,30 @@ Point GameMap::vec_to_tile(Vector2 vec) {
         static_cast<int>(vec.x)/tile_size.x,
         static_cast<int>(vec.y)/tile_size.y
     };
+}
+
+Vector2 GameMap::tile_to_vec(Point tile) {
+    return Vector2{
+        static_cast<float>(tile.x*tile_size.x),
+        static_cast<float>(tile.y*tile_size.y)
+    };
+}
+
+Vector2 GameMap::index_to_vec(int index) {
+    index = std::clamp(index, 0, grid_size);
+
+    int x = index / map_size.x;
+    int y = index - x * map_size.x;
+    return Vector2{
+        static_cast<float>(x * tile_size.x),
+        static_cast<float>(y * tile_size.y)
+    };
+}
+
+int GameMap::vec_to_index(Vector2 vec) {
+    int x = vec.x/tile_size.x;
+    int y = vec.y/tile_size.y;
+    return std::clamp((x*map_size.x + y), 0, grid_size);
 }
 
 bool GameMap::is_vec_on_map(Vector2 vec) {
@@ -149,7 +171,7 @@ Point GameMap::get_player_tile() {
         }
     }
 
-    return index_to_pos(player_tile_index);
+    return index_to_tile(player_tile_index);
 }
 
 Point GameMap::get_tile_size() {
@@ -161,7 +183,7 @@ Point GameMap::get_map_size() {
 }
 
 bool GameMap::is_tile_blocked(Point tile) {
-    int index = pos_to_index(tile);
+    int index = tile_to_index(tile);
 
     for (auto item: grid[index]) {
         if (map_objects[item]->get_category() == ObjectCategory::obstacle) return true;
@@ -183,12 +205,12 @@ void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
 void GameMap::draw() {
     for (int current_tile = 0; current_tile < grid_size; current_tile++) {
         for (auto item: grid[current_tile]) {
-            map_objects[item]->draw(index_to_pos(current_tile));
+            map_objects[item]->draw(index_to_vec(current_tile));
         }
 
         if (SHOW_GRID) {
-            Point pos = index_to_pos(current_tile);
-            DrawRectangleLines(pos.x, pos.y, tile_size.x, tile_size.y, GRID_COLOR);
+            Vector2 vec = index_to_vec(current_tile);
+            DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
         }
     }
 }

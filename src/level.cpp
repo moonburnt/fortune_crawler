@@ -14,10 +14,7 @@
 #define CORNER_COLOR {34, 32, 52, 255}
 
 void Level::center_camera() {
-    camera.target = Vector2{
-        static_cast<float>(player_tile.x),
-        static_cast<float>(player_tile.y)
-    };
+    camera.target = player_pos;
 };
 
 void Level::set_camera() {
@@ -38,6 +35,7 @@ Level::Level(SceneManager* p) {
     map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     player_id = map->get_player_id();
     player_tile = map->get_player_tile();
+    player_pos = map->tile_to_vec(player_tile);
     set_camera();
 
     // Maybe I shouldnt do it like that. But for now, borders on sides should
@@ -63,6 +61,16 @@ Level::Level(SceneManager* p) {
     selected_tile_pos.x =
         center_text_h(selected_tile_text+"00 x 00", right_bg.x+right_bg.width/2);
     selected_tile_pos.y = GetScreenHeight()-50;
+
+    player_info_title = "Player Info:";
+    player_info_pos.x =
+        center_text_h(selected_tile_text, left_bg.x+left_bg.width/2);
+    player_info_pos.y = 30;
+
+    player_tile_text = "Current Tile: ";
+    player_tile_text_pos.x =
+        center_text_h(player_tile_text+"00 x 00", left_bg.x+left_bg.width/2);
+    player_tile_text_pos.y = GetScreenHeight()-50;
 
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
@@ -112,34 +120,34 @@ void Level::update() {
 
     if (is_player_turn) {
         bool move_player = false;
-        Point new_pos;
+        Vector2 new_pos;
         if (IsKeyDown(KEY_UP)) {
-            new_pos = player_tile;
+            new_pos = player_pos;
             new_pos.y -= map->get_tile_size().y;
-            if (!map->is_tile_blocked(new_pos)) move_player = true;
-            else new_pos = player_tile;
+            if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
+            else new_pos = player_pos;
         }
         else if (IsKeyDown(KEY_DOWN)) {
-            new_pos = player_tile;
+            new_pos = player_pos;
             new_pos.y += map->get_tile_size().y;
-            if (!map->is_tile_blocked(new_pos)) move_player = true;
-            else new_pos = player_tile;
+            if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
+            else new_pos = player_pos;
         }
         else if (IsKeyDown(KEY_LEFT)) {
-            new_pos = player_tile;
+            new_pos = player_pos;
             new_pos.x -= map->get_tile_size().x;
-            if (!map->is_tile_blocked(new_pos)) move_player = true;
-            else new_pos = player_tile;
+            if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
+            else new_pos = player_pos;
         }
         else if (IsKeyDown(KEY_RIGHT)) {
-            Point new_pos = player_tile;
+            new_pos = player_pos;
             new_pos.x += map->get_tile_size().x;
-            if (!map->is_tile_blocked(new_pos)) move_player = true;
-            else new_pos = player_tile;
+            if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
+            else new_pos = player_pos;
         }
 
         if (move_player) {
-            int current_tile_id = map->pos_to_index(player_tile);
+            int current_tile_id = map->tile_to_index(player_tile);
 
             std::vector<int>* current_tile_content =
                                         map->get_tile_content(current_tile_id);
@@ -155,9 +163,10 @@ void Level::update() {
             map->move_object(
                 current_tile_id,
                 pt_index,
-                map->pos_to_index(new_pos)
+                map->vec_to_index(new_pos)
             );
-            player_tile = new_pos;
+            player_pos = new_pos;
+            player_tile = map->vec_to_tile(player_pos);
 
             center_camera();
 
@@ -222,4 +231,20 @@ void Level::draw() {
             );
         }
     }
+
+    DrawText(
+        player_info_title.c_str(),
+        player_info_pos.x, player_info_pos.y,
+        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+    );
+
+    DrawText(
+        TextFormat(
+            "%s%02i x %02i", player_tile_text.c_str(),
+            player_tile.x, player_tile.y
+        ),
+        player_tile_text_pos.x,
+        player_tile_text_pos.y,
+        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
+    );
 };

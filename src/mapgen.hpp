@@ -52,7 +52,7 @@ class MapObject {
         MapObject(ObjectCategory cat);
         MapObject(ObjectCategory cat, Texture2D* sprite);
 
-        void draw(Point pos);
+        void draw(Vector2 pos);
 };
 
 class Floor: public MapObject {
@@ -105,10 +105,15 @@ class GameMap {
 
         std::vector<int>* get_tile_content(int grid_index);
 
-        Point index_to_pos(int index);
-        int pos_to_index(Point pos);
-        // This one doesnt have safety checks
+        // These do have safety clamps to avoid out-of-bounds issues
+        Point index_to_tile(int index);
+        int tile_to_index(Point pos);
+        Vector2 index_to_vec(int index);
+        int vec_to_index(Vector2 vec);
+
+        // These ones don't
         Point vec_to_tile(Vector2 vec);
+        Vector2 tile_to_vec(Point tile);
 
         // Returns true if vec is part of map, false if its out of bounds
         bool is_vec_on_map(Vector2 vec);

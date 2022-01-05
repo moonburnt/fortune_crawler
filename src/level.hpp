@@ -23,10 +23,17 @@ class Level : public Scene {
         std::string selected_tile_text;
         Vector2 selected_tile_pos;
 
+        std::string player_info_title;
+        Vector2 player_info_pos;
+
+        std::string player_tile_text;
+        Vector2 player_tile_text_pos;
+
         Timer* turn_switch_timer;
 
         int player_id;
         Point player_tile;
+        Vector2 player_pos;
         Camera2D camera;
 
         Rectangle left_bg;
