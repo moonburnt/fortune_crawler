@@ -34,7 +34,7 @@ class Level : public Scene {
         int tile_content_vert_gap;
 
         int last_selected_tile;
-        std::vector<std::string>last_selected_descriptions;
+        std::string last_selected_descriptions;
 
         Timer* turn_switch_timer;
 
