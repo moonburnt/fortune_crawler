@@ -29,4 +29,10 @@ dir:
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: dir clean
+check-format:
+	find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -n {} \;
+
+format:
+	find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
+
+.PHONY: dir clean format check-format
