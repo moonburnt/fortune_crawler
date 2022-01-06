@@ -73,7 +73,7 @@ GameMap::GameMap(
                 // Boss should be stationary
                 if (static_cast<Creature*>(map_objects[item])->type ==
                     CreatureType::enemy)
-                    enemy_indexes.push_back(current_tile);
+                    enemy_indices.push_back(current_tile);
             }
         }
     }

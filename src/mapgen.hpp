@@ -101,7 +101,7 @@ private:
     Vector2 selected_pos;
 
 public:
-    std::vector<int> enemy_indexes;
+    std::vector<int> enemy_indices;
 
     GameMap(
         Point map_size,
