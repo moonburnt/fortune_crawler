@@ -64,10 +64,10 @@ GameMap::GameMap(
            static_cast<float>(_map_size.y * _tile_size.y)})
     , map_size(_map_size)
     , tile_size(_tile_size)
-    , grid_size(static_cast<int>(_grid.size()))
+    , grid_size(_grid.size())
     , map_objects(_map_objects)
     , grid(_grid) {
-    for (int current_tile = 0; current_tile < grid_size; current_tile++) {
+    for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
             if (map_objects[item]->get_category() == ObjectCategory::creature) {
                 // Boss should be stationary
@@ -96,15 +96,15 @@ int GameMap::get_player_id() {
     return player_id;
 }
 
-std::vector<int>* GameMap::get_tile_content(int grid_index) {
+std::vector<int>* GameMap::get_tile_content(size_t grid_index) {
     // Protection against out-of-bounds index values
-    grid_index = std::clamp(grid_index, 0, grid_size);
+    grid_index = std::clamp(grid_index, 0lu, grid_size);
 
     return &grid[grid_index];
 }
 
-std::vector<std::string> GameMap::get_tile_descriptions(int grid_index) {
-    grid_index = std::clamp(grid_index, 0, grid_size);
+std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
+    grid_index = std::clamp(grid_index, 0lu, grid_size);
 
     std::vector<std::string> descriptions;
 
@@ -114,8 +114,8 @@ std::vector<std::string> GameMap::get_tile_descriptions(int grid_index) {
     return descriptions;
 }
 
-Point GameMap::index_to_tile(int index) {
-    index = std::clamp(index, 0, grid_size);
+Point GameMap::index_to_tile(size_t index) {
+    index = std::clamp(index, 0ul, grid_size);
 
     int x = index / map_size.x;
     int y = index - x * map_size.x;
@@ -123,7 +123,7 @@ Point GameMap::index_to_tile(int index) {
 }
 
 int GameMap::tile_to_index(Point pos) {
-    return std::clamp((pos.x * map_size.x + pos.y), 0, grid_size);
+    return std::clamp(static_cast<size_t>(pos.x * map_size.x + pos.y), 0lu, grid_size);
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
@@ -138,8 +138,8 @@ Vector2 GameMap::tile_to_vec(Point tile) {
         static_cast<float>(tile.y * tile_size.y)};
 }
 
-Vector2 GameMap::index_to_vec(int index) {
-    index = std::clamp(index, 0, grid_size);
+Vector2 GameMap::index_to_vec(size_t index) {
+    index = std::clamp(index, 0lu, grid_size);
 
     int x = index / map_size.x;
     int y = index - x * map_size.x;
@@ -151,7 +151,7 @@ Vector2 GameMap::index_to_vec(int index) {
 int GameMap::vec_to_index(Vector2 vec) {
     int x = vec.x / tile_size.x;
     int y = vec.y / tile_size.y;
-    return std::clamp((x * map_size.x + y), 0, grid_size);
+    return std::clamp(static_cast<size_t>(x * map_size.x + y), 0lu, grid_size);
 }
 
 bool GameMap::is_vec_on_map(Vector2 vec) {
@@ -168,7 +168,7 @@ Point GameMap::get_player_tile() {
 
     bool player_found = false;
 
-    for (int index = 0; index < grid_size; index++) {
+    for (auto index = 0u; index < grid_size; index++) {
         for (auto tile_i : grid[index]) {
             if (player_found) break;
 
@@ -222,7 +222,7 @@ void GameMap::deselect_tile() {
 }
 
 void GameMap::draw() {
-    for (int current_tile = 0; current_tile < grid_size; current_tile++) {
+    for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
             map_objects[item]->draw(index_to_vec(current_tile));
         }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <raylib.h>
 
 #include <string>
@@ -94,7 +95,7 @@ private:
     Vector2 map_real_size;
     Point map_size;
     Point tile_size;
-    int grid_size;
+    size_t grid_size;
     std::unordered_map<int, MapObject*> map_objects;
     std::vector<std::vector<int>> grid;
     bool has_selected_pos;
@@ -111,15 +112,15 @@ public:
 
     int get_player_id();
 
-    std::vector<int>* get_tile_content(int grid_index);
+    std::vector<int>* get_tile_content(size_t grid_index);
 
     // Get descriptions of items in specified tile
-    std::vector<std::string> get_tile_descriptions(int grid_index);
+    std::vector<std::string> get_tile_descriptions(size_t grid_index);
 
     // These do have safety clamps to avoid out-of-bounds issues
-    Point index_to_tile(int index);
+    Point index_to_tile(size_t index);
     int tile_to_index(Point pos);
-    Vector2 index_to_vec(int index);
+    Vector2 index_to_vec(size_t index);
     int vec_to_index(Vector2 vec);
 
     // These ones don't
