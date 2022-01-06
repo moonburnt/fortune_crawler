@@ -1,6 +1,6 @@
-#include <string>
-#include "raylib.h"
 #include "loader.hpp"
+#include "raylib.h"
+#include <string>
 
 static constexpr const char* SETTINGS_PATH = "./settings.json";
 
@@ -23,8 +23,7 @@ void AssetLoader::load_sprites() {
         if (IsFileExtension(sprite_files[current_sprite], SPRITE_FORMAT)) {
             std::string name_key(GetFileNameWithoutExt(sprite_files[current_sprite]));
             this->sprites[name_key] = LoadTexture(
-                (std::string(SPRITE_PATH)+sprite_files[current_sprite]).c_str()
-            );
+                (std::string(SPRITE_PATH) + sprite_files[current_sprite]).c_str());
         }
         current_sprite++;
     }
@@ -42,9 +41,8 @@ void AssetLoader::load_sounds() {
     while (current < amount) {
         if (IsFileExtension(dir_files[current], SFX_FORMAT)) {
             std::string name_key(GetFileNameWithoutExt(dir_files[current]));
-            this->sounds[name_key] = LoadSound(
-                (std::string(SFX_PATH)+dir_files[current]).c_str()
-            );
+            this->sounds[name_key] =
+                LoadSound((std::string(SFX_PATH) + dir_files[current]).c_str());
         }
         current++;
     }

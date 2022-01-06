@@ -1,5 +1,5 @@
-#include "raylib.h"
 #include "loader.hpp"
+#include "raylib.h"
 
 #include "scenes.hpp"
 

@@ -8,25 +8,25 @@ static constexpr uint32_t DEFAULT_TEXT_SIZE = 20u;
 static constexpr Color DEFAULT_TEXT_COLOR = BLACK;
 
 class CounterBase {
-    public:
-        virtual void start() = 0;
-        virtual bool tick() = 0;
-        virtual ~CounterBase() = default;
+public:
+    virtual void start() = 0;
+    virtual bool tick() = 0;
+    virtual ~CounterBase() = default;
 };
 
 class Timer : public CounterBase {
-    private:
-        bool started;
-        bool completed;
-        float duration;
-        float time_left;
+private:
+    bool started;
+    bool completed;
+    float duration;
+    float time_left;
 
-    public:
-        Timer(float length);
-        void start();
-        bool tick();
-        void stop();
-        bool is_started();
+public:
+    Timer(float length);
+    void start();
+    bool tick();
+    void stop();
+    bool is_started();
 };
 
 // Get position that will be perfect text's center.
