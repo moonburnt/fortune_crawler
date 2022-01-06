@@ -47,7 +47,7 @@ Vector2 center_text(const std::string& text, Vector2 center) {
         DEFAULT_TEXT_SIZE,
         DEFAULT_TEXT_SIZE / 10.0f);
 
-    return Vector2 {(center.x - msg_size.x / 2), (center.y - msg_size.y / 2)};
+    return Vector2{(center.x - msg_size.x / 2), (center.y - msg_size.y / 2)};
 }
 
 int center_text_h(const std::string& text, int center) {

@@ -26,7 +26,7 @@ Button::Button(
     sounds[0] = sfx_hover;
     sounds[1] = sfx_click;
     rect = rectangle;
-    pos = Vector2 {0, 0};
+    pos = Vector2{0, 0};
 
     reset_state();
 }
@@ -126,7 +126,7 @@ TextButton::TextButton(
     // texture. For now it's done like that, may change in future. TODO
     text_pos = center_text(
         text,
-        Vector2 {texture_default->width / 2.0f, texture_default->height / 2.0f});
+        Vector2{texture_default->width / 2.0f, texture_default->height / 2.0f});
 }
 
 void TextButton::draw() {

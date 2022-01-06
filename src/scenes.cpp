@@ -67,7 +67,7 @@ public:
             &AssetLoader::loader.sprites["button_pressed"],
             &AssetLoader::loader.sounds["button_hover"],
             &AssetLoader::loader.sounds["button_clicked"],
-            Rectangle {0, 0, 256, 64},
+            Rectangle{0, 0, 256, 64},
             "Start");
 
         exit_button = new TextButton(
@@ -76,16 +76,16 @@ public:
             &AssetLoader::loader.sprites["button_pressed"],
             &AssetLoader::loader.sounds["button_hover"],
             &AssetLoader::loader.sounds["button_clicked"],
-            Rectangle {0, 0, 256, 64},
+            Rectangle{0, 0, 256, 64},
             "Exit");
 
         float center_x = GetScreenWidth() / 2.0f;
         float center_y = GetScreenHeight() / 2.0f;
 
         start_button->set_pos(
-            Vector2 {center_x - start_button->get_rect().width / 2, center_y - 100});
+            Vector2{center_x - start_button->get_rect().width / 2, center_y - 100});
         exit_button->set_pos(
-            Vector2 {center_x - exit_button->get_rect().width / 2, center_y});
+            Vector2{center_x - exit_button->get_rect().width / 2, center_y});
     }
 
     void update(float) override {
@@ -132,7 +132,7 @@ public:
         greeter_msg = "This game has been made with raylib\0";
         greeter_pos = center_text(
             greeter_msg,
-            Vector2 {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+            Vector2{GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
 
         timer = new Timer(2.0f);
         timer->start();

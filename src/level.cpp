@@ -10,8 +10,8 @@
 // too close. Everything less makes no sense.
 static constexpr float CAMERA_ZOOM = 2.0f;
 
-static constexpr Color SIDE_BG_COLOR {203, 219, 252, 255};
-static constexpr Color CORNER_COLOR {34, 32, 52, 255};
+static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
+static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 
 void Level::center_camera() {
     camera.target = player_pos;
@@ -21,7 +21,7 @@ void Level::set_camera() {
     center_camera();
     Point tile_size = map->get_tile_size();
     camera.zoom = CAMERA_ZOOM;
-    camera.offset = Vector2 {
+    camera.offset = Vector2{
         GetScreenWidth() / 2.0f - tile_size.x / 2.0f * camera.zoom,
         GetScreenHeight() / 2.0f - tile_size.y / 2.0f * camera.zoom};
     camera.rotation = 0.0f;
@@ -29,7 +29,7 @@ void Level::set_camera() {
 
 Level::Level() {
     // TODO. Current version is but hardcoded placeholder
-    map = generate_map(LoadImage("maps/map_0.png"), Point {32, 32});
+    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     player_id = map->get_player_id();
     player_tile = map->get_player_tile();
     player_pos = map->tile_to_vec(player_tile);

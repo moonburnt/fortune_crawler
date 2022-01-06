@@ -11,7 +11,7 @@
 
 static constexpr bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
-static constexpr Color GRID_COLOR {63, 63, 116, 255};
+static constexpr Color GRID_COLOR{63, 63, 116, 255};
 
 MapObject::MapObject(ObjectCategory cat, std::string desc) {
     category = cat;
@@ -119,7 +119,7 @@ Point GameMap::index_to_tile(size_t index) {
 
     int x = index / map_size.x;
     int y = index - x * map_size.x;
-    return Point {x, y};
+    return Point{x, y};
 }
 
 int GameMap::tile_to_index(Point pos) {
@@ -127,13 +127,13 @@ int GameMap::tile_to_index(Point pos) {
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
-    return Point {
+    return Point{
         static_cast<int>(vec.x) / tile_size.x,
         static_cast<int>(vec.y) / tile_size.y};
 }
 
 Vector2 GameMap::tile_to_vec(Point tile) {
-    return Vector2 {
+    return Vector2{
         static_cast<float>(tile.x * tile_size.x),
         static_cast<float>(tile.y * tile_size.y)};
 }
@@ -143,7 +143,7 @@ Vector2 GameMap::index_to_vec(size_t index) {
 
     int x = index / map_size.x;
     int y = index - x * map_size.x;
-    return Vector2 {
+    return Vector2{
         static_cast<float>(x * tile_size.x),
         static_cast<float>(y * tile_size.y)};
 }
@@ -260,10 +260,10 @@ GameMap* generate_map(Image map_file, Point tile_size) {
             grid.push_back({});
             int pix_color = ColorToInt(GetImageColor(map_file, current_x, current_y));
 
-            if (pix_color == ColorToInt(Color {203, 219, 252, 255})) {
+            if (pix_color == ColorToInt(Color{203, 219, 252, 255})) {
                 grid[i].push_back({1});
             }
-            else if (pix_color == ColorToInt(Color {0, 255, 9, 255})) {
+            else if (pix_color == ColorToInt(Color{0, 255, 9, 255})) {
                 grid[i].push_back({1});
 
                 map_objects[current_map_object] = new Item(
@@ -280,7 +280,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 grid[i].push_back(current_map_object);
                 current_map_object++;
             }
-            else if (pix_color == ColorToInt(Color {0, 242, 255, 255})) {
+            else if (pix_color == ColorToInt(Color{0, 242, 255, 255})) {
                 grid[i].push_back({1});
 
                 map_objects[current_map_object] = new Item(
@@ -290,7 +290,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 grid[i].push_back(current_map_object);
                 current_map_object++;
             }
-            else if (pix_color == ColorToInt(Color {255, 0, 0, 255})) {
+            else if (pix_color == ColorToInt(Color{255, 0, 0, 255})) {
                 grid[i].push_back({1});
 
                 map_objects[current_map_object] = new Creature(
@@ -300,7 +300,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 grid[i].push_back(current_map_object);
                 current_map_object++;
             }
-            else if (pix_color == ColorToInt(Color {255, 233, 0, 255})) {
+            else if (pix_color == ColorToInt(Color{255, 233, 0, 255})) {
                 grid[i].push_back({1});
 
                 map_objects[current_map_object] = new Item(
@@ -310,7 +310,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 grid[i].push_back(current_map_object);
                 current_map_object++;
             }
-            else if (pix_color == ColorToInt(Color {199, 0, 255, 255})) {
+            else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
                 grid[i].push_back({1});
 
                 map_objects[current_map_object] = new Creature(
