@@ -23,8 +23,8 @@ private:
 
 public:
     Timer(float length);
-    void start();
-    bool tick();
+    void start() override;
+    bool tick() override;
     void stop();
     bool is_started();
 };

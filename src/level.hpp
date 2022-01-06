@@ -61,6 +61,6 @@ private:
 public:
     Level(SceneManager* p);
 
-    void update();
-    void draw();
+    void update() override;
+    void draw() override;
 };

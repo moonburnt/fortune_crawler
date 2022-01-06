@@ -87,7 +87,7 @@ public:
             Vector2 {center_x - exit_button->get_rect().width / 2, center_y});
     }
 
-    void update() {
+    void update() override {
         start_button->update();
         exit_button->update();
 
@@ -102,7 +102,7 @@ public:
         }
     }
 
-    void draw() {
+    void draw() override {
         start_button->draw();
         exit_button->draw();
     }
@@ -137,7 +137,7 @@ public:
         timer->start();
     }
 
-    void update() {
+    void update() override {
         // TODO: add timer that will automatically switch to main menu after
         // some time has been passed since title's update
         if (timer->tick()) {
@@ -145,7 +145,7 @@ public:
         }
     }
 
-    void draw() {
+    void draw() override {
         DrawText(
             greeter_msg.c_str(),
             greeter_pos.x,

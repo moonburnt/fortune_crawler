@@ -6,7 +6,7 @@ GAME_NAME = fortune_crawler
 
 CC = g++
 DEPS = json-c raylib
-CFLAGS = -Wall -Wextra -Wpedantic -Werror -Wfatal-errors -std=c++17 $(shell pkg-config --cflags $(DEPS))
+CFLAGS = -Wall -Wextra -Wpedantic -Werror -Wfatal-errors -Wsuggest-override -std=c++17 $(shell pkg-config --cflags $(DEPS))
 LDFLAGS = -lm $(shell pkg-config --libs $(DEPS))
 
 SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
