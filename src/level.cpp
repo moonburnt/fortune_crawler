@@ -15,7 +15,7 @@ static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 
 void Level::center_camera() {
     camera.target = player_pos;
-};
+}
 
 void Level::set_camera() {
     center_camera();
@@ -25,7 +25,7 @@ void Level::set_camera() {
         GetScreenWidth() / 2.0f - tile_size.x / 2.0f * camera.zoom,
         GetScreenHeight() / 2.0f - tile_size.y / 2.0f * camera.zoom};
     camera.rotation = 0.0f;
-};
+}
 
 Level::Level() {
     // TODO. Current version is but hardcoded placeholder
@@ -79,13 +79,11 @@ Level::Level() {
     current_turn = 0;
     last_selected_tile = -1;
     change_turn();
-};
+}
 
 bool Level::is_vec_on_playground(Vector2 vec) {
-    return (
-        (playground_vec_start.x < vec.x) && (vec.x < playground_vec_end.x) &&
-        (playground_vec_start.y < vec.y) && (vec.y < playground_vec_end.y));
-};
+    return playground_vec_start.x < vec.x && vec.x < playground_vec_end.x && playground_vec_start.y < vec.y && vec.y < playground_vec_end.y;
+}
 
 void Level::change_turn() {
     if (is_player_turn) {
@@ -172,7 +170,7 @@ void Level::update(float dt) {
     }
     // TODO: stub
     else change_turn();
-};
+}
 
 void Level::draw() {
     BeginMode2D(camera);
@@ -252,4 +250,4 @@ void Level::draw() {
         player_tile_text_pos.y,
         DEFAULT_TEXT_SIZE,
         DEFAULT_TEXT_COLOR);
-};
+}

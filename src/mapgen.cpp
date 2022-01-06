@@ -37,7 +37,7 @@ void MapObject::draw(Vector2 pos) {
 Floor::Floor()
     : MapObject(ObjectCategory::floor, "abyss") {
     type = FloorType::abyss;
-};
+}
 
 Floor::Floor(FloorType tile_type, std::string desc, Texture2D* sprite)
     : MapObject(ObjectCategory::floor, desc, sprite) {
