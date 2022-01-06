@@ -116,9 +116,9 @@ void Level::change_turn() {
     turn_switch_timer->start();
 }
 
-void Level::update() {
+void Level::update(float dt) {
     if (turn_switch_timer->is_started()) {
-        if (turn_switch_timer->tick()) turn_switch_timer->stop();
+        if (turn_switch_timer->tick(dt)) turn_switch_timer->stop();
         else return;
     }
 

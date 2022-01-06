@@ -28,7 +28,8 @@ bool SceneManager::is_active() {
 
 void SceneManager::run_update_loop() {
     while (is_active()) {
-        current_scene->update();
+        float dt = static_cast<float>(GetFrameTime());
+        current_scene->update(dt);
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -87,7 +88,7 @@ public:
             Vector2 {center_x - exit_button->get_rect().width / 2, center_y});
     }
 
-    void update() override {
+    void update(float) override {
         start_button->update();
         exit_button->update();
 
@@ -137,10 +138,10 @@ public:
         timer->start();
     }
 
-    void update() override {
+    void update(float dt) override {
         // TODO: add timer that will automatically switch to main menu after
         // some time has been passed since title's update
-        if (timer->tick()) {
+        if (timer->tick(dt)) {
             parent->set_current_scene(new MainMenu(parent));
         }
     }

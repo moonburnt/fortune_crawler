@@ -10,7 +10,7 @@ static constexpr Color DEFAULT_TEXT_COLOR = BLACK;
 class CounterBase {
 public:
     virtual void start() = 0;
-    virtual bool tick() = 0;
+    virtual bool tick(float dt) = 0;
     virtual ~CounterBase() = default;
 };
 
@@ -24,7 +24,7 @@ private:
 public:
     Timer(float length);
     void start() override;
-    bool tick() override;
+    bool tick(float dt) override;
     void stop();
     bool is_started();
 };

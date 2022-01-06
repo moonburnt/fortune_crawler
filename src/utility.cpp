@@ -17,12 +17,12 @@ void Timer::start() {
     started = true;
 }
 
-bool Timer::tick() {
+bool Timer::tick(float dt) {
     if (!completed) {
         // It would be more efficient to convert GetFrameTime's double to float,
         // than to perform all operations on doubles. Such precision would be
         // excessive for the most cases anyway.
-        time_left -= static_cast<float>(GetFrameTime());
+        time_left -= dt;
         if (time_left <= 0.0f) {
             completed = true;
         }
