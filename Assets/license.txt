@@ -1,0 +1,4 @@
+Sprites are drawn by me, moonburnt, and copyrighted to be used exclusively in Fortune Crawler game. 
+SFX for buttons are licensed under CC0 and I honestly can't remember who s the original author 
+of these - must be some lad from opengameart.org. Hopefully by time this game reaches public 
+release, I will either find a link to author in my bookmarks or get some replacement to these.
