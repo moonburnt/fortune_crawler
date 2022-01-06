@@ -104,10 +104,10 @@ public:
     std::vector<int> enemy_indexes;
 
     GameMap(
-        Point m_size,
-        Point t_size,
-        std::unordered_map<int, MapObject*> map_elems,
-        std::vector<std::vector<int>> grid_layout);
+        Point map_size,
+        Point tile_size,
+        std::unordered_map<int, MapObject*> map_objects,
+        std::vector<std::vector<int>> grid);
 
     int get_player_id();
 

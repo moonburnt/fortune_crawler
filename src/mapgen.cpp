@@ -55,19 +55,18 @@ Item::Item(ItemType tile_type, std::string desc, Texture2D* sprite)
 }
 
 GameMap::GameMap(
-    Point m_size,
-    Point t_size,
-    std::unordered_map<int, MapObject*> map_elems,
-    std::vector<std::vector<int>> grid_layout) {
-    map_size = m_size;
-    tile_size = t_size;
-    map_real_size = Vector2 {
-        static_cast<float>(map_size.x * tile_size.x),
-        static_cast<float>(map_size.y * tile_size.y)};
-    map_objects = map_elems;
-    grid = grid_layout;
-    grid_size = static_cast<int>(grid.size());
-
+    Point _map_size,
+    Point _tile_size,
+    std::unordered_map<int, MapObject*> _map_objects,
+    std::vector<std::vector<int>> _grid)
+    : map_real_size(
+          {static_cast<float>(_map_size.x * _tile_size.x),
+           static_cast<float>(_map_size.y * _tile_size.y)})
+    , map_size(_map_size)
+    , tile_size(_tile_size)
+    , grid_size(static_cast<int>(_grid.size()))
+    , map_objects(_map_objects)
+    , grid(_grid) {
     for (int current_tile = 0; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
             if (map_objects[item]->get_category() == ObjectCategory::creature) {
