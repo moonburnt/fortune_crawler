@@ -1,15 +1,15 @@
-#include <string>
-#include "raylib.h"
 #include "loader.hpp"
+#include "raylib.h"
+#include <string>
 
-#define SETTINGS_PATH "./settings.json"
+// static constexpr const char* SETTINGS_PATH = "./settings.json"; TODO: currently unused
 
-#define ASSETS_PATH "./Assets/"
-#define SPRITE_PATH ASSETS_PATH "Sprites/"
-#define SFX_PATH ASSETS_PATH "SFX/"
+#define ASSET_PATH "./Assets/"
+static constexpr const char* SPRITE_PATH = ASSET_PATH "Sprites/";
+static constexpr const char* SFX_PATH = ASSET_PATH "SFX/";
 
-#define SPRITE_FORMAT ".png"
-#define SFX_FORMAT ".ogg"
+static constexpr const char* SPRITE_FORMAT = ".png";
+static constexpr const char* SFX_FORMAT = ".ogg";
 
 AssetLoader AssetLoader::loader;
 
@@ -23,8 +23,7 @@ void AssetLoader::load_sprites() {
         if (IsFileExtension(sprite_files[current_sprite], SPRITE_FORMAT)) {
             std::string name_key(GetFileNameWithoutExt(sprite_files[current_sprite]));
             this->sprites[name_key] = LoadTexture(
-                (std::string(SPRITE_PATH)+sprite_files[current_sprite]).c_str()
-            );
+                (std::string(SPRITE_PATH) + sprite_files[current_sprite]).c_str());
         }
         current_sprite++;
     }
@@ -42,9 +41,8 @@ void AssetLoader::load_sounds() {
     while (current < amount) {
         if (IsFileExtension(dir_files[current], SFX_FORMAT)) {
             std::string name_key(GetFileNameWithoutExt(dir_files[current]));
-            this->sounds[name_key] = LoadSound(
-                (std::string(SFX_PATH)+dir_files[current]).c_str()
-            );
+            this->sounds[name_key] =
+                LoadSound((std::string(SFX_PATH) + dir_files[current]).c_str());
         }
         current++;
     }

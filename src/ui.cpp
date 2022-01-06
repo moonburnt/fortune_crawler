@@ -19,8 +19,7 @@ Button::Button(
     Texture2D* texture_pressed,
     Sound* sfx_hover,
     Sound* sfx_click,
-    Rectangle rectangle
-) {
+    Rectangle rectangle) {
     textures[ButtonStates::idle] = texture_default;
     textures[ButtonStates::hover] = texture_hover;
     textures[ButtonStates::pressed] = texture_pressed;
@@ -40,8 +39,7 @@ enum ButtonStates Button::update() {
                 PlaySound(*sounds[1]);
             }
         }
-        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
-            state = ButtonStates::pressed;
+        else if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) state = ButtonStates::pressed;
 
         else {
             if (last_state != ButtonStates::hover) PlaySound(*sounds[0]);
@@ -59,7 +57,7 @@ void Button::draw() {
     DrawTexture(*textures[state], pos.x, pos.y, WHITE);
 }
 
-void Button::set_pos(Vector2 position)  {
+void Button::set_pos(Vector2 position) {
     // Hitbox should always retain initial position diff
 
     int x_diff = rect.x - pos.x;
@@ -68,8 +66,8 @@ void Button::set_pos(Vector2 position)  {
     pos.x = position.x;
     pos.y = position.y;
 
-    rect.x = position.x+x_diff;
-    rect.y = position.y+y_diff;
+    rect.x = position.x + x_diff;
+    rect.y = position.y + y_diff;
 }
 
 Vector2 Button::get_pos() {
@@ -96,15 +94,14 @@ TextButton::TextButton(
     Sound* sfx_click,
     Rectangle rectangle,
     std::string msg,
-    Vector2 msg_pos
-) : Button(
-        texture_default,
-        texture_hover,
-        texture_pressed,
-        sfx_hover,
-        sfx_click,
-        rectangle
-    ) {
+    Vector2 msg_pos)
+    : Button(
+          texture_default,
+          texture_hover,
+          texture_pressed,
+          sfx_hover,
+          sfx_click,
+          rectangle) {
     text = msg;
     text_pos = msg_pos;
 }
@@ -116,22 +113,20 @@ TextButton::TextButton(
     Sound* sfx_hover,
     Sound* sfx_click,
     Rectangle rectangle,
-    std::string msg
-) : Button(
-        texture_default,
-        texture_hover,
-        texture_pressed,
-        sfx_hover,
-        sfx_click,
-        rectangle
-    ) {
+    std::string msg)
+    : Button(
+          texture_default,
+          texture_hover,
+          texture_pressed,
+          sfx_hover,
+          sfx_click,
+          rectangle) {
     text = msg;
     // I'm not sure if this should be based on center of rect or on center of
     // texture. For now it's done like that, may change in future. TODO
     text_pos = center_text(
         text,
-        Vector2{texture_default->width/2.0f, texture_default->height/2.0f}
-    );
+        Vector2{texture_default->width / 2.0f, texture_default->height / 2.0f});
 }
 
 void TextButton::draw() {
@@ -139,18 +134,14 @@ void TextButton::draw() {
     // Keep in mind that, to shadow parent's method, we must explicitely specify
     // it in children's description.
     Button::draw();
-    DrawText(
-        text.c_str(),
-        text_pos.x, text_pos.y,
-        DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR
-    );
+    DrawText(text.c_str(), text_pos.x, text_pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
 }
 
 void TextButton::set_pos(Vector2 position) {
     int text_x_diff = text_pos.x - pos.x;
     int text_y_diff = text_pos.y - pos.y;
 
-    text_pos.x = position.x+text_x_diff;
-    text_pos.y = position.y+text_y_diff;
+    text_pos.x = position.x + text_x_diff;
+    text_pos.y = position.y + text_y_diff;
     Button::set_pos(position);
 }
