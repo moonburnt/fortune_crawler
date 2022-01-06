@@ -342,4 +342,4 @@ GameMap* generate_map(Image map_file, Point tile_size) {
     }
 
     return new GameMap(map_size, tile_size, map_objects, grid);
-};
+}
