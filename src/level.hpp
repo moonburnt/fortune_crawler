@@ -8,7 +8,6 @@
 
 class Level : public Scene {
 private:
-    SceneManager* parent;
     GameMap* map;
 
     int current_turn;
@@ -50,6 +49,7 @@ private:
 
     // Initial camera configuration. Must be only used during init
     void set_camera();
+
     // Center camera around player
     void center_camera();
 
@@ -59,7 +59,7 @@ private:
     bool is_vec_on_playground(Vector2 vec);
 
 public:
-    Level(SceneManager* p);
+    Level();
 
     void update(float dt) override;
     void draw() override;

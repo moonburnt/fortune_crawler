@@ -27,9 +27,7 @@ void Level::set_camera() {
     camera.rotation = 0.0f;
 };
 
-Level::Level(SceneManager* p) {
-    parent = p;
-
+Level::Level() {
     // TODO. Current version is but hardcoded placeholder
     map = generate_map(LoadImage("maps/map_0.png"), Point {32, 32});
     player_id = map->get_player_id();
