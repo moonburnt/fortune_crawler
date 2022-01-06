@@ -9,9 +9,9 @@
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
 
-bool SHOW_GRID = true; // TODO: move this to settings, make configurable
+static constexpr bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
-#define GRID_COLOR {63, 63, 116, 255}
+static constexpr Color GRID_COLOR {63, 63, 116, 255};
 
 MapObject::MapObject(ObjectCategory cat, std::string desc) {
     category = cat;

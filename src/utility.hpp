@@ -4,8 +4,8 @@
 
 #include <string>
 
-#define DEFAULT_TEXT_SIZE 20
-#define DEFAULT_TEXT_COLOR BLACK
+static constexpr uint32_t DEFAULT_TEXT_SIZE = 20u;
+static constexpr Color DEFAULT_TEXT_COLOR = BLACK;
 
 class CounterBase {
     public:

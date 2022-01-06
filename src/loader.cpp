@@ -2,14 +2,14 @@
 #include "raylib.h"
 #include "loader.hpp"
 
-#define SETTINGS_PATH "./settings.json"
+static constexpr const char* SETTINGS_PATH = "./settings.json";
 
-#define ASSETS_PATH "./Assets/"
-#define SPRITE_PATH ASSETS_PATH "Sprites/"
-#define SFX_PATH ASSETS_PATH "SFX/"
+#define ASSET_PATH "./Assets/"
+static constexpr const char* SPRITE_PATH = ASSET_PATH "Sprites/";
+static constexpr const char* SFX_PATH = ASSET_PATH "SFX/";
 
-#define SPRITE_FORMAT ".png"
-#define SFX_FORMAT ".ogg"
+static constexpr const char* SPRITE_FORMAT = ".png";
+static constexpr const char* SFX_FORMAT = ".ogg";
 
 AssetLoader AssetLoader::loader;
 

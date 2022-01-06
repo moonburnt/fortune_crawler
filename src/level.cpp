@@ -8,10 +8,10 @@
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
 // too close. Everything less makes no sense.
-#define CAMERA_ZOOM 2.0f
+static constexpr float CAMERA_ZOOM = 2.0f;
 
-#define SIDE_BG_COLOR {203, 219, 252, 255}
-#define CORNER_COLOR {34, 32, 52, 255}
+static constexpr Color SIDE_BG_COLOR {203, 219, 252, 255};
+static constexpr Color CORNER_COLOR {34, 32, 52, 255};
 
 void Level::center_camera() {
     camera.target = player_pos;
