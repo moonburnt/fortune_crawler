@@ -1,11 +1,7 @@
 #include "level.hpp"
 #include "utility.hpp"
 
-#include <algorithm>
-#include <iterator>
 #include <raylib.h>
-
-#include <stdio.h>
 
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
@@ -161,28 +157,17 @@ void Level::update(float dt) {
             if (move_player) {
                 int current_tile_id = map->tile_to_index(player_tile);
 
-                std::vector<int>* current_tile_content =
-                    map->get_tile_content(current_tile_id);
-                // This shouldn't return .end(), I think
-                std::vector<int>::iterator pt_iterator;
-                pt_iterator = std::find(
-                    current_tile_content->begin(),
-                    current_tile_content->end(),
-                    map->get_player_id());
-                int pt_index = std::distance(current_tile_content->begin(), pt_iterator);
+                // This should always return player index in tile, thus not
+                // checking the completion status
+                int pt_index;
+                map->object_in_tile(current_tile_id, map->get_player_id(), &pt_index);
 
                 int new_tile_id = map->vec_to_index(new_pos);
-                // Some really inefficiend way to check if new tile contains
-                // someting that may trigger an event
-                std::vector<int>* next_tile_content =
-                    map->get_tile_content(new_tile_id);
-                std::vector<int>::iterator et_iterator;
-                et_iterator = std::find(
-                    next_tile_content->begin(),
-                    next_tile_content->end(),
-                    map->get_exit_id()
-                );
-                if (et_iterator != next_tile_content->end()) {
+
+                // There is the opposite - et_index is but placeholder that wont
+                // be used anywhere else and we are interested in completion status
+                int et_index;
+                if (map->object_in_tile(new_tile_id, map->get_exit_id(), &et_index)) {
                     current_event = Event::exit_map;
                 }
 
@@ -191,7 +176,6 @@ void Level::update(float dt) {
                 player_tile = map->vec_to_tile(player_pos);
 
                 center_camera();
-
                 change_turn();
             }
         }

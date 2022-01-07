@@ -139,6 +139,11 @@ public:
     Point get_map_size();
     bool is_tile_blocked(Point tile);
 
+    // Search in tile for object with specific id. Returns success status,
+    // overwrites provided tile_index with index of tile's element that contains
+    // provided item (or with map_objects.end() - thats why bool exists there)
+    bool object_in_tile(int grid_index, int object_id, int* tile_index);
+
     void move_object(int grid_index, int tile_index, int new_grid_index);
 
     // Set specified tile to be highlighted

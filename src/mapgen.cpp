@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <iterator>
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
@@ -212,6 +213,20 @@ bool GameMap::is_tile_blocked(Point tile) {
             return true;
     }
     return false;
+}
+
+bool GameMap::object_in_tile(int grid_index, int object_id, int* tile_index) {
+    std::vector<int>::iterator object_iterator;
+    object_iterator = std::find(
+        grid[grid_index].begin(),
+        grid[grid_index].end(),
+        object_id
+    );
+    // Overwriting value of variable, to which tile_index points
+    *tile_index = std::distance(grid[grid_index].begin(), object_iterator);
+
+    if (object_iterator == grid[grid_index].end()) return false;
+    return true;
 }
 
 void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
