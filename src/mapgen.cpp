@@ -79,21 +79,31 @@ GameMap::GameMap(
     }
 
     has_selected_pos = false;
-}
 
-int GameMap::get_player_id() {
     // This may act weirdly if player is not there, but that should happen
-    int player_id;
-
+    // TODO: rework mapgen, to remove the need to iterate through objects again
     for (auto& kv : map_objects) {
         if (kv.second->get_category() == ObjectCategory::creature &&
             static_cast<Creature*>(kv.second)->type == CreatureType::player) {
             player_id = kv.first;
-            break;
+            // break;
+        }
+        else if (
+            kv.second->get_category() == ObjectCategory::item &&
+            static_cast<Item*>(kv.second)->type == ItemType::exit
+            ) {
+            exit_id = kv.first;
         }
     }
 
+}
+
+int GameMap::get_player_id() {
     return player_id;
+}
+
+int GameMap::get_exit_id() {
+    return exit_id;
 }
 
 std::vector<int>* GameMap::get_tile_content(size_t grid_index) {

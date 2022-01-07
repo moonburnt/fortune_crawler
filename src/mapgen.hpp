@@ -101,6 +101,9 @@ private:
     bool has_selected_pos;
     Vector2 selected_pos;
 
+    int player_id;
+    int exit_id;
+
 public:
     std::vector<int> enemy_indices;
 
@@ -111,6 +114,7 @@ public:
         std::vector<std::vector<int>> grid);
 
     int get_player_id();
+    int get_exit_id();
 
     std::vector<int>* get_tile_content(size_t grid_index);
 

@@ -6,6 +6,12 @@
 #include "utility.hpp"
 #include <string>
 
+enum class Event {
+    nothing,
+    exit_map,
+    // fight
+};
+
 class Level : public Scene {
 private:
     GameMap* map;
@@ -35,17 +41,23 @@ private:
     int last_selected_tile;
     std::string last_selected_descriptions;
 
+    std::string completion_msg;
+    Vector2 completion_msg_pos;
+
     Timer* turn_switch_timer;
 
-    int player_id;
     Point player_tile;
     Vector2 player_pos;
     Camera2D camera;
 
     Rectangle left_bg;
     Rectangle right_bg;
+    Rectangle event_screen_bg;
     Vector2 playground_vec_start;
     Vector2 playground_vec_end;
+
+    Event current_event;
+    bool draw_completion_screen;
 
     // Initial camera configuration. Must be only used during init
     void set_camera();
