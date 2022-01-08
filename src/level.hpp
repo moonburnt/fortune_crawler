@@ -6,12 +6,6 @@
 #include "utility.hpp"
 #include <string>
 
-enum class Event {
-    nothing,
-    exit_map,
-    // fight
-};
-
 class Level : public Scene {
 private:
     GameMap* map;

@@ -164,12 +164,10 @@ void Level::update(float dt) {
 
                 int new_tile_id = map->vec_to_index(new_pos);
 
-                // There is the opposite - et_index is but placeholder that wont
-                // be used anywhere else and we are interested in completion status
-                int et_index;
-                if (map->object_in_tile(new_tile_id, map->get_exit_id(), &et_index)) {
-                    current_event = Event::exit_map;
-                }
+                // This may be an overkill or oversight. May need to remove it
+                // if I will ever add floor tiles that cause events
+                if (map->is_tile_occupied(new_tile_id))
+                    current_event = map->get_tile_event(new_tile_id, true);
 
                 map->move_object(current_tile_id, pt_index, new_tile_id);
                 player_pos = new_pos;
@@ -191,6 +189,11 @@ void Level::update(float dt) {
             completion_msg,
             Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
         );
+        break;
+
+    case Event::fight:
+        // TODO: stub
+        current_event = Event::nothing;
         break;
 
     default: break;

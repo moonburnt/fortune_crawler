@@ -18,6 +18,8 @@ MapObject::MapObject(ObjectCategory cat, std::string desc) {
     category = cat;
     description = desc;
     has_texture = false;
+    player_collision_event = Event::nothing;
+    enemy_collision_event = Event::nothing;
 }
 
 MapObject::MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite) {
@@ -25,6 +27,45 @@ MapObject::MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite) {
     description = desc;
     texture = sprite;
     has_texture = true;
+    player_collision_event = Event::nothing;
+    enemy_collision_event = Event::nothing;
+}
+
+MapObject::MapObject(
+        ObjectCategory cat,
+        std::string desc,
+        Event _player_collision_event,
+        Event _enemy_collision_event,
+        Texture2D* sprite
+    ) {
+    category = cat;
+    description = desc;
+    texture = sprite;
+    has_texture = true;
+    player_collision_event = _player_collision_event;
+    enemy_collision_event = _enemy_collision_event;
+}
+
+MapObject::MapObject(
+        ObjectCategory cat,
+        std::string desc,
+        Event collision_event,
+        Texture2D* sprite
+    ) {
+    category = cat;
+    description = desc;
+    texture = sprite;
+    has_texture = true;
+    player_collision_event = collision_event;
+    enemy_collision_event = collision_event;
+}
+
+Event MapObject::get_player_collision_event() {
+    return player_collision_event;
+}
+
+Event MapObject::get_enemy_collision_event() {
+    return enemy_collision_event;
 }
 
 ObjectCategory MapObject::get_category() {
@@ -45,13 +86,35 @@ Floor::Floor(FloorType tile_type, std::string desc, Texture2D* sprite)
     type = tile_type;
 }
 
-Creature::Creature(CreatureType tile_type, std::string desc, Texture2D* sprite)
-    : MapObject(ObjectCategory::creature, desc, sprite) {
+Creature::Creature(
+    CreatureType tile_type,
+    std::string desc,
+    Event player_collision_event,
+    Event enemy_collision_event,
+    Texture2D* sprite
+) : MapObject(
+    ObjectCategory::creature,
+    desc,
+    player_collision_event,
+    enemy_collision_event,
+    sprite
+    ) {
     type = tile_type;
 }
 
-Item::Item(ItemType tile_type, std::string desc, Texture2D* sprite)
-    : MapObject(ObjectCategory::item, desc, sprite) {
+Item::Item(
+    ItemType tile_type,
+    std::string desc,
+    Event player_collision_event,
+    Event enemy_collision_event,
+    Texture2D* sprite
+    ) : MapObject(
+    ObjectCategory::item,
+    desc,
+    player_collision_event,
+    enemy_collision_event,
+    sprite
+    ) {
     type = tile_type;
 }
 
@@ -215,6 +278,14 @@ bool GameMap::is_tile_blocked(Point tile) {
     return false;
 }
 
+bool GameMap::is_tile_occupied(int grid_index) {
+    return (grid[grid_index].size() > 1);
+}
+
+bool GameMap::is_tile_occupied(Point tile) {
+    return is_tile_occupied(tile_to_index(tile));
+}
+
 bool GameMap::object_in_tile(int grid_index, int object_id, int* tile_index) {
     std::vector<int>::iterator object_iterator;
     object_iterator = std::find(
@@ -227,6 +298,25 @@ bool GameMap::object_in_tile(int grid_index, int object_id, int* tile_index) {
 
     if (object_iterator == grid[grid_index].end()) return false;
     return true;
+}
+
+Event GameMap::get_tile_event(int grid_index, bool is_player_event) {
+    // Event tile_event;
+    // if (is_player_event) {
+    //     for (auto i: grid[grid_index]) {
+    //         tile_event = map_objects[i]->get_player_collision_event();
+    //     }
+    // }
+    // else {
+    //     for (auto i: grid[grid_index]) {
+    //         tile_event = map_objects[i]->get_enemy_collision_event();
+    //     }
+    // }
+    // return tile_event;
+    if (is_player_event)
+        return map_objects[grid[grid_index].back()]->get_player_collision_event();
+
+    return map_objects[grid[grid_index].back()]->get_enemy_collision_event();
 }
 
 void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
@@ -294,6 +384,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Item(
                     ItemType::entrance,
                     "entrance",
+                    Event::nothing,
+                    Event::nothing,
                     &AssetLoader::loader.sprites["entrance_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;
@@ -301,6 +393,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Creature(
                     CreatureType::player,
                     "player",
+                    Event::nothing,
+                    Event::fight,
                     &AssetLoader::loader.sprites["player_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;
@@ -311,6 +405,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Item(
                     ItemType::exit,
                     "exit",
+                    Event::exit_map,
+                    Event::nothing,
                     &AssetLoader::loader.sprites["exit_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;
@@ -321,6 +417,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Creature(
                     CreatureType::enemy,
                     "enemy",
+                    Event::fight,
+                    Event::nothing,
                     &AssetLoader::loader.sprites["enemy_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;
@@ -331,6 +429,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Item(
                     ItemType::treasure,
                     "treasure",
+                    Event::nothing,
+                    Event::nothing,
                     &AssetLoader::loader.sprites["treasure_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;
@@ -341,6 +441,8 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                 map_objects[current_map_object] = new Creature(
                     CreatureType::boss,
                     "boss",
+                    Event::fight,
+                    Event::nothing,
                     &AssetLoader::loader.sprites["boss_tile"]);
                 grid[i].push_back(current_map_object);
                 current_map_object++;

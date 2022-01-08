@@ -46,6 +46,12 @@ enum class ItemType
     trap
 };
 
+enum class Event {
+    nothing,
+    exit_map,
+    fight
+};
+
 class MapObject {
 private:
     bool has_texture;
@@ -53,12 +59,31 @@ private:
 
 protected:
     ObjectCategory category;
+    Event player_collision_event;
+    // This theoretically also affects boss, but it doesn't move so whatever
+    Event enemy_collision_event;
 
 public:
     std::string description;
     ObjectCategory get_category();
+    Event get_player_collision_event();
+    Event get_enemy_collision_event();
     MapObject(ObjectCategory cat, std::string desc);
     MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite);
+    MapObject(
+        ObjectCategory cat,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event,
+        Texture2D* sprite
+    );
+    // The same as previous, but same collision event will get assigned to both
+    MapObject(
+        ObjectCategory cat,
+        std::string desc,
+        Event collision_event,
+        Texture2D* sprite
+    );
 
     void draw(Vector2 pos);
 };
@@ -79,7 +104,13 @@ public:
 class Creature : public MapObject {
 public:
     CreatureType type;
-    Creature(CreatureType tile_type, std::string desc, Texture2D* sprite);
+    Creature(
+        CreatureType tile_type,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event,
+        Texture2D* sprite
+    );
 
     void update();
 };
@@ -87,7 +118,13 @@ public:
 class Item : public MapObject {
 public:
     ItemType type;
-    Item(ItemType tile_type, std::string desc, Texture2D* sprite);
+    Item(
+        ItemType tile_type,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event,
+        Texture2D* sprite
+    );
 };
 
 class GameMap {
@@ -137,12 +174,25 @@ public:
     Point get_player_tile();
     Point get_tile_size();
     Point get_map_size();
+
+    // Returns true if tile has obstacle in it or is abyss, false otherwise.
     bool is_tile_blocked(Point tile);
+
+    // Returns false if tile has only floor (e.g only one element in vector),
+    // true otherwise
+    bool is_tile_occupied(int grid_index);
+    bool is_tile_occupied(Point tile);
 
     // Search in tile for object with specific id. Returns success status,
     // overwrites provided tile_index with index of tile's element that contains
     // provided item (or with map_objects.end() - thats why bool exists there)
     bool object_in_tile(int grid_index, int object_id, int* tile_index);
+
+    // Returns last event in tile or Event::nothing. If is_player_event is set
+    // to true - searches for player events, else - for enemy events.
+    // TODO: remake it into function that returns vector of items, to support
+    // multiple events per tile (since these may and will occur)
+    Event get_tile_event(int grid_index, bool is_player_event);
 
     void move_object(int grid_index, int tile_index, int new_grid_index);
 
