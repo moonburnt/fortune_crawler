@@ -125,7 +125,7 @@ void Level::update(float dt) {
     }
 
     switch (current_event) {
-    case Event::nothing:
+    case Event::nothing: {
         if (is_player_turn) {
             bool move_player = false;
             Vector2 new_pos;
@@ -180,8 +180,9 @@ void Level::update(float dt) {
         // TODO: stub
         else change_turn();
         break;
+    }
 
-    case Event::exit_map:
+    case Event::exit_map: {
         draw_completion_screen = true;
         // Doing it there, coz completion msg may later include some dynamic
         // stats that may affect text position
@@ -190,11 +191,23 @@ void Level::update(float dt) {
             Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
         );
         break;
+    }
 
-    case Event::fight:
+    case Event::fight: {
         // TODO: stub
+
+        // Assuming that player has moved above enemy and deleting object that
+        // should reffer to enemy. Hopefully. This is a really nasty placeholder
+        // that may break due to circuimstances. But it will do for now. TODO.
+        int current_tile_id = map->tile_to_index(player_tile);
+        map->delete_object(
+            current_tile_id,
+            map->get_tile_elements_amount(current_tile_id)-2,
+            true);
+
         current_event = Event::nothing;
         break;
+    }
 
     default: break;
     }

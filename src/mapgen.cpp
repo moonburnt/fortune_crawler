@@ -131,17 +131,6 @@ GameMap::GameMap(
     , grid_size(_grid.size())
     , map_objects(_map_objects)
     , grid(_grid) {
-    for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
-        for (auto item : grid[current_tile]) {
-            if (map_objects[item]->get_category() == ObjectCategory::creature) {
-                // Boss should be stationary
-                if (static_cast<Creature*>(map_objects[item])->type ==
-                    CreatureType::enemy)
-                    enemy_indices.push_back(current_tile);
-            }
-        }
-    }
-
     has_selected_pos = false;
 
     // This may act weirdly if player is not there, but that should happen
@@ -265,6 +254,10 @@ Point GameMap::get_map_size() {
     return map_size;
 }
 
+int GameMap::get_tile_elements_amount(int grid_index) {
+    return grid[grid_index].size();
+}
+
 bool GameMap::is_tile_blocked(Point tile) {
     int index = tile_to_index(tile);
 
@@ -324,6 +317,13 @@ void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
     // I think this will work?
     grid[grid_index].erase(grid[grid_index].begin() + tile_index);
     grid[new_grid_index].push_back(object_id);
+}
+
+void GameMap::delete_object(int grid_index, int tile_index, bool delete_from_storage) {
+    if (delete_from_storage) {
+        map_objects.erase(grid[grid_index][tile_index]);
+    }
+    grid[grid_index].erase(grid[grid_index].begin() + tile_index);
 }
 
 void GameMap::select_tile(Point tile) {

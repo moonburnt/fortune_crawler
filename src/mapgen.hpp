@@ -142,8 +142,6 @@ private:
     int exit_id;
 
 public:
-    std::vector<int> enemy_indices;
-
     GameMap(
         Point map_size,
         Point tile_size,
@@ -175,6 +173,8 @@ public:
     Point get_tile_size();
     Point get_map_size();
 
+    int get_tile_elements_amount(int grid_index);
+
     // Returns true if tile has obstacle in it or is abyss, false otherwise.
     bool is_tile_blocked(Point tile);
 
@@ -194,7 +194,13 @@ public:
     // multiple events per tile (since these may and will occur)
     Event get_tile_event(int grid_index, bool is_player_event);
 
+    // Move object from grid[grid_index][tile_index] to grid[new_grid_index]
     void move_object(int grid_index, int tile_index, int new_grid_index);
+
+    // Delete object from grid[grid_index][tile_index].
+    // If delete_from_storage is set to true - also delete from map_objects.
+    // This is a thing, coz same object may appear on multiple tiles - floors, etc.
+    void delete_object(int grid_index, int tile_index, bool delete_from_storage);
 
     // Set specified tile to be highlighted
     void select_tile(Point tile);
