@@ -118,37 +118,65 @@ Item::Item(
     type = tile_type;
 }
 
-GameMap::GameMap(
-    Point _map_size,
-    Point _tile_size,
-    std::unordered_map<int, MapObject*> _map_objects,
-    std::vector<std::vector<int>> _grid)
-    : map_real_size(
-          {static_cast<float>(_map_size.x * _tile_size.x),
-           static_cast<float>(_map_size.y * _tile_size.y)})
-    , map_size(_map_size)
-    , tile_size(_tile_size)
-    , grid_size(_grid.size())
-    , map_objects(_map_objects)
-    , grid(_grid) {
+GameMap::GameMap(Point _map_size, Point _tile_size):
+    map_size(_map_size), tile_size(_tile_size) {
+    grid_size = map_size.x * map_size.y;
+    map_real_size = Vector2{
+        static_cast<float>(map_size.x*tile_size.x),
+        static_cast<float>(map_size.y*tile_size.y)
+    };
+    map_objects_amount = 0;
+
+    // There may be a better way to do that
+    grid = {};
+    for (size_t i = 0; i < grid_size; i++) {
+        grid.push_back({});
+    };
+
     has_selected_pos = false;
+}
 
-    // This may act weirdly if player is not there, but that should happen
-    // TODO: rework mapgen, to remove the need to iterate through objects again
-    for (auto& kv : map_objects) {
-        if (kv.second->get_category() == ObjectCategory::creature &&
-            static_cast<Creature*>(kv.second)->type == CreatureType::player) {
-            player_id = kv.first;
-            // break;
+
+void GameMap::place_object(int grid_index, int object_id) {
+    grid[grid_index].push_back(object_id);
+}
+
+int GameMap::add_object(MapObject* object) {
+    map_objects[map_objects_amount] = object;
+
+    // some additional checks, that may be removed from here later
+    if (object->get_category() == ObjectCategory::creature &&
+        static_cast<Creature*>(object)->type == CreatureType::player) {
+            player_id = map_objects_amount;
         }
-        else if (
-            kv.second->get_category() == ObjectCategory::item &&
-            static_cast<Item*>(kv.second)->type == ItemType::exit
+    else if (
+            object->get_category() == ObjectCategory::item &&
+            static_cast<Item*>(object)->type == ItemType::exit
             ) {
-            exit_id = kv.first;
+            exit_id = map_objects_amount;
         }
-    }
 
+    map_objects_amount++;
+    return map_objects_amount-1;
+}
+
+int GameMap::add_object(MapObject* object, int grid_index) {
+    int object_id = add_object(object);
+    place_object(grid_index, object_id);
+    return object_id;
+}
+
+void GameMap::delete_object(int grid_index, int tile_index, bool delete_from_storage) {
+    if (delete_from_storage) {
+        map_objects.erase(grid[grid_index][tile_index]);
+    }
+    grid[grid_index].erase(grid[grid_index].begin() + tile_index);
+}
+
+void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
+    int object_id = grid[grid_index][tile_index];
+    delete_object(grid_index, tile_index, false);
+    place_object(new_grid_index, object_id);
 }
 
 int GameMap::get_player_id() {
@@ -232,6 +260,7 @@ Point GameMap::get_player_tile() {
     bool player_found = false;
 
     for (auto index = 0u; index < grid_size; index++) {
+        if (player_found) break;
         for (auto tile_i : grid[index]) {
             if (player_found) break;
 
@@ -312,20 +341,6 @@ Event GameMap::get_tile_event(int grid_index, bool is_player_event) {
     return map_objects[grid[grid_index].back()]->get_enemy_collision_event();
 }
 
-void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
-    int object_id = grid[grid_index][tile_index];
-    // I think this will work?
-    grid[grid_index].erase(grid[grid_index].begin() + tile_index);
-    grid[new_grid_index].push_back(object_id);
-}
-
-void GameMap::delete_object(int grid_index, int tile_index, bool delete_from_storage) {
-    if (delete_from_storage) {
-        map_objects.erase(grid[grid_index][tile_index]);
-    }
-    grid[grid_index].erase(grid[grid_index].begin() + tile_index);
-}
-
 void GameMap::select_tile(Point tile) {
     selected_pos.x = tile.x * tile_size.x;
     selected_pos.y = tile.y * tile_size.y;
@@ -341,7 +356,6 @@ void GameMap::draw() {
         for (auto item : grid[current_tile]) {
             map_objects[item]->draw(index_to_vec(current_tile));
         }
-
         if (SHOW_GRID) {
             Vector2 vec = index_to_vec(current_tile);
             DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
@@ -360,98 +374,107 @@ void GameMap::draw() {
 GameMap* generate_map(Image map_file, Point tile_size) {
     Point map_size = {map_file.width, map_file.height};
 
-    std::vector<std::vector<int>> grid;
-    std::unordered_map<int, MapObject*> map_objects;
+    GameMap* gm = new GameMap(map_size, tile_size);
 
-    map_objects[0] = new Floor();
-    map_objects[1] =
-        new Floor(FloorType::floor, "floor", &AssetLoader::loader.sprites["floor_tile"]);
-    int current_map_object = map_objects.size();
+    int abyss_id = gm->add_object(new Floor());
+    int floor_id = gm->add_object(
+        new Floor(FloorType::floor, "floor", &AssetLoader::loader.sprites["floor_tile"])
+    );
 
-    int i = 0;
-
+    int grid_index = 0;
     for (auto current_x = 0; current_x < map_size.x; current_x++) {
         for (auto current_y = 0; current_y < map_size.y; current_y++) {
-            grid.push_back({});
             int pix_color = ColorToInt(GetImageColor(map_file, current_x, current_y));
 
             if (pix_color == ColorToInt(Color{203, 219, 252, 255})) {
-                grid[i].push_back({1});
+                gm->place_object(grid_index, floor_id);
             }
             else if (pix_color == ColorToInt(Color{0, 255, 9, 255})) {
-                grid[i].push_back({1});
-
-                map_objects[current_map_object] = new Item(
-                    ItemType::entrance,
-                    "entrance",
-                    Event::nothing,
-                    Event::nothing,
-                    &AssetLoader::loader.sprites["entrance_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
-
-                map_objects[current_map_object] = new Creature(
-                    CreatureType::player,
-                    "player",
-                    Event::nothing,
-                    Event::fight,
-                    &AssetLoader::loader.sprites["player_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
+                gm->place_object(grid_index, floor_id);
+                gm->add_object(
+                    new Item(
+                        ItemType::entrance,
+                        "entrance",
+                        Event::nothing,
+                        Event::nothing,
+                        &AssetLoader::loader.sprites["entrance_tile"]
+                    ),
+                    grid_index
+                );
+                gm->add_object(
+                    new Creature(
+                        CreatureType::player,
+                        "player",
+                        Event::nothing,
+                        Event::fight,
+                        &AssetLoader::loader.sprites["player_tile"]
+                    ),
+                    grid_index
+                );
             }
             else if (pix_color == ColorToInt(Color{0, 242, 255, 255})) {
-                grid[i].push_back({1});
+                gm->place_object(grid_index, floor_id);
 
-                map_objects[current_map_object] = new Item(
-                    ItemType::exit,
-                    "exit",
-                    Event::exit_map,
-                    Event::nothing,
-                    &AssetLoader::loader.sprites["exit_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
+                gm->add_object(
+                    new Item(
+                        ItemType::exit,
+                        "exit",
+                        Event::exit_map,
+                        Event::nothing,
+                        &AssetLoader::loader.sprites["exit_tile"]
+                    ),
+                    grid_index
+                );
             }
             else if (pix_color == ColorToInt(Color{255, 0, 0, 255})) {
-                grid[i].push_back({1});
+                gm->place_object(grid_index, floor_id);
 
-                map_objects[current_map_object] = new Creature(
-                    CreatureType::enemy,
-                    "enemy",
-                    Event::fight,
-                    Event::nothing,
-                    &AssetLoader::loader.sprites["enemy_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
+                gm->add_object(
+                    new Creature(
+                        CreatureType::enemy,
+                        "enemy",
+                        Event::fight,
+                        Event::nothing,
+                        &AssetLoader::loader.sprites["enemy_tile"]
+                    ),
+                    grid_index
+                );
             }
             else if (pix_color == ColorToInt(Color{255, 233, 0, 255})) {
-                grid[i].push_back({1});
+                gm->place_object(grid_index, floor_id);
 
-                map_objects[current_map_object] = new Item(
-                    ItemType::treasure,
-                    "treasure",
-                    Event::nothing,
-                    Event::nothing,
-                    &AssetLoader::loader.sprites["treasure_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
+                gm->add_object(
+                    new Item(
+                        ItemType::treasure,
+                        "treasure",
+                        Event::nothing,
+                        Event::nothing,
+                        &AssetLoader::loader.sprites["treasure_tile"]
+                    ),
+                    grid_index
+                );
             }
             else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
-                grid[i].push_back({1});
+                gm->place_object(grid_index, floor_id);
 
-                map_objects[current_map_object] = new Creature(
-                    CreatureType::boss,
-                    "boss",
-                    Event::fight,
-                    Event::nothing,
-                    &AssetLoader::loader.sprites["boss_tile"]);
-                grid[i].push_back(current_map_object);
-                current_map_object++;
+                gm->add_object(
+                    new Creature(
+                        CreatureType::boss,
+                        "boss",
+                        Event::fight,
+                        Event::nothing,
+                        &AssetLoader::loader.sprites["boss_tile"]
+                    ),
+                    grid_index
+                );
             }
-            else grid[i].push_back({0});
+            else {
+                gm->place_object(grid_index, abyss_id);
+            }
 
-            i++;
+            grid_index++;
         }
     }
 
-    return new GameMap(map_size, tile_size, map_objects, grid);
+    return gm;
 }

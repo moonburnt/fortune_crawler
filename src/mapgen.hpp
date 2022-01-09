@@ -134,6 +134,8 @@ private:
     Point tile_size;
     size_t grid_size;
     std::unordered_map<int, MapObject*> map_objects;
+    // This shouldn't be changed on removal of older objects, I think
+    int map_objects_amount;
     std::vector<std::vector<int>> grid;
     bool has_selected_pos;
     Vector2 selected_pos;
@@ -142,11 +144,33 @@ private:
     int exit_id;
 
 public:
+    // New init, that should be used in newer mapgen versions
     GameMap(
         Point map_size,
-        Point tile_size,
-        std::unordered_map<int, MapObject*> map_objects,
-        std::vector<std::vector<int>> grid);
+        Point tile_size);
+
+    // New init to be used on cross-map transition.
+    // GameMap(
+    //     Point map_size,
+    //     Point tile_size,
+    //     MapObject* player_object);
+
+    // Place specific object from storage on specified space, without removing it
+    // from any other place. May be used to spawn items and to place items that
+    // may exist on multiple tiles at once, such as floor.
+    void place_object(int grid_index, int object_id);
+    // Add new object to map_objects storage. Returns object id
+    int add_object(MapObject* object);
+    // Overload that automatically places object to specified tile
+    int add_object(MapObject* object, int grid_index);
+
+    // Delete object from grid[grid_index][tile_index].
+    // If delete_from_storage is set to true - also delete from map_objects.
+    // This is a thing, coz same object may appear on multiple tiles - floors, etc.
+    void delete_object(int grid_index, int tile_index, bool delete_from_storage);
+
+    // Move object from grid[grid_index][tile_index] to grid[new_grid_index]
+    void move_object(int grid_index, int tile_index, int new_grid_index);
 
     int get_player_id();
     int get_exit_id();
@@ -193,14 +217,6 @@ public:
     // TODO: remake it into function that returns vector of items, to support
     // multiple events per tile (since these may and will occur)
     Event get_tile_event(int grid_index, bool is_player_event);
-
-    // Move object from grid[grid_index][tile_index] to grid[new_grid_index]
-    void move_object(int grid_index, int tile_index, int new_grid_index);
-
-    // Delete object from grid[grid_index][tile_index].
-    // If delete_from_storage is set to true - also delete from map_objects.
-    // This is a thing, coz same object may appear on multiple tiles - floors, etc.
-    void delete_object(int grid_index, int tile_index, bool delete_from_storage);
 
     // Set specified tile to be highlighted
     void select_tile(Point tile);
