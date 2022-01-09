@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "scenes.hpp"
 #include "utility.hpp"
+#include "ui.hpp"
 #include <string>
 
 class Level : public Scene {
@@ -46,12 +47,14 @@ private:
 
     Rectangle left_bg;
     Rectangle right_bg;
-    Rectangle event_screen_bg;
     Vector2 playground_vec_start;
     Vector2 playground_vec_end;
 
+    Rectangle event_screen_bg;
+    TextButton* next_level_button;
+    Button* close_event_screen_button;
+
     Event current_event;
-    bool draw_completion_screen;
 
     // Initial camera configuration. Must be only used during init
     void set_camera();
@@ -74,6 +77,7 @@ private:
 
 public:
     Level();
+    ~Level();
 
     void update(float dt) override;
     void draw() override;

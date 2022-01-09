@@ -1,5 +1,6 @@
 #include "level.hpp"
 #include "utility.hpp"
+#include "loader.hpp"
 
 #include <raylib.h>
 
@@ -70,7 +71,44 @@ void Level::configure_hud() {
         center_text_h(player_tile_text + "00 x 00", left_bg.x + left_bg.width / 2);
     player_tile_text_pos.y = GetScreenHeight() - 50;
 
-    completion_msg = "You've won!";
+    completion_msg = "Level Completed!";
+    completion_msg_pos = center_text(
+        completion_msg,
+        Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
+    );
+
+    next_level_button = new TextButton(
+        &AssetLoader::loader.sprites["button_default"],
+        &AssetLoader::loader.sprites["button_hover"],
+        &AssetLoader::loader.sprites["button_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 256, 64},
+        "Go Deeper!"
+    );
+    next_level_button->set_pos(
+        Vector2{
+            GetScreenWidth()/2.0f - next_level_button->get_rect().width / 2,
+            GetScreenHeight()/2.0f + 200
+        }
+    );
+
+    close_event_screen_button = new Button(
+        &AssetLoader::loader.sprites["cross_default"],
+        &AssetLoader::loader.sprites["cross_hover"],
+        &AssetLoader::loader.sprites["cross_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 64, 64}
+    );
+
+    close_event_screen_button->set_pos(
+        Vector2{
+            event_screen_bg.x + event_screen_bg.width -
+            close_event_screen_button->get_rect().width,
+            event_screen_bg.y
+        }
+    );
 }
 
 void Level::configure_new_map() {
@@ -81,7 +119,6 @@ void Level::configure_new_map() {
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
     current_event = Event::nothing;
-    draw_completion_screen = false;
     last_selected_tile = -1;
     change_turn();
 }
@@ -90,6 +127,13 @@ Level::Level() {
     configure_hud();
     map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     configure_new_map();
+}
+
+Level::~Level() {
+    delete next_level_button;
+    delete close_event_screen_button;
+    delete map;
+    delete turn_switch_timer;
 }
 
 void Level::change_map() {
@@ -200,20 +244,22 @@ void Level::update(float dt) {
     }
 
     case Event::exit_map: {
-        // temporarily commented completion screen-related shenanigans out.
-
         // TODO: add details to completion screen (amount of turns made, enemies
-        // killed, etc); add button to click in order to proceed further.
+        // killed, etc)
+        next_level_button->update();
+        close_event_screen_button->update();
 
-        // draw_completion_screen = true;
-        // // Doing it there, coz completion msg may later include some dynamic
-        // // stats that may affect text position
-        // completion_msg_pos = center_text(
-        //     completion_msg,
-        //     Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
-        // );
+        if (next_level_button->is_clicked()) {
+            change_map();
+            next_level_button->reset_state();
+            return;
+        }
 
-        change_map();
+        if (close_event_screen_button->is_clicked()) {
+            current_event=Event::nothing;
+            close_event_screen_button->reset_state();
+            return;
+        }
         break;
     }
 
@@ -261,17 +307,8 @@ void Level::draw() {
         DEFAULT_TEXT_SIZE,
         DEFAULT_TEXT_COLOR);
 
-    if (draw_completion_screen) {
-        DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
-        DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
-        DrawText(
-            completion_msg.c_str(),
-            completion_msg_pos.x, completion_msg_pos.y,
-            DEFAULT_TEXT_SIZE,
-            DEFAULT_TEXT_COLOR
-        );
-    }
-    else {
+    switch (current_event) {
+    case Event::nothing: {
     // I may want to move this above everything else in draw cycle
     // This isn't really efficient, may need some improvements. TODO
         Vector2 mouse_pos = GetMousePosition();
@@ -308,6 +345,24 @@ void Level::draw() {
             else map->deselect_tile();
         }
         else map->deselect_tile();
+        break;
+    }
+
+    case Event::exit_map: {
+        DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
+        DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
+        DrawText(
+            completion_msg.c_str(),
+            completion_msg_pos.x, completion_msg_pos.y,
+            DEFAULT_TEXT_SIZE,
+            DEFAULT_TEXT_COLOR
+        );
+        next_level_button->draw();
+        close_event_screen_button->draw();
+        break;
+    }
+
+    default: break;
     }
 
     DrawText(
