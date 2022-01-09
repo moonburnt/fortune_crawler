@@ -25,13 +25,7 @@ void Level::set_camera() {
     camera.rotation = 0.0f;
 }
 
-Level::Level() {
-    // TODO. Current version is but hardcoded placeholder
-    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
-    player_tile = map->get_player_tile();
-    player_pos = map->tile_to_vec(player_tile);
-    set_camera();
-
+void Level::configure_hud() {
     // Maybe I shouldnt do it like that. But for now, borders on sides should
     // make visible part of screen form a perfect rectangle.
     // This would obviously cause issues on rectangular/vertical screens.
@@ -77,7 +71,14 @@ Level::Level() {
     player_tile_text_pos.y = GetScreenHeight() - 50;
 
     completion_msg = "You've won!";
+}
 
+void Level::configure_new_map() {
+    // TODO. Current version is but hardcoded placeholder
+    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
+    player_tile = map->get_player_tile();
+    player_pos = map->tile_to_vec(player_tile);
+    set_camera();
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
@@ -85,6 +86,11 @@ Level::Level() {
     draw_completion_screen = false;
     last_selected_tile = -1;
     change_turn();
+}
+
+Level::Level() {
+    configure_hud();
+    configure_new_map();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {

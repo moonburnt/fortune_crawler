@@ -61,6 +61,11 @@ private:
 
     void change_turn();
 
+    // Set new map and apply related changes. This should be called to switch the map
+    void configure_new_map();
+    // Configure interface parts. This should be called on screen resize
+    void configure_hud();
+
     // Returns true if vec is not on side screens, false otherwise
     bool is_vec_on_playground(Vector2 vec);
 
