@@ -144,16 +144,7 @@ private:
     int exit_id;
 
 public:
-    // New init, that should be used in newer mapgen versions
-    GameMap(
-        Point map_size,
-        Point tile_size);
-
-    // New init to be used on cross-map transition.
-    // GameMap(
-    //     Point map_size,
-    //     Point tile_size,
-    //     MapObject* player_object);
+    GameMap(Point map_size, Point tile_size);
 
     // Place specific object from storage on specified space, without removing it
     // from any other place. May be used to spawn items and to place items that
@@ -199,6 +190,11 @@ public:
 
     int get_tile_elements_amount(int grid_index);
 
+    // Get object with specified id
+    MapObject* get_object(int object_id);
+    // Overload to get object from specific grid/tile
+    MapObject* get_object(int grid_index, int tile_index);
+
     // Returns true if tile has obstacle in it or is abyss, false otherwise.
     bool is_tile_blocked(Point tile);
 
@@ -226,3 +222,4 @@ public:
 };
 
 GameMap* generate_map(Image map_file, Point tile_size);
+GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object);

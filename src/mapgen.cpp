@@ -287,6 +287,14 @@ int GameMap::get_tile_elements_amount(int grid_index) {
     return grid[grid_index].size();
 }
 
+MapObject* GameMap::get_object(int object_id) {
+    return map_objects[object_id];
+}
+
+MapObject* GameMap::get_object(int grid_index, int tile_index) {
+    return get_object(grid[grid_index][tile_index]);
+}
+
 bool GameMap::is_tile_blocked(Point tile) {
     int index = tile_to_index(tile);
 
@@ -371,7 +379,7 @@ void GameMap::draw() {
             BLACK);
 }
 
-GameMap* generate_map(Image map_file, Point tile_size) {
+GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object) {
     Point map_size = {map_file.width, map_file.height};
 
     GameMap* gm = new GameMap(map_size, tile_size);
@@ -402,13 +410,7 @@ GameMap* generate_map(Image map_file, Point tile_size) {
                     grid_index
                 );
                 gm->add_object(
-                    new Creature(
-                        CreatureType::player,
-                        "player",
-                        Event::nothing,
-                        Event::fight,
-                        &AssetLoader::loader.sprites["player_tile"]
-                    ),
+                    player_object,
                     grid_index
                 );
             }
@@ -478,3 +480,16 @@ GameMap* generate_map(Image map_file, Point tile_size) {
 
     return gm;
 }
+
+GameMap* generate_map(Image map_file, Point tile_size) {
+    MapObject* player_object = new Creature(
+        CreatureType::player,
+        "player",
+        Event::nothing,
+        Event::fight,
+        &AssetLoader::loader.sprites["player_tile"]
+    );
+
+    return generate_map(map_file, tile_size, player_object);
+}
+

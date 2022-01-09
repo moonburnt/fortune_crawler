@@ -74,8 +74,6 @@ void Level::configure_hud() {
 }
 
 void Level::configure_new_map() {
-    // TODO. Current version is but hardcoded placeholder
-    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
     player_tile = map->get_player_tile();
     player_pos = map->tile_to_vec(player_tile);
     set_camera();
@@ -90,6 +88,19 @@ void Level::configure_new_map() {
 
 Level::Level() {
     configure_hud();
+    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
+    configure_new_map();
+}
+
+void Level::change_map() {
+    // TODO: randomly pick map from list of available in maps/
+    int player_id = map->get_player_id();
+    MapObject* player_obj = map->get_object(player_id);
+    map = generate_map(
+        LoadImage("maps/map_0.png"),
+        Point{32, 32},
+        player_obj
+    );
     configure_new_map();
 }
 
@@ -189,13 +200,20 @@ void Level::update(float dt) {
     }
 
     case Event::exit_map: {
-        draw_completion_screen = true;
-        // Doing it there, coz completion msg may later include some dynamic
-        // stats that may affect text position
-        completion_msg_pos = center_text(
-            completion_msg,
-            Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
-        );
+        // temporarily commented completion screen-related shenanigans out.
+
+        // TODO: add details to completion screen (amount of turns made, enemies
+        // killed, etc); add button to click in order to proceed further.
+
+        // draw_completion_screen = true;
+        // // Doing it there, coz completion msg may later include some dynamic
+        // // stats that may affect text position
+        // completion_msg_pos = center_text(
+        //     completion_msg,
+        //     Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
+        // );
+
+        change_map();
         break;
     }
 
