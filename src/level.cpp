@@ -112,6 +112,13 @@ void Level::configure_hud() {
 }
 
 void Level::configure_new_map() {
+    dungeon_lvl++;
+    dungeon_lvl_title = TextFormat("Dungeon Level: %i", dungeon_lvl);
+    dungeon_lvl_title_pos = Vector2{
+        static_cast<float>(
+            center_text_h(dungeon_lvl_title, right_bg.x + right_bg.width / 2)),
+        30};
+
     player_tile = map->get_player_tile();
     player_pos = map->tile_to_vec(player_tile);
     set_camera();
@@ -126,6 +133,7 @@ void Level::configure_new_map() {
 Level::Level() {
     configure_hud();
     map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
+    dungeon_lvl = 0;
     configure_new_map();
 }
 
@@ -159,7 +167,7 @@ void Level::change_turn() {
         turn_title_pos = {
             static_cast<float>(
                 center_text_h(turn_title, right_bg.x + right_bg.width / 2)),
-            50};
+            70};
     }
     else {
         is_player_turn = true;
@@ -167,14 +175,14 @@ void Level::change_turn() {
         turn_title_pos = {
             static_cast<float>(
                 center_text_h(turn_title, right_bg.x + right_bg.width / 2)),
-            50};
+            70};
         // This may backfire on multiple players
         current_turn++;
         turn_num_title = TextFormat("Current Turn: %i", current_turn);
         turn_num_title_pos = {
             static_cast<float>(
                 center_text_h(turn_num_title, right_bg.x + right_bg.width / 2)),
-            30};
+            50};
     }
     turn_switch_timer->start();
 }
@@ -294,6 +302,12 @@ void Level::draw() {
     DrawRectangleRec(right_bg, SIDE_BG_COLOR);
     DrawLine(right_bg.x, right_bg.y, right_bg.x, right_bg.height, CORNER_COLOR);
 
+    DrawText(
+        dungeon_lvl_title.c_str(),
+        dungeon_lvl_title_pos.x,
+        dungeon_lvl_title_pos.y,
+        DEFAULT_TEXT_SIZE,
+        DEFAULT_TEXT_COLOR);
     DrawText(
         turn_num_title.c_str(),
         turn_num_title_pos.x,

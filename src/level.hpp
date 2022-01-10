@@ -14,6 +14,8 @@ private:
     int current_turn;
     bool is_player_turn;
 
+    int dungeon_lvl;
+
     std::string turn_title;
     Vector2 turn_title_pos;
 
@@ -38,6 +40,9 @@ private:
 
     std::string completion_msg;
     Vector2 completion_msg_pos;
+
+    std::string dungeon_lvl_title;
+    Vector2 dungeon_lvl_title_pos;
 
     Timer* turn_switch_timer;
 
