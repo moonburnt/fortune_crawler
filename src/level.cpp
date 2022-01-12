@@ -11,6 +11,7 @@ static constexpr float CAMERA_ZOOM = 2.0f;
 
 static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
 static constexpr Color CORNER_COLOR{34, 32, 52, 255};
+static constexpr Color BG_COLOR{63, 63, 116, 255};
 
 void Level::center_camera() {
     camera.target = player_pos;
@@ -130,7 +131,7 @@ void Level::configure_new_map() {
     change_turn();
 }
 
-Level::Level() {
+Level::Level(): Scene(BG_COLOR) {
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 0;

@@ -11,6 +11,9 @@
 #include <string>
 #include <vector>
 
+Scene::Scene(Color _bg_color) : bg_color(_bg_color) {};
+Scene::Scene() : bg_color(Color{ 245, 245, 245, 255 }) {};
+
 SceneManager SceneManager::sc_mgr;
 
 // There are two ways to work with scenes: to add scene manually each time,
@@ -33,7 +36,7 @@ void SceneManager::run_update_loop() {
         current_scene->update(dt);
 
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(current_scene->bg_color);
         current_scene->draw();
 
         // Maybe I should store it somewhere?

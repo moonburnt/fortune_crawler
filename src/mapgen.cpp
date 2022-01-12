@@ -362,6 +362,8 @@ void GameMap::deselect_tile() {
 }
 
 void GameMap::draw() {
+    DrawRectangle(0, 0, map_real_size.x, map_real_size.y, RAYWHITE);
+
     for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
             map_objects[item]->draw(index_to_vec(current_tile));

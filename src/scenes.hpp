@@ -1,5 +1,7 @@
 #pragma once
 
+#include "raylib.h"
+
 // Scene is an abstract class that can't be instantiated directly, but can be
 // subclassed. This is how we do ABC interfaces in c++
 // In this case its located in header, coz SceneManager needs it
@@ -11,6 +13,11 @@ public:
 
     // This is a scene's destructor. Which can be overriden, but not necessary.
     virtual ~Scene() = default;
+
+    Color bg_color;
+
+    Scene();
+    Scene(Color bg_color);
 };
 
 class SceneManager {
