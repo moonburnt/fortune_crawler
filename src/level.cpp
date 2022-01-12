@@ -132,7 +132,7 @@ void Level::configure_new_map() {
 
 Level::Level() {
     configure_hud();
-    map = generate_map(LoadImage("maps/map_0.png"), Point{32, 32});
+    map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 0;
     configure_new_map();
 }
@@ -149,7 +149,7 @@ void Level::change_map() {
     int player_id = map->get_player_id();
     MapObject* player_obj = map->get_object(player_id);
     map = generate_map(
-        LoadImage("maps/map_0.png"),
+        AssetLoader::loader.load_random_map(),
         Point{32, 32},
         player_obj
     );
