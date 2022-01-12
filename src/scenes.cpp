@@ -2,17 +2,19 @@
 #include "level.hpp"
 #include "loader.hpp"
 #include "mapgen.hpp"
+#include "settings.hpp"
 #include "ui.hpp"
 #include "utility.hpp"
-#include "settings.hpp"
 
 #include "raylib.h"
 
 #include <string>
 #include <vector>
 
-Scene::Scene(Color _bg_color) : bg_color(_bg_color) {};
-Scene::Scene() : bg_color(Color{ 245, 245, 245, 255 }) {};
+Scene::Scene(Color _bg_color)
+    : bg_color(_bg_color){};
+Scene::Scene()
+    : bg_color(Color{245, 245, 245, 255}){};
 
 SceneManager SceneManager::sc_mgr;
 

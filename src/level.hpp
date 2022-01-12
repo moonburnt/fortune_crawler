@@ -3,8 +3,8 @@
 #include "mapgen.hpp"
 #include "raylib.h"
 #include "scenes.hpp"
-#include "utility.hpp"
 #include "ui.hpp"
+#include "utility.hpp"
 #include <string>
 
 class Level : public Scene {

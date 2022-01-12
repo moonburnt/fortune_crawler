@@ -46,7 +46,8 @@ enum class ItemType
     trap
 };
 
-enum class Event {
+enum class Event
+{
     nothing,
     exit_map,
     fight
@@ -75,15 +76,10 @@ public:
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event,
-        Texture2D* sprite
-    );
+        Texture2D* sprite);
     // The same as previous, but same collision event will get assigned to both
     MapObject(
-        ObjectCategory cat,
-        std::string desc,
-        Event collision_event,
-        Texture2D* sprite
-    );
+        ObjectCategory cat, std::string desc, Event collision_event, Texture2D* sprite);
 
     void draw(Vector2 pos);
 };
@@ -109,8 +105,7 @@ public:
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event,
-        Texture2D* sprite
-    );
+        Texture2D* sprite);
 
     void update();
 };
@@ -123,8 +118,7 @@ public:
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event,
-        Texture2D* sprite
-    );
+        Texture2D* sprite);
 };
 
 class GameMap {

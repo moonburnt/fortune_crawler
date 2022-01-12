@@ -2,7 +2,8 @@
 
 #include <unordered_map>
 
-enum class SettingsCategory {
+enum class SettingsCategory
+{
     standard,
     current,
     selected

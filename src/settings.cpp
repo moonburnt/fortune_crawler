@@ -26,4 +26,3 @@ bool SettingsManager::get_show_fps() {
 bool SettingsManager::get_show_grid() {
     return show_grid[SettingsCategory::current];
 }
-

@@ -1,6 +1,6 @@
 #include "loader.hpp"
-#include "settings.hpp"
 #include "raylib.h"
+#include "settings.hpp"
 
 #include "scenes.hpp"
 

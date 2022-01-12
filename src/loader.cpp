@@ -1,7 +1,7 @@
 #include "loader.hpp"
 #include "raylib.h"
-#include <string>
 #include <cstdlib>
+#include <string>
 
 // static constexpr const char* SETTINGS_PATH = "./settings.json"; TODO: currently unused
 
@@ -28,8 +28,8 @@ void AssetLoader::load_sprites() {
     for (auto current = 0; current < amount; current++) {
         if (IsFileExtension(dir_files[current], SPRITE_FORMAT)) {
             std::string name_key(GetFileNameWithoutExt(dir_files[current]));
-            this->sprites[name_key] = LoadTexture(
-                (std::string(SPRITE_PATH) + dir_files[current]).c_str());
+            this->sprites[name_key] =
+                LoadTexture((std::string(SPRITE_PATH) + dir_files[current]).c_str());
         }
     }
 

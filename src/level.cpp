@@ -1,6 +1,6 @@
 #include "level.hpp"
-#include "utility.hpp"
 #include "loader.hpp"
+#include "utility.hpp"
 
 #include <raylib.h>
 
@@ -47,10 +47,10 @@ void Level::configure_hud() {
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    event_screen_bg.x = left_bg.width+30;
-    event_screen_bg.y = left_bg.y+30;
-    event_screen_bg.width = (GetScreenWidth() - left_bg.width*2)-60;
-    event_screen_bg.height = left_bg.height-60;
+    event_screen_bg.x = left_bg.width + 30;
+    event_screen_bg.y = left_bg.y + 30;
+    event_screen_bg.width = (GetScreenWidth() - left_bg.width * 2) - 60;
+    event_screen_bg.height = left_bg.height - 60;
 
     selected_tile_text = "Selected Tile: ";
     selected_tile_pos.x =
@@ -75,8 +75,7 @@ void Level::configure_hud() {
     completion_msg = "Level Completed!";
     completion_msg_pos = center_text(
         completion_msg,
-        Vector2{GetScreenWidth()/2.0f, GetScreenHeight()/2.0f}
-    );
+        Vector2{GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
 
     next_level_button = new TextButton(
         &AssetLoader::loader.sprites["button_default"],
@@ -85,14 +84,10 @@ void Level::configure_hud() {
         &AssetLoader::loader.sounds["button_hover"],
         &AssetLoader::loader.sounds["button_clicked"],
         Rectangle{0, 0, 256, 64},
-        "Go Deeper!"
-    );
-    next_level_button->set_pos(
-        Vector2{
-            GetScreenWidth()/2.0f - next_level_button->get_rect().width / 2,
-            GetScreenHeight()/2.0f + 200
-        }
-    );
+        "Go Deeper!");
+    next_level_button->set_pos(Vector2{
+        GetScreenWidth() / 2.0f - next_level_button->get_rect().width / 2,
+        GetScreenHeight() / 2.0f + 200});
 
     close_event_screen_button = new Button(
         &AssetLoader::loader.sprites["cross_default"],
@@ -100,16 +95,12 @@ void Level::configure_hud() {
         &AssetLoader::loader.sprites["cross_pressed"],
         &AssetLoader::loader.sounds["button_hover"],
         &AssetLoader::loader.sounds["button_clicked"],
-        Rectangle{0, 0, 64, 64}
-    );
+        Rectangle{0, 0, 64, 64});
 
-    close_event_screen_button->set_pos(
-        Vector2{
-            event_screen_bg.x + event_screen_bg.width -
+    close_event_screen_button->set_pos(Vector2{
+        event_screen_bg.x + event_screen_bg.width -
             close_event_screen_button->get_rect().width,
-            event_screen_bg.y
-        }
-    );
+        event_screen_bg.y});
 }
 
 void Level::configure_new_map() {
@@ -131,7 +122,8 @@ void Level::configure_new_map() {
     change_turn();
 }
 
-Level::Level(): Scene(BG_COLOR) {
+Level::Level()
+    : Scene(BG_COLOR) {
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 0;
@@ -149,16 +141,13 @@ void Level::change_map() {
     // TODO: randomly pick map from list of available in maps/
     int player_id = map->get_player_id();
     MapObject* player_obj = map->get_object(player_id);
-    map = generate_map(
-        AssetLoader::loader.load_random_map(),
-        Point{32, 32},
-        player_obj
-    );
+    map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32}, player_obj);
     configure_new_map();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {
-    return playground_vec_start.x < vec.x && vec.x < playground_vec_end.x && playground_vec_start.y < vec.y && vec.y < playground_vec_end.y;
+    return playground_vec_start.x < vec.x && vec.x < playground_vec_end.x &&
+        playground_vec_start.y < vec.y && vec.y < playground_vec_end.y;
 }
 
 void Level::change_turn() {
@@ -265,7 +254,7 @@ void Level::update(float dt) {
         }
 
         if (close_event_screen_button->is_clicked()) {
-            current_event=Event::nothing;
+            current_event = Event::nothing;
             close_event_screen_button->reset_state();
             return;
         }
@@ -281,14 +270,15 @@ void Level::update(float dt) {
         int current_tile_id = map->tile_to_index(player_tile);
         map->delete_object(
             current_tile_id,
-            map->get_tile_elements_amount(current_tile_id)-2,
+            map->get_tile_elements_amount(current_tile_id) - 2,
             true);
 
         current_event = Event::nothing;
         break;
     }
 
-    default: break;
+    default:
+        break;
     }
 }
 
@@ -324,8 +314,8 @@ void Level::draw() {
 
     switch (current_event) {
     case Event::nothing: {
-    // I may want to move this above everything else in draw cycle
-    // This isn't really efficient, may need some improvements. TODO
+        // I may want to move this above everything else in draw cycle
+        // This isn't really efficient, may need some improvements. TODO
         Vector2 mouse_pos = GetMousePosition();
         if (is_vec_on_playground(mouse_pos)) {
             Vector2 real_mouse_pos = GetScreenToWorld2D(mouse_pos, camera);
@@ -368,16 +358,17 @@ void Level::draw() {
         DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
         DrawText(
             completion_msg.c_str(),
-            completion_msg_pos.x, completion_msg_pos.y,
+            completion_msg_pos.x,
+            completion_msg_pos.y,
             DEFAULT_TEXT_SIZE,
-            DEFAULT_TEXT_COLOR
-        );
+            DEFAULT_TEXT_COLOR);
         next_level_button->draw();
         close_event_screen_button->draw();
         break;
     }
 
-    default: break;
+    default:
+        break;
     }
 
     DrawText(
