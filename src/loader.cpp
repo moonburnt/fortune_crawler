@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <string>
 
-// static constexpr const char* SETTINGS_PATH = "./settings.json"; TODO: currently unused
-
 #define ASSET_PATH "./Assets/"
 static constexpr const char* SPRITE_PATH = ASSET_PATH "Sprites/";
 static constexpr const char* SFX_PATH = ASSET_PATH "SFX/";

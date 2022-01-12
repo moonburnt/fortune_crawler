@@ -11,6 +11,10 @@ int main() {
     // Initialize audio device. This needs to be done before loading sounds.
     InitAudioDevice();
 
+    if (!SettingsManager::manager.load_settings()) {
+        SettingsManager::manager.save_settings();
+    }
+
     AssetLoader::loader.load_sprites();
     AssetLoader::loader.load_sounds();
     AssetLoader::loader.load_maps_list();
