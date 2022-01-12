@@ -4,6 +4,7 @@
 #include "mapgen.hpp"
 #include "ui.hpp"
 #include "utility.hpp"
+#include "settings.hpp"
 
 #include "raylib.h"
 
@@ -35,7 +36,10 @@ void SceneManager::run_update_loop() {
         ClearBackground(RAYWHITE);
         current_scene->draw();
 
-        if (show_fps) DrawText(TextFormat("FPS: %02i", GetFPS()), 1200, 4, 20, BLACK);
+        // Maybe I should store it somewhere?
+        if (SettingsManager::manager.get_show_fps()) {
+            DrawText(TextFormat("FPS: %02i", GetFPS()), 1200, 4, 20, BLACK);
+        }
         EndDrawing();
     }
 }
@@ -162,9 +166,6 @@ public:
 SceneManager::SceneManager() {
     // Setting current_scene to null, to avoid segfault below.
     current_scene = nullptr;
-    // "this" is cpp's version of "self"
-    // set_current_scene(new TitleScreen(this));
-    show_fps = true;
 
     active = true;
 }

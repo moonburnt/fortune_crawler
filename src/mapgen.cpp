@@ -1,5 +1,6 @@
 #include "mapgen.hpp"
 #include "loader.hpp"
+#include "settings.hpp"
 #include "raylib.h"
 #include <algorithm>
 #include <string>
@@ -9,8 +10,6 @@
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
-
-static constexpr bool SHOW_GRID = true; // TODO: move this to settings, make configurable
 
 static constexpr Color GRID_COLOR{63, 63, 116, 255};
 
@@ -367,7 +366,7 @@ void GameMap::draw() {
         for (auto item : grid[current_tile]) {
             map_objects[item]->draw(index_to_vec(current_tile));
         }
-        if (SHOW_GRID) {
+        if (SettingsManager::manager.get_show_grid()) {
             Vector2 vec = index_to_vec(current_tile);
             DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
         }
