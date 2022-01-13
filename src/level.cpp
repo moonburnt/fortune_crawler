@@ -318,7 +318,7 @@ void Level::draw() {
             if (map->is_vec_on_map(real_mouse_pos)) {
                 Point mtt = map->vec_to_tile(real_mouse_pos);
                 DrawText(
-                    TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.x, mtt.y),
+                    TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.y, mtt.x),
                     selected_tile_pos.x,
                     selected_tile_pos.y,
                     DEFAULT_TEXT_SIZE,
