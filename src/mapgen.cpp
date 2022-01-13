@@ -220,13 +220,10 @@ Vector2 GameMap::tile_to_vec(Point tile) {
 }
 
 Vector2 GameMap::index_to_vec(size_t index) {
-    index = std::clamp(index, 0lu, grid_size);
-
-    int x = index / map_size.x;
-    int y = index - x * map_size.x;
+    auto tile = index_to_tile(index);
     return Vector2{
-        static_cast<float>(x * tile_size.x),
-        static_cast<float>(y * tile_size.y)};
+        static_cast<float>(tile.x * tile_size.x),
+        static_cast<float>(tile.y * tile_size.y)};
 }
 
 int GameMap::vec_to_index(Vector2 vec) {
