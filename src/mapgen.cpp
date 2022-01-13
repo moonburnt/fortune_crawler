@@ -198,8 +198,8 @@ std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
 Point GameMap::index_to_tile(size_t index) {
     index = std::clamp(index, 0ul, grid_size);
 
-    int x = index / map_size.x;
-    int y = index - x * map_size.x;
+    int y = index / map_size.x;
+    int x = index % map_size.x;
     return Point{x, y};
 }
 
