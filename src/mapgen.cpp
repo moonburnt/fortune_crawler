@@ -249,7 +249,6 @@ Point GameMap::get_player_tile() {
     for (auto index = 0u; index < grid_size; index++) {
         if (player_found) break;
         for (auto tile_i = 0u; tile_i < grid[index].size(); tile_i++) {
-            if (player_found) break;
             if (grid[index][tile_i] == player_id) {
                 player_tile_index = index;
                 player_found = true;
