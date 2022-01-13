@@ -378,8 +378,8 @@ void Level::draw() {
         TextFormat(
             "%s%02i x %02i",
             player_tile_text.c_str(),
-            player_tile.x,
-            player_tile.y),
+            player_tile.y,
+            player_tile.x),
         player_tile_text_pos.x,
         player_tile_text_pos.y,
         DEFAULT_TEXT_SIZE,
