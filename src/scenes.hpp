@@ -26,7 +26,6 @@ class SceneManager {
 
 private:
     Scene* current_scene;
-    bool show_fps;
 
 public:
     SceneManager();

@@ -12,9 +12,12 @@
 #include <vector>
 
 Scene::Scene(Color _bg_color)
-    : bg_color(_bg_color){};
+    : bg_color(_bg_color) {
+}
+
 Scene::Scene()
-    : bg_color(Color{245, 245, 245, 255}){};
+    : bg_color(Color{245, 245, 245, 255}) {
+}
 
 SceneManager SceneManager::sc_mgr;
 
