@@ -204,7 +204,7 @@ Point GameMap::index_to_tile(size_t index) {
 }
 
 int GameMap::tile_to_index(Point pos) {
-    return std::clamp(static_cast<size_t>(pos.x * map_size.x + pos.y), 0lu, grid_size);
+    return std::clamp(static_cast<size_t>(pos.y * map_size.x + pos.x), 0lu, grid_size);
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
@@ -229,7 +229,7 @@ Vector2 GameMap::index_to_vec(size_t index) {
 int GameMap::vec_to_index(Vector2 vec) {
     int x = vec.x / tile_size.x;
     int y = vec.y / tile_size.y;
-    return std::clamp(static_cast<size_t>(x * map_size.x + y), 0lu, grid_size);
+    return std::clamp(static_cast<size_t>(y * map_size.x + x), 0lu, grid_size);
 }
 
 bool GameMap::is_vec_on_map(Vector2 vec) {
@@ -377,8 +377,8 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
         new Floor(FloorType::floor, "floor", &AssetLoader::loader.sprites["floor_tile"]));
 
     int grid_index = 0;
-    for (auto current_x = 0; current_x < map_size.x; current_x++) {
-        for (auto current_y = 0; current_y < map_size.y; current_y++) {
+    for (auto current_y = 0; current_y < map_size.y; current_y++) {
+        for (auto current_x = 0; current_x < map_size.x; current_x++) {
             int pix_color = ColorToInt(GetImageColor(map_file, current_x, current_y));
 
             if (pix_color == ColorToInt(Color{203, 219, 252, 255})) {
