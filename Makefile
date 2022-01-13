@@ -17,6 +17,9 @@ all: dir $(BUILD_DIR)/$(GAME_NAME)
 	cp -r $(ASSETS_DIR) $(BUILD_DIR)
 	cp -r $(MAPS_DIR) $(BUILD_DIR)
 
+debug: CFLAGS += -ggdb -O0
+debug: all
+
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -35,4 +38,4 @@ check-format:
 format:
 	find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
 
-.PHONY: dir clean format check-format
+.PHONY: dir clean format check-format debug

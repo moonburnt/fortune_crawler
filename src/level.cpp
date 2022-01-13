@@ -187,27 +187,23 @@ void Level::update(float dt) {
     case Event::nothing: {
         if (is_player_turn) {
             bool move_player = false;
-            Vector2 new_pos;
+            Vector2 new_pos = player_pos;
             if (IsKeyDown(KEY_UP)) {
-                new_pos = player_pos;
                 new_pos.y -= map->get_tile_size().y;
                 if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
                 else new_pos = player_pos;
             }
             else if (IsKeyDown(KEY_DOWN)) {
-                new_pos = player_pos;
                 new_pos.y += map->get_tile_size().y;
                 if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
                 else new_pos = player_pos;
             }
             else if (IsKeyDown(KEY_LEFT)) {
-                new_pos = player_pos;
                 new_pos.x -= map->get_tile_size().x;
                 if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
                 else new_pos = player_pos;
             }
             else if (IsKeyDown(KEY_RIGHT)) {
-                new_pos = player_pos;
                 new_pos.x += map->get_tile_size().x;
                 if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
                 else new_pos = player_pos;
@@ -322,7 +318,7 @@ void Level::draw() {
             if (map->is_vec_on_map(real_mouse_pos)) {
                 Point mtt = map->vec_to_tile(real_mouse_pos);
                 DrawText(
-                    TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.x, mtt.y),
+                    TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.y, mtt.x),
                     selected_tile_pos.x,
                     selected_tile_pos.y,
                     DEFAULT_TEXT_SIZE,
