@@ -1,6 +1,7 @@
 #pragma once
 
 #include "raylib.h"
+#include "ui.hpp"
 
 // Scene is an abstract class that can't be instantiated directly, but can be
 // subclassed. This is how we do ABC interfaces in c++
@@ -40,4 +41,28 @@ public:
 
     // Default instance of scene manager
     static SceneManager sc_mgr;
+};
+
+// We've moved MainMenu type definition there to deal with cross-references to it
+// from "back" buttons of submenus, which caused issues
+class MainMenu : public Scene {
+private:
+    SceneManager* parent;
+    TextButton* exit_button;
+    TextButton* start_button;
+    TextButton* settings_button;
+
+    void call_exit();
+    void start_game();
+    void open_settings();
+
+public:
+    MainMenu(SceneManager* p);
+
+    void update(float) override;
+
+    void draw() override;
+
+    // MainMenu's destructor, will get called on delete of MainMenu instance
+    ~MainMenu();
 };

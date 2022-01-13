@@ -8,10 +8,7 @@ SettingsManager SettingsManager::manager;
 
 void SettingsManager::reset_to_defaults() {
     show_fps[SettingsCategory::current] = show_fps[SettingsCategory::standard];
-    show_fps[SettingsCategory::selected] = show_fps[SettingsCategory::standard];
-
     show_grid[SettingsCategory::current] = show_grid[SettingsCategory::standard];
-    show_grid[SettingsCategory::selected] = show_grid[SettingsCategory::standard];
 }
 
 SettingsManager::SettingsManager() {
@@ -80,4 +77,12 @@ bool SettingsManager::get_show_fps() {
 
 bool SettingsManager::get_show_grid() {
     return show_grid[SettingsCategory::current];
+}
+
+void SettingsManager::set_show_fps(bool value) {
+    show_fps[SettingsCategory::current] = value;
+}
+
+void SettingsManager::set_show_grid(bool value) {
+    show_grid[SettingsCategory::current] = value;
 }

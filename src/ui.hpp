@@ -17,6 +17,8 @@ class Button {
 protected:
     // Button position. Hitbox will always appear at center of it
     Vector2 pos;
+    // State is current button state
+    ButtonStates state;
 
 private:
     // Texture2D* textures[3];
@@ -27,8 +29,6 @@ private:
     std::unordered_map<int, Sound*> sounds;
     // Button's hitbox. X and Y are offsets from texture's top left
     Rectangle rect;
-    // State is current button state
-    ButtonStates state;
     // Button state from previous screen
     ButtonStates last_state;
     // This shows if button has been clicked
@@ -84,4 +84,54 @@ public:
 
     void draw();
     void set_pos(Vector2 position);
+};
+
+class Checkbox : public Button {
+private:
+    // Storage for textures of disabled checkbox
+    std::unordered_map<ButtonStates, Texture2D*> textures_off;
+    // State of checkbox (on or off)
+    bool toggle_state;
+    // Has checkbox'es state been changed with toggle() or not.
+    bool state_switched;
+
+public:
+    Checkbox(
+        Texture2D* texture_on_default,
+        Texture2D* texture_on_hover,
+        Texture2D* texture_on_pressed,
+        Texture2D* texture_off_default,
+        Texture2D* texture_off_hover,
+        Texture2D* texture_off_pressed,
+        Sound* sfx_hover,
+        Sound* sfx_click,
+        Rectangle rectangle);
+
+    Checkbox(
+        Texture2D* texture_on_default,
+        Texture2D* texture_on_hover,
+        Texture2D* texture_on_pressed,
+        Texture2D* texture_off_default,
+        Texture2D* texture_off_hover,
+        Texture2D* texture_off_pressed,
+        Sound* sfx_hover,
+        Sound* sfx_click,
+        Rectangle rectangle,
+        bool default_state);
+
+    // Returns toggle state of checkbox
+    bool get_toggle();
+    // Toggle checkbox on or off. Doesn't affect "state_switched".
+    void toggle(bool toggle_state);
+    // Toggle checkbox state back and forth. Toggles "state_switched", until
+    // reset_state() is used.
+    void toggle();
+
+    void draw();
+    void update();
+
+    // Returns state_switched.
+    bool is_clicked();
+    // Resets state_switched.
+    void reset_state();
 };

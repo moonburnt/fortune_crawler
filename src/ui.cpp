@@ -145,3 +145,89 @@ void TextButton::set_pos(Vector2 position) {
     text_pos.y = position.y + text_y_diff;
     Button::set_pos(position);
 }
+
+// Checkbox shenanigans
+
+Checkbox::Checkbox(
+    Texture2D* texture_on_default,
+    Texture2D* texture_on_hover,
+    Texture2D* texture_on_pressed,
+    Texture2D* texture_off_default,
+    Texture2D* texture_off_hover,
+    Texture2D* texture_off_pressed,
+    Sound* sfx_hover,
+    Sound* sfx_click,
+    Rectangle rectangle,
+    bool default_state)
+    : Button(
+          texture_on_default,
+          texture_on_hover,
+          texture_on_pressed,
+          sfx_hover,
+          sfx_click,
+          rectangle) {
+    textures_off[ButtonStates::idle] = texture_off_default,
+    textures_off[ButtonStates::hover] = texture_off_hover,
+    textures_off[ButtonStates::pressed] = texture_off_pressed,
+    toggle_state = default_state;
+    state_switched = false;
+}
+
+Checkbox::Checkbox(
+    Texture2D* texture_on_default,
+    Texture2D* texture_on_hover,
+    Texture2D* texture_on_pressed,
+    Texture2D* texture_off_default,
+    Texture2D* texture_off_hover,
+    Texture2D* texture_off_pressed,
+    Sound* sfx_hover,
+    Sound* sfx_click,
+    Rectangle rectangle)
+    : Checkbox(
+          texture_on_default,
+          texture_on_hover,
+          texture_on_pressed,
+          texture_off_default,
+          texture_off_hover,
+          texture_off_pressed,
+          sfx_hover,
+          sfx_click,
+          rectangle,
+          true) {
+}
+
+bool Checkbox::get_toggle() {
+    return toggle_state;
+}
+
+void Checkbox::toggle(bool _toggle_state) {
+    Button::reset_state();
+    // if (toggle_state != _toggle_state) state_switched = true;
+    toggle_state = _toggle_state;
+};
+
+void Checkbox::toggle() {
+    if (toggle_state) toggle(false);
+    else toggle(true);
+    if (state_switched) state_switched = false;
+    else state_switched = true;
+}
+
+void Checkbox::draw() {
+    if (toggle_state) Button::draw();
+    else DrawTexture(*textures_off[state], pos.x, pos.y, WHITE);
+}
+
+void Checkbox::update() {
+    Button::update();
+    if (Button::is_clicked()) toggle();
+}
+
+bool Checkbox::is_clicked() {
+    return state_switched;
+}
+
+void Checkbox::reset_state() {
+    Button::reset_state();
+    state_switched = false;
+}

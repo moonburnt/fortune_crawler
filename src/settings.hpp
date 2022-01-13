@@ -5,8 +5,7 @@
 enum class SettingsCategory
 {
     standard,
-    current,
-    selected
+    current
 };
 
 class SettingsManager {
@@ -27,6 +26,9 @@ public:
 
     bool get_show_fps();
     bool get_show_grid();
+
+    void set_show_fps(bool value);
+    void set_show_grid(bool value);
 
     static SettingsManager manager;
 };
