@@ -81,7 +81,7 @@ Floor::Floor(FloorType tile_type, std::string desc, Texture2D* sprite)
 }
 
 Creature::Creature(
-    CreatureType tile_type,
+    bool is_player,
     std::string desc,
     Event player_collision_event,
     Event enemy_collision_event,
@@ -92,8 +92,32 @@ Creature::Creature(
           player_collision_event,
           enemy_collision_event,
           sprite) {
-    type = tile_type;
+    _is_player = is_player;
 }
+
+bool Creature::is_player() {
+    return _is_player;
+}
+
+Player::Player(Texture2D* sprite) :
+    Creature(true, "Player", Event::nothing, Event::fight, sprite) {};
+
+// There may be a better way to initialize it
+Enemy::Enemy(bool is_boss, Texture2D* sprite) :
+    Creature(false, "", Event::fight, Event::nothing, sprite) {
+    if (is_boss) {
+        description = "Boss";
+    }
+    else {
+        description = "Enemy";
+    }
+
+    _is_boss = is_boss;
+};
+
+bool Enemy::is_boss() {
+    return _is_boss;
+};
 
 Item::Item(
     ItemType tile_type,
@@ -137,7 +161,7 @@ int GameMap::add_object(MapObject* object) {
 
     // some additional checks, that may be removed from here later
     if (object->get_category() == ObjectCategory::creature &&
-        static_cast<Creature*>(object)->type == CreatureType::player) {
+        static_cast<Creature*>(object)->is_player()) {
         player_id = map_objects_amount;
     }
     else if (
@@ -412,11 +436,8 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Creature(
-                        CreatureType::enemy,
-                        "enemy",
-                        Event::fight,
-                        Event::nothing,
+                    new Enemy(
+                        false,
                         &AssetLoader::loader.sprites["enemy_tile"]),
                     grid_index);
             }
@@ -436,11 +457,8 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Creature(
-                        CreatureType::boss,
-                        "boss",
-                        Event::fight,
-                        Event::nothing,
+                    new Enemy(
+                        true,
                         &AssetLoader::loader.sprites["boss_tile"]),
                     grid_index);
             }
@@ -456,12 +474,7 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
 }
 
 GameMap* generate_map(Image map_file, Point tile_size) {
-    MapObject* player_object = new Creature(
-        CreatureType::player,
-        "player",
-        Event::nothing,
-        Event::fight,
-        &AssetLoader::loader.sprites["player_tile"]);
+    MapObject* player_object = new Player(&AssetLoader::loader.sprites["player_tile"]);
 
     return generate_map(map_file, tile_size, player_object);
 }

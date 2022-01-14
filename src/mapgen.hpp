@@ -31,13 +31,6 @@ enum class ObstacleType
     wall
 };
 
-enum class CreatureType
-{
-    player,
-    enemy,
-    boss
-};
-
 enum class ItemType
 {
     entrance,
@@ -98,16 +91,36 @@ public:
 };
 
 class Creature : public MapObject {
+protected:
+    bool _is_player;
+
 public:
-    CreatureType type;
     Creature(
-        CreatureType tile_type,
+        bool is_player,
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event,
         Texture2D* sprite);
 
     void update();
+
+    // Returns true if its player, false otherwise
+    bool is_player();
+};
+
+class Player : public Creature {
+public:
+    Player(Texture2D* sprite);
+};
+
+class Enemy : public Creature {
+private:
+    bool _is_boss;
+
+public:
+    Enemy(bool is_boss, Texture2D* sprite);
+
+    bool is_boss();
 };
 
 class Item : public MapObject {
