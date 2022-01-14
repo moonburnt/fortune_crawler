@@ -1,47 +1,41 @@
 #include "entity.hpp"
 
+#include <optional>
 #include <raylib.h>
 #include <string>
 
-MapObject::MapObject(ObjectCategory cat, std::string desc) {
-    category = cat;
-    description = desc;
-    has_texture = false;
-    player_collision_event = Event::nothing;
-    enemy_collision_event = Event::nothing;
-}
-
-MapObject::MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite) {
-    category = cat;
-    description = desc;
-    texture = sprite;
-    has_texture = true;
-    player_collision_event = Event::nothing;
-    enemy_collision_event = Event::nothing;
-}
-
+// Base map object
 MapObject::MapObject(
+    bool is_obstacle,
     ObjectCategory cat,
     std::string desc,
     Event _player_collision_event,
-    Event _enemy_collision_event,
-    Texture2D* sprite) {
+    Event _enemy_collision_event) {
+    _is_obstacle = is_obstacle;
     category = cat;
     description = desc;
-    texture = sprite;
-    has_texture = true;
     player_collision_event = _player_collision_event;
     enemy_collision_event = _enemy_collision_event;
 }
 
+MapObject::MapObject(bool is_obstacle, ObjectCategory cat, std::string desc)
+    : MapObject(is_obstacle, cat, desc, Event::nothing, Event::nothing) {
+}
+
 MapObject::MapObject(
-    ObjectCategory cat, std::string desc, Event collision_event, Texture2D* sprite) {
-    category = cat;
-    description = desc;
+    bool is_obstacle,
+    ObjectCategory cat,
+    std::string desc,
+    Event _player_collision_event,
+    Event _enemy_collision_event,
+    Texture2D* sprite)
+    : MapObject(is_obstacle, cat, desc, _player_collision_event, _enemy_collision_event) {
     texture = sprite;
-    has_texture = true;
-    player_collision_event = collision_event;
-    enemy_collision_event = collision_event;
+}
+
+MapObject::MapObject(
+    bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite)
+    : MapObject(is_obstacle, cat, desc, Event::nothing, Event::nothing, sprite) {
 }
 
 Event MapObject::get_player_collision_event() {
@@ -56,20 +50,52 @@ ObjectCategory MapObject::get_category() {
     return category;
 }
 
+bool MapObject::is_obstacle() {
+    return _is_obstacle;
+}
+
 void MapObject::draw(Vector2 pos) {
-    if (has_texture) DrawTextureV(*texture, pos, WHITE);
+    if (texture) DrawTextureV(*texture.value(), pos, WHITE);
 }
 
-Floor::Floor()
-    : MapObject(ObjectCategory::floor, "abyss") {
-    type = FloorType::abyss;
+// Base Structure/Building
+Structure::Structure(
+    bool is_obstacle,
+    std::string desc,
+    Event player_collision_event,
+    Event enemy_collision_event,
+    Texture2D* sprite)
+    : MapObject(
+          is_obstacle,
+          ObjectCategory::structure,
+          desc,
+          player_collision_event,
+          enemy_collision_event,
+          sprite) {
 }
 
-Floor::Floor(FloorType tile_type, std::string desc, Texture2D* sprite)
-    : MapObject(ObjectCategory::floor, desc, sprite) {
-    type = tile_type;
+Structure::Structure(
+    bool is_obstacle,
+    std::string desc,
+    Event player_collision_event,
+    Event enemy_collision_event)
+    : MapObject(
+          is_obstacle,
+          ObjectCategory::structure,
+          desc,
+          player_collision_event,
+          enemy_collision_event) {
 }
 
+Structure::Structure(bool is_obstacle, std::string desc, Texture2D* sprite)
+    : Structure(is_obstacle, desc, Event::nothing, Event::nothing, sprite) {
+}
+
+Structure::Structure(bool is_obstacle, std::string desc)
+    : Structure(is_obstacle, desc, Event::nothing, Event::nothing) {
+}
+
+// Base Creature
 Creature::Creature(
     bool is_player,
     std::string desc,
@@ -77,6 +103,9 @@ Creature::Creature(
     Event enemy_collision_event,
     Texture2D* sprite)
     : MapObject(
+          // For now, there wont be implenetrable creatures, due to how collision
+          // handling works. May rework this in future. TODO
+          false,
           ObjectCategory::creature,
           desc,
           player_collision_event,
@@ -89,9 +118,11 @@ bool Creature::is_player() {
     return _is_player;
 }
 
+// Player
 Player::Player(Texture2D* sprite)
     : Creature(true, "Player", Event::nothing, Event::fight, sprite){};
 
+// Enemy
 // There may be a better way to initialize it
 Enemy::Enemy(bool is_boss, Texture2D* sprite)
     : Creature(false, "", Event::fight, Event::nothing, sprite) {
@@ -108,18 +139,3 @@ Enemy::Enemy(bool is_boss, Texture2D* sprite)
 bool Enemy::is_boss() {
     return _is_boss;
 };
-
-Item::Item(
-    ItemType tile_type,
-    std::string desc,
-    Event player_collision_event,
-    Event enemy_collision_event,
-    Texture2D* sprite)
-    : MapObject(
-          ObjectCategory::item,
-          desc,
-          player_collision_event,
-          enemy_collision_event,
-          sprite) {
-    type = tile_type;
-}

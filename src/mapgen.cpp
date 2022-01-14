@@ -46,8 +46,8 @@ int GameMap::add_object(MapObject* object) {
         player_id = map_objects_amount;
     }
     else if (
-        object->get_category() == ObjectCategory::item &&
-        static_cast<Item*>(object)->type == ItemType::exit) {
+        object->get_category() == ObjectCategory::structure &&
+        object->get_player_collision_event() == Event::exit_map) {
         exit_id = map_objects_amount;
     }
 
@@ -180,14 +180,12 @@ bool GameMap::is_tile_blocked(Point tile) {
     // May move it to some other place later
     if ((tile.x < 0) || (tile.y < 0) || (tile.x >= map_size.x) || (tile.y >= map_size.y))
         return true;
+
+    // This may be moved to for
     int index = tile_to_index(tile);
 
     for (auto item : grid[index]) {
-        if (map_objects[item]->get_category() == ObjectCategory::obstacle) return true;
-        else if (
-            map_objects[item]->get_category() == ObjectCategory::floor &&
-            static_cast<Floor*>(map_objects[item])->type == FloorType::abyss)
-            return true;
+        if (map_objects[item]->is_obstacle()) return true;
     }
     return false;
 }
@@ -267,9 +265,9 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
 
     GameMap* gm = new GameMap(map_size, tile_size);
 
-    int abyss_id = gm->add_object(new Floor());
+    int abyss_id = gm->add_object(new Structure(true, "Abyss"));
     int floor_id = gm->add_object(
-        new Floor(FloorType::floor, "floor", &AssetLoader::loader.sprites["floor_tile"]));
+        new Structure(false, "Floor", &AssetLoader::loader.sprites["floor_tile"]));
 
     int grid_index = 0;
     for (auto current_y = 0; current_y < map_size.y; current_y++) {
@@ -282,9 +280,9 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
             else if (pix_color == ColorToInt(Color{0, 255, 9, 255})) {
                 gm->place_object(grid_index, floor_id);
                 gm->add_object(
-                    new Item(
-                        ItemType::entrance,
-                        "entrance",
+                    new Structure(
+                        false,
+                        "Entrance",
                         Event::nothing,
                         Event::nothing,
                         &AssetLoader::loader.sprites["entrance_tile"]),
@@ -295,9 +293,9 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Item(
-                        ItemType::exit,
-                        "exit",
+                    new Structure(
+                        false,
+                        "Exit",
                         Event::exit_map,
                         Event::nothing,
                         &AssetLoader::loader.sprites["exit_tile"]),
@@ -314,9 +312,9 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Item(
-                        ItemType::treasure,
-                        "treasure",
+                    new Structure(
+                        false,
+                        "Treasure",
                         Event::nothing,
                         Event::nothing,
                         &AssetLoader::loader.sprites["treasure_tile"]),

@@ -2,33 +2,13 @@
 
 #include <raylib.h>
 
+#include <optional>
 #include <string>
 
 enum class ObjectCategory
 {
-    floor,
-    obstacle,
-    creature,
-    item
-};
-
-enum class FloorType
-{
-    abyss,
-    floor
-};
-
-enum class ObstacleType
-{
-    wall
-};
-
-enum class ItemType
-{
-    entrance,
-    exit,
-    treasure,
-    trap
+    structure,
+    creature
 };
 
 enum class Event
@@ -40,8 +20,7 @@ enum class Event
 
 class MapObject {
 private:
-    bool has_texture;
-    Texture2D* texture;
+    std::optional<Texture2D*> texture;
 
 protected:
     ObjectCategory category;
@@ -49,37 +28,52 @@ protected:
     // This theoretically also affects boss, but it doesn't move so whatever
     Event enemy_collision_event;
 
+    // If set to true - prevents from passing this tile.
+    bool _is_obstacle;
+
 public:
-    std::string description;
+    std::string description; // TODO: move to protected, add getter
     ObjectCategory get_category();
     Event get_player_collision_event();
     Event get_enemy_collision_event();
-    MapObject(ObjectCategory cat, std::string desc);
-    MapObject(ObjectCategory cat, std::string desc, Texture2D* sprite);
+    MapObject(bool is_obstacle, ObjectCategory cat, std::string desc);
+    MapObject(bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite);
     MapObject(
+        bool is_obstacle,
         ObjectCategory cat,
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event,
         Texture2D* sprite);
-    // The same as previous, but same collision event will get assigned to both
     MapObject(
-        ObjectCategory cat, std::string desc, Event collision_event, Texture2D* sprite);
+        bool is_obstacle,
+        ObjectCategory cat,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event);
 
+    // Returns _is_obstacle
+    bool is_obstacle();
+
+    // Draw
     void draw(Vector2 pos);
 };
 
-class Floor : public MapObject {
+class Structure : public MapObject {
 public:
-    FloorType type;
-    Floor();
-    Floor(FloorType tile_type, std::string desc, Texture2D* sprite);
-};
-
-class Obstacle : public MapObject {
-public:
-    ObstacleType type;
-    Obstacle(ObstacleType tile_type, std::string desc, Texture2D* sprite);
+    Structure(
+        bool is_obstacle,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event,
+        Texture2D* sprite);
+    Structure(
+        bool is_obstacle,
+        std::string desc,
+        Event player_collision_event,
+        Event enemy_collision_event);
+    Structure(bool is_obstacle, std::string desc, Texture2D* sprite);
+    Structure(bool is_obstacle, std::string desc);
 };
 
 class Creature : public MapObject {
@@ -113,15 +107,4 @@ public:
     Enemy(bool is_boss, Texture2D* sprite);
 
     bool is_boss();
-};
-
-class Item : public MapObject {
-public:
-    ItemType type;
-    Item(
-        ItemType tile_type,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event,
-        Texture2D* sprite);
 };
