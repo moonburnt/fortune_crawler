@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <raylib.h>
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -71,10 +72,17 @@ public:
     // Returns true if vec is part of map, false if its out of bounds
     bool is_vec_on_map(Vector2 vec);
 
-    Point get_player_tile();
     Point get_tile_size();
     Point get_map_size();
 
+    // Get first tile that contains specified object, or std::nullopt
+    std::optional<Point> find_object_tile(int object_id);
+
+    // Search in tile for object with specific id. Returns that object's
+    // tile_index or std::nullopt
+    std::optional<int> find_object_in_tile(int grid_index, int object_id);
+
+    // Get amount of elements in tile with provided index.
     int get_tile_elements_amount(int grid_index);
 
     // Get object with specified id
@@ -89,11 +97,6 @@ public:
     // true otherwise
     bool is_tile_occupied(int grid_index);
     bool is_tile_occupied(Point tile);
-
-    // Search in tile for object with specific id. Returns success status,
-    // overwrites provided tile_index with index of tile's element that contains
-    // provided item (or with map_objects.end() - thats why bool exists there)
-    bool object_in_tile(int grid_index, int object_id, int* tile_index);
 
     // Returns last event in tile or Event::nothing. If is_player_event is set
     // to true - searches for player events, else - for enemy events.

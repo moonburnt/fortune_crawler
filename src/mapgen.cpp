@@ -5,6 +5,7 @@
 #include "settings.hpp"
 #include <algorithm>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -142,26 +143,16 @@ bool GameMap::is_vec_on_map(Vector2 vec) {
         (vec.y < map_real_size.y));
 }
 
-Point GameMap::get_player_tile() {
-    // Same possible caveats as in get_player_id()
-    int player_tile_index;
-
-    int player_id = get_player_id();
-
-    bool player_found = false;
-
+std::optional<Point> GameMap::find_object_tile(int object_id) {
     for (auto index = 0u; index < grid_size; index++) {
-        if (player_found) break;
         for (auto tile_i = 0u; tile_i < grid[index].size(); tile_i++) {
-            if (grid[index][tile_i] == player_id) {
-                player_tile_index = index;
-                player_found = true;
-                break;
+            if (grid[index][tile_i] == object_id) {
+                return index_to_tile(index);
             }
         }
     }
 
-    return index_to_tile(player_tile_index);
+    return std::nullopt;
 }
 
 Point GameMap::get_tile_size() {
@@ -209,15 +200,15 @@ bool GameMap::is_tile_occupied(Point tile) {
     return is_tile_occupied(tile_to_index(tile));
 }
 
-bool GameMap::object_in_tile(int grid_index, int object_id, int* tile_index) {
+std::optional<int> GameMap::find_object_in_tile(int grid_index, int object_id) {
     std::vector<int>::iterator object_iterator;
     object_iterator =
         std::find(grid[grid_index].begin(), grid[grid_index].end(), object_id);
-    // Overwriting value of variable, to which tile_index points
-    *tile_index = std::distance(grid[grid_index].begin(), object_iterator);
 
-    if (object_iterator == grid[grid_index].end()) return false;
-    return true;
+    if (object_iterator != grid[grid_index].end()) {
+        return std::distance(grid[grid_index].begin(), object_iterator);
+    }
+    return std::nullopt;
 }
 
 Event GameMap::get_tile_event(int grid_index, bool is_player_event) {

@@ -127,7 +127,8 @@ void Level::configure_new_map() {
             center_text_h(dungeon_lvl_title, right_bg.x + right_bg.width / 2)),
         30};
 
-    player_tile = map->get_player_tile();
+    // This will fail if no player spawns are available
+    player_tile = map->find_object_tile(map->get_player_id()).value();
     player_pos = map->tile_to_vec(player_tile);
     set_camera();
     is_player_turn = false;
@@ -238,8 +239,9 @@ void Level::update(float dt) {
 
                 // This should always return player index in tile, thus not
                 // checking the completion status
-                int pt_index;
-                map->object_in_tile(current_tile_id, map->get_player_id(), &pt_index);
+                int pt_index =
+                    map->find_object_in_tile(current_tile_id, map->get_player_id())
+                        .value();
 
                 int new_tile_id = map->vec_to_index(new_pos);
 
