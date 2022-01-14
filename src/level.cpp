@@ -1,4 +1,5 @@
 #include "level.hpp"
+#include "entity.hpp"
 #include "loader.hpp"
 #include "utility.hpp"
 
