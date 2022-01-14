@@ -242,7 +242,7 @@ void MainMenu::call_exit() {
 
 void MainMenu::start_game() {
     start_button->reset_state();
-    parent->set_current_scene(new Level());
+    parent->set_current_scene(new Level(parent));
 }
 
 void MainMenu::open_settings() {

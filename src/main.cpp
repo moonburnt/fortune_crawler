@@ -7,6 +7,8 @@
 int main() {
     InitWindow(1280, 720, "Fortune Crawler");
     SetTargetFPS(60);
+    // Disable ability to close the window by pressing esc
+    SetExitKey(KEY_NULL);
 
     // Initialize audio device. This needs to be done before loading sounds.
     InitAudioDevice();

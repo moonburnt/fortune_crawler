@@ -101,6 +101,21 @@ void Level::configure_hud() {
         event_screen_bg.x + event_screen_bg.width -
             close_event_screen_button->get_rect().width,
         event_screen_bg.y});
+
+    back_to_menu_button = new Button(
+        &AssetLoader::loader.sprites["cross_default"],
+        &AssetLoader::loader.sprites["cross_hover"],
+        &AssetLoader::loader.sprites["cross_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 64, 64});
+
+    back_to_menu_button->set_pos(
+        Vector2{// static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
+                // Temporary pos to dont overlap with other elements.
+                // TODO: reposition things
+                static_cast<float>(GetScreenWidth() - (30 + 64)),
+                150.0f});
 }
 
 void Level::configure_new_map() {
@@ -122,8 +137,10 @@ void Level::configure_new_map() {
     change_turn();
 }
 
-Level::Level()
+Level::Level(SceneManager* p)
     : Scene(BG_COLOR) {
+    parent = p;
+
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 0;
@@ -135,6 +152,7 @@ Level::~Level() {
     delete close_event_screen_button;
     delete map;
     delete turn_switch_timer;
+    delete back_to_menu_button;
 }
 
 void Level::change_map() {
@@ -148,6 +166,11 @@ void Level::change_map() {
 bool Level::is_vec_on_playground(Vector2 vec) {
     return playground_vec_start.x < vec.x && vec.x < playground_vec_end.x &&
         playground_vec_start.y < vec.y && vec.y < playground_vec_end.y;
+}
+
+void Level::back_to_menu() {
+    back_to_menu_button->reset_state();
+    parent->set_current_scene(new MainMenu(parent));
 }
 
 void Level::change_turn() {
@@ -276,6 +299,13 @@ void Level::update(float dt) {
     default:
         break;
     }
+
+    back_to_menu_button->update();
+    if (back_to_menu_button->is_clicked()) {
+        // TODO: perform some serialization there, to be able to continue
+        back_to_menu();
+        return;
+    }
 }
 
 void Level::draw() {
@@ -384,4 +414,6 @@ void Level::draw() {
         player_tile_text_pos.y,
         DEFAULT_TEXT_SIZE,
         DEFAULT_TEXT_COLOR);
+
+    back_to_menu_button->draw();
 }

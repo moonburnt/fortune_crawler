@@ -9,6 +9,7 @@
 
 class Level : public Scene {
 private:
+    SceneManager* parent;
     GameMap* map;
 
     int current_turn;
@@ -54,12 +55,16 @@ private:
     Rectangle right_bg;
     Vector2 playground_vec_start;
     Vector2 playground_vec_end;
+    Button* back_to_menu_button;
 
     Rectangle event_screen_bg;
     TextButton* next_level_button;
     Button* close_event_screen_button;
 
     Event current_event;
+
+    // Exit from level to main menu.
+    void back_to_menu();
 
     // Initial camera configuration. Must be only used during init
     void set_camera();
@@ -81,7 +86,7 @@ private:
     bool is_vec_on_playground(Vector2 vec);
 
 public:
-    Level();
+    Level(SceneManager* p);
     ~Level();
 
     void update(float dt) override;
