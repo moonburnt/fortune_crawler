@@ -1,5 +1,6 @@
 #include "loader.hpp"
 #include "raylib.h"
+#include <algorithm>
 #include <cstdlib>
 #include <string>
 
@@ -73,14 +74,13 @@ Image AssetLoader::load_map(size_t index) {
 }
 
 Image AssetLoader::load_random_map() {
-    size_t map_index = std::rand() % map_paths.size();
-    // It could be done better, probably. But the point is that we are trying to
-    // reduce chances of getting the very same map few times in a row
-    if ((map_index == last_map) && (map_paths.size() > 1)) {
-        // I think this should work, for as long as map_paths.size() > 1
-        if (map_index + 1 < map_paths.size()) map_index++;
-        else map_index--;
+    // This version of mapgen will ensure that the same map can only appear again
+    // if the whole roaster of maps has been completed
+    last_map++;
+    if (last_map == map_paths.size()) {
+        last_map = 0;
+        std::random_shuffle(map_paths.begin(), map_paths.end());
     }
 
-    return load_map(map_index);
+    return load_map(last_map);
 }

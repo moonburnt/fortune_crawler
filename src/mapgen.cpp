@@ -7,9 +7,9 @@
 #include <iterator>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
-#include <tuple>
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
@@ -228,13 +228,11 @@ std::tuple<int, Event> GameMap::get_tile_event(int grid_index, bool is_player_ev
     if (is_player_event)
         return std::make_tuple(
             last_item_id,
-            map_objects[last_item_id]->get_player_collision_event()
-        );
+            map_objects[last_item_id]->get_player_collision_event());
 
     return std::make_tuple(
         last_item_id,
-        map_objects[last_item_id]->get_enemy_collision_event()
-    );
+        map_objects[last_item_id]->get_enemy_collision_event());
 }
 
 void GameMap::select_tile(Point tile) {
@@ -321,9 +319,7 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Treasure(
-                        100,
-                        &AssetLoader::loader.sprites["treasure_tile"]),
+                    new Treasure(100, &AssetLoader::loader.sprites["treasure_tile"]),
                     grid_index);
             }
             else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {

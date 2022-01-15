@@ -96,8 +96,8 @@ Structure::Structure(bool is_obstacle, std::string desc)
 }
 
 // Treasure / Chest.
-Treasure::Treasure(int _money_amount, Texture2D* sprite) :
-    Structure(false, "Treasure", Event::loot, Event::nothing, sprite) {
+Treasure::Treasure(int _money_amount, Texture2D* sprite)
+    : Structure(false, "Treasure", Event::loot, Event::nothing, sprite) {
     money_amount = _money_amount;
 }
 

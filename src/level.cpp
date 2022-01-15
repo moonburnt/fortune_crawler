@@ -3,8 +3,8 @@
 #include "loader.hpp"
 #include "utility.hpp"
 
-#include <raylib.h>
 #include <optional>
+#include <raylib.h>
 
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
@@ -70,7 +70,7 @@ void Level::configure_hud() {
     player_info_pos.y = 30;
 
     player_currency_title = "Coins: ";
-    player_currency_pos = Vector2{ 30.0f, player_info_pos.y+tile_content_vert_gap};
+    player_currency_pos = Vector2{30.0f, player_info_pos.y + tile_content_vert_gap};
 
     player_tile_text = "Current Tile: ";
     player_tile_text_pos.x =
@@ -305,7 +305,8 @@ void Level::update(float dt) {
         // shouldn't happen. I hope.
         map->delete_object(
             current_tile_id,
-            map->find_object_in_tile(current_tile_id, current_event_cause.value()).value(),
+            map->find_object_in_tile(current_tile_id, current_event_cause.value())
+                .value(),
             true);
 
         reset_event();
@@ -315,15 +316,16 @@ void Level::update(float dt) {
     case Event::loot: {
         // TODO: stub
 
-        player_obj->money_amount += static_cast<Treasure*>(
-            map->get_object(current_event_cause.value())
-        )->get_reward();
+        player_obj->money_amount +=
+            static_cast<Treasure*>(map->get_object(current_event_cause.value()))
+                ->get_reward();
 
         // TODO: maybe I shouldn't delete chest, but change its texture?
         int current_tile_id = map->tile_to_index(player_tile);
         map->delete_object(
             current_tile_id,
-            map->find_object_in_tile(current_tile_id, current_event_cause.value()).value(),
+            map->find_object_in_tile(current_tile_id, current_event_cause.value())
+                .value(),
             true);
 
         reset_event();
@@ -450,10 +452,7 @@ void Level::draw() {
         DEFAULT_TEXT_COLOR);
 
     DrawText(
-        TextFormat(
-            "%s%i",
-            player_currency_title.c_str(),
-            player_obj->money_amount),
+        TextFormat("%s%i", player_currency_title.c_str(), player_obj->money_amount),
         player_currency_pos.x,
         player_currency_pos.y,
         DEFAULT_TEXT_SIZE,

@@ -7,9 +7,9 @@
 
 #include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
-#include <tuple>
 
 struct Point {
     int x;

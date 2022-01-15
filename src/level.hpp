@@ -5,8 +5,8 @@
 #include "scenes.hpp"
 #include "ui.hpp"
 #include "utility.hpp"
-#include <string>
 #include <optional>
+#include <string>
 
 class Level : public Scene {
 private:
