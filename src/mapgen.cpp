@@ -267,7 +267,8 @@ void GameMap::draw() {
             BLACK);
 }
 
-GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object) {
+GameMap* generate_map(
+    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object) {
     Point map_size = {map_file.width, map_file.height};
 
     GameMap* gm = new GameMap(map_size, tile_size);
@@ -319,7 +320,9 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Treasure(100, &AssetLoader::loader.sprites["treasure_tile"]),
+                    new Treasure(
+                        std::rand() % 100 * dungeon_level,
+                        &AssetLoader::loader.sprites["treasure_tile"]),
                     grid_index);
             }
             else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
@@ -343,5 +346,5 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
 GameMap* generate_map(Image map_file, Point tile_size) {
     MapObject* player_object = new Player(&AssetLoader::loader.sprites["player_tile"]);
 
-    return generate_map(map_file, tile_size, player_object);
+    return generate_map(map_file, tile_size, 1, player_object);
 }

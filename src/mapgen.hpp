@@ -114,4 +114,5 @@ public:
 };
 
 GameMap* generate_map(Image map_file, Point tile_size);
-GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object);
+GameMap* generate_map(
+    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object);

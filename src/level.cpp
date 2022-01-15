@@ -124,7 +124,6 @@ void Level::configure_hud() {
 }
 
 void Level::configure_new_map() {
-    dungeon_lvl++;
     dungeon_lvl_title = TextFormat("Dungeon Level: %i", dungeon_lvl);
     dungeon_lvl_title_pos = Vector2{
         static_cast<float>(
@@ -150,7 +149,7 @@ Level::Level(SceneManager* p)
 
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
-    dungeon_lvl = 0;
+    dungeon_lvl = 1;
     configure_new_map();
 }
 
@@ -164,9 +163,11 @@ Level::~Level() {
 }
 
 void Level::change_map() {
+    dungeon_lvl++;
     map = generate_map(
         AssetLoader::loader.load_random_map(),
         Point{32, 32},
+        dungeon_lvl,
         static_cast<MapObject*>(player_obj));
     configure_new_map();
 }
