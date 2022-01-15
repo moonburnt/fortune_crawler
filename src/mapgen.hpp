@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <tuple>
 
 struct Point {
     int x;
@@ -85,7 +86,7 @@ public:
     // Get amount of elements in tile with provided index.
     int get_tile_elements_amount(int grid_index);
 
-    // Get object with specified id
+    // Get pointer to object with specified id
     MapObject* get_object(int object_id);
     // Overload to get object from specific grid/tile
     MapObject* get_object(int grid_index, int tile_index);
@@ -98,11 +99,12 @@ public:
     bool is_tile_occupied(int grid_index);
     bool is_tile_occupied(Point tile);
 
-    // Returns last event in tile or Event::nothing. If is_player_event is set
-    // to true - searches for player events, else - for enemy events.
+    // Returns last event in tile and object_id of item that caused it.
+    // If is_player_event is set to true - will search for player events, else -
+    // for enemy events.
     // TODO: remake it into function that returns vector of items, to support
     // multiple events per tile (since these may and will occur)
-    Event get_tile_event(int grid_index, bool is_player_event);
+    std::tuple<int, Event> get_tile_event(int grid_index, bool is_player_event);
 
     // Set specified tile to be highlighted
     void select_tile(Point tile);

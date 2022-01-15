@@ -6,6 +6,7 @@
 #include "ui.hpp"
 #include "utility.hpp"
 #include <string>
+#include <optional>
 
 class Level : public Scene {
 private:
@@ -29,6 +30,9 @@ private:
     std::string player_info_title;
     Vector2 player_info_pos;
 
+    std::string player_currency_title;
+    Vector2 player_currency_pos;
+
     std::string player_tile_text;
     Vector2 player_tile_text_pos;
 
@@ -49,6 +53,7 @@ private:
 
     Point player_tile;
     Vector2 player_pos;
+    Player* player_obj;
     Camera2D camera;
 
     Rectangle left_bg;
@@ -62,6 +67,7 @@ private:
     Button* close_event_screen_button;
 
     Event current_event;
+    std::optional<int> current_event_cause;
 
     // Exit from level to main menu.
     void back_to_menu();
@@ -73,6 +79,9 @@ private:
     void center_camera();
 
     void change_turn();
+
+    // Reset current event to Event::nothing and event cause to std::nullopt
+    void reset_event();
 
     // Set new map and apply related changes.
     void configure_new_map();

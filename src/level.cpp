@@ -4,6 +4,7 @@
 #include "utility.hpp"
 
 #include <raylib.h>
+#include <optional>
 
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
@@ -68,6 +69,9 @@ void Level::configure_hud() {
     player_info_pos.x = center_text_h(selected_tile_text, left_bg.x + left_bg.width / 2);
     player_info_pos.y = 30;
 
+    player_currency_title = "Coins: ";
+    player_currency_pos = Vector2{ 30.0f, player_info_pos.y+tile_content_vert_gap};
+
     player_tile_text = "Current Tile: ";
     player_tile_text_pos.x =
         center_text_h(player_tile_text + "00 x 00", left_bg.x + left_bg.width / 2);
@@ -130,6 +134,7 @@ void Level::configure_new_map() {
     // This will fail if no player spawns are available
     player_tile = map->find_object_tile(map->get_player_id()).value();
     player_pos = map->tile_to_vec(player_tile);
+    player_obj = static_cast<Player*>(map->get_object(map->get_player_id()));
     set_camera();
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
@@ -155,13 +160,14 @@ Level::~Level() {
     delete map;
     delete turn_switch_timer;
     delete back_to_menu_button;
+    delete player_obj;
 }
 
 void Level::change_map() {
-    // TODO: randomly pick map from list of available in maps/
-    int player_id = map->get_player_id();
-    MapObject* player_obj = map->get_object(player_id);
-    map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32}, player_obj);
+    map = generate_map(
+        AssetLoader::loader.load_random_map(),
+        Point{32, 32},
+        static_cast<MapObject*>(player_obj));
     configure_new_map();
 }
 
@@ -200,6 +206,11 @@ void Level::change_turn() {
             50};
     }
     turn_switch_timer->start();
+}
+
+void Level::reset_event() {
+    current_event = Event::nothing;
+    current_event_cause = std::nullopt;
 }
 
 void Level::update(float dt) {
@@ -248,7 +259,9 @@ void Level::update(float dt) {
                 // This may be an overkill or oversight. May need to remove it
                 // if I will ever add floor tiles that cause events
                 if (map->is_tile_occupied(new_tile_id))
-                    current_event = map->get_tile_event(new_tile_id, true);
+                    // Tie unpacks provided tuple into specified vars.
+                    std::tie(current_event_cause, current_event) =
+                        map->get_tile_event(new_tile_id, true);
 
                 map->move_object(current_tile_id, pt_index, new_tile_id);
                 player_pos = new_pos;
@@ -276,7 +289,7 @@ void Level::update(float dt) {
         }
 
         if (close_event_screen_button->is_clicked()) {
-            current_event = Event::nothing;
+            reset_event();
             close_event_screen_button->reset_state();
             return;
         }
@@ -286,16 +299,34 @@ void Level::update(float dt) {
     case Event::fight: {
         // TODO: stub
 
-        // Assuming that player has moved above enemy and deleting object that
-        // should reffer to enemy. Hopefully. This is a really nasty placeholder
-        // that may break due to circuimstances. But it will do for now. TODO.
+        int current_tile_id = map->tile_to_index(player_tile);
+
+        // This will fail if current_event_cause is set to nullopt, but that
+        // shouldn't happen. I hope.
+        map->delete_object(
+            current_tile_id,
+            map->find_object_in_tile(current_tile_id, current_event_cause.value()).value(),
+            true);
+
+        reset_event();
+        break;
+    }
+
+    case Event::loot: {
+        // TODO: stub
+
+        player_obj->money_amount += static_cast<Treasure*>(
+            map->get_object(current_event_cause.value())
+        )->get_reward();
+
+        // TODO: maybe I shouldn't delete chest, but change its texture?
         int current_tile_id = map->tile_to_index(player_tile);
         map->delete_object(
             current_tile_id,
-            map->get_tile_elements_amount(current_tile_id) - 2,
+            map->find_object_in_tile(current_tile_id, current_event_cause.value()).value(),
             true);
 
-        current_event = Event::nothing;
+        reset_event();
         break;
     }
 
@@ -415,6 +446,16 @@ void Level::draw() {
             player_tile.x),
         player_tile_text_pos.x,
         player_tile_text_pos.y,
+        DEFAULT_TEXT_SIZE,
+        DEFAULT_TEXT_COLOR);
+
+    DrawText(
+        TextFormat(
+            "%s%i",
+            player_currency_title.c_str(),
+            player_obj->money_amount),
+        player_currency_pos.x,
+        player_currency_pos.y,
         DEFAULT_TEXT_SIZE,
         DEFAULT_TEXT_COLOR);
 

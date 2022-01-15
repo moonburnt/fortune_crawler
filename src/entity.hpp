@@ -15,6 +15,7 @@ enum class Event
 {
     nothing,
     exit_map,
+    loot,
     fight
 };
 
@@ -76,6 +77,20 @@ public:
     Structure(bool is_obstacle, std::string desc);
 };
 
+class Treasure : public Structure {
+private:
+    // Lock state of treasure. If yes - player will be forced to play lockpick
+    // minigame, in order to get reward. TODO.
+    // bool _is_locked;
+    int money_amount;
+
+public:
+    Treasure(int money_amount, Texture2D* sprite);
+    // Return money_amount and set it to 0.
+    int get_reward();
+    // bool is_locked();
+};
+
 class Creature : public MapObject {
 protected:
     bool _is_player;
@@ -96,6 +111,7 @@ public:
 
 class Player : public Creature {
 public:
+    int money_amount;
     Player(Texture2D* sprite);
 };
 

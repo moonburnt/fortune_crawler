@@ -95,6 +95,19 @@ Structure::Structure(bool is_obstacle, std::string desc)
     : Structure(is_obstacle, desc, Event::nothing, Event::nothing) {
 }
 
+// Treasure / Chest.
+Treasure::Treasure(int _money_amount, Texture2D* sprite) :
+    Structure(false, "Treasure", Event::loot, Event::nothing, sprite) {
+    money_amount = _money_amount;
+}
+
+int Treasure::get_reward() {
+    int reward = money_amount;
+    money_amount = 0;
+
+    return reward;
+}
+
 // Base Creature
 Creature::Creature(
     bool is_player,
@@ -120,7 +133,9 @@ bool Creature::is_player() {
 
 // Player
 Player::Player(Texture2D* sprite)
-    : Creature(true, "Player", Event::nothing, Event::fight, sprite){};
+    : Creature(true, "Player", Event::nothing, Event::fight, sprite) {
+    money_amount = 0;
+};
 
 // Enemy
 // There may be a better way to initialize it

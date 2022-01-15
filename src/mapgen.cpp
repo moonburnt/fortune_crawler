@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <tuple>
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
@@ -209,7 +210,7 @@ std::optional<int> GameMap::find_object_in_tile(int grid_index, int object_id) {
     return std::nullopt;
 }
 
-Event GameMap::get_tile_event(int grid_index, bool is_player_event) {
+std::tuple<int, Event> GameMap::get_tile_event(int grid_index, bool is_player_event) {
     // Event tile_event;
     // if (is_player_event) {
     //     for (auto i: grid[grid_index]) {
@@ -222,10 +223,18 @@ Event GameMap::get_tile_event(int grid_index, bool is_player_event) {
     //     }
     // }
     // return tile_event;
-    if (is_player_event)
-        return map_objects[grid[grid_index].back()]->get_player_collision_event();
+    int last_item_id = grid[grid_index].back();
 
-    return map_objects[grid[grid_index].back()]->get_enemy_collision_event();
+    if (is_player_event)
+        return std::make_tuple(
+            last_item_id,
+            map_objects[last_item_id]->get_player_collision_event()
+        );
+
+    return std::make_tuple(
+        last_item_id,
+        map_objects[last_item_id]->get_enemy_collision_event()
+    );
 }
 
 void GameMap::select_tile(Point tile) {
@@ -312,11 +321,8 @@ GameMap* generate_map(Image map_file, Point tile_size, MapObject* player_object)
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Structure(
-                        false,
-                        "Treasure",
-                        Event::nothing,
-                        Event::nothing,
+                    new Treasure(
+                        100,
                         &AssetLoader::loader.sprites["treasure_tile"]),
                     grid_index);
             }
