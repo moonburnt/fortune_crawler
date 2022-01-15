@@ -96,9 +96,25 @@ Structure::Structure(bool is_obstacle, std::string desc)
 }
 
 // Treasure / Chest.
-Treasure::Treasure(int _money_amount, Texture2D* sprite)
+Treasure::Treasure(bool lock_state, int _money_amount, Texture2D* sprite)
     : Structure(false, "Treasure", Event::loot, Event::nothing, sprite) {
+    if (lock_state) lock();
+    else unlock();
     money_amount = _money_amount;
+}
+
+void Treasure::lock() {
+    _is_locked = true;
+    player_collision_event = Event::lockpick;
+}
+
+void Treasure::unlock() {
+    _is_locked = false;
+    player_collision_event = Event::loot;
+}
+
+bool Treasure::is_locked() {
+    return _is_locked;
 }
 
 int Treasure::get_reward() {

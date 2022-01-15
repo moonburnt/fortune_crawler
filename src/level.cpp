@@ -316,7 +316,6 @@ void Level::update(float dt) {
 
     case Event::loot: {
         // TODO: stub
-
         player_obj->money_amount +=
             static_cast<Treasure*>(map->get_object(current_event_cause.value()))
                 ->get_reward();
@@ -333,8 +332,10 @@ void Level::update(float dt) {
         break;
     }
 
-    default:
+    default: {
+        reset_event();
         break;
+    }
     }
 
     back_to_menu_button->update();

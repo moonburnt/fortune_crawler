@@ -37,3 +37,6 @@ int center_text_h(const std::string& text, int center);
 
 // Center rectangle in place, overriding its existing position.
 void center_rect_ip(Rectangle* rect, Vector2 center);
+
+// Get random bool value
+bool randbool();

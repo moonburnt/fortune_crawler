@@ -3,6 +3,7 @@
 #include "loader.hpp"
 #include "raylib.h"
 #include "settings.hpp"
+#include "utility.hpp"
 #include <algorithm>
 #include <iterator>
 #include <optional>
@@ -321,6 +322,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     new Treasure(
+                        randbool(),
                         std::rand() % 100 * dungeon_level,
                         &AssetLoader::loader.sprites["treasure_tile"]),
                     grid_index);

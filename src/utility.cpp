@@ -1,5 +1,6 @@
 #include "utility.hpp"
 
+#include <cstdlib>
 #include <raylib.h>
 
 Timer::Timer(float length) {
@@ -59,4 +60,8 @@ int center_text_h(const std::string& text, int center) {
 void center_rect_ip(Rectangle* rect, Vector2 center) {
     rect->x = center.x - rect->x / 2;
     rect->y = center.y - rect->y / 2;
+}
+
+bool randbool() {
+    return (std::rand() % 2);
 }

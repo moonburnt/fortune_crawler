@@ -16,6 +16,7 @@ enum class Event
     nothing,
     exit_map,
     loot,
+    lockpick,
     fight
 };
 
@@ -79,16 +80,21 @@ public:
 
 class Treasure : public Structure {
 private:
-    // Lock state of treasure. If yes - player will be forced to play lockpick
-    // minigame, in order to get reward. TODO.
-    // bool _is_locked;
+    // Lock state of treasure.
+    bool _is_locked;
+    // Amount of money inside chest. Added on init.
     int money_amount;
+    // Lock treasure and change player collision event to Event::lockpick
+    void lock();
 
 public:
-    Treasure(int money_amount, Texture2D* sprite);
+    Treasure(bool lock_state, int money_amount, Texture2D* sprite);
     // Return money_amount and set it to 0.
     int get_reward();
-    // bool is_locked();
+    // Return lock state
+    bool is_locked();
+    // Unlock treasure and change player collision event to Event::loot
+    void unlock();
 };
 
 class Creature : public MapObject {
