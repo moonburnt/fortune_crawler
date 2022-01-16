@@ -66,6 +66,8 @@ void AssetLoader::load_maps_list() {
     }
 
     ClearDirectoryFiles();
+    // Overriding last_map counter, to make load_random_map() work correctly.
+    last_map = map_paths.size() - 1;
 }
 
 Image AssetLoader::load_map(size_t index) {
