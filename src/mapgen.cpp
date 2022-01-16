@@ -14,8 +14,9 @@
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
-
 static constexpr Color GRID_COLOR{63, 63, 116, 255};
+static constexpr Color HIGHLIGHT_COLOR{255, 255, 255, 255};
+static constexpr Color ABYSS_COLOR{0, 0, 0, 255};
 
 GameMap::GameMap(Point _map_size, Point _tile_size)
     : map_size(_map_size)
@@ -238,7 +239,7 @@ void GameMap::deselect_tile() {
 }
 
 void GameMap::draw() {
-    DrawRectangle(0, 0, map_real_size.x, map_real_size.y, RAYWHITE);
+    DrawRectangle(0, 0, map_real_size.x, map_real_size.y, ABYSS_COLOR);
 
     for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
@@ -256,7 +257,7 @@ void GameMap::draw() {
             selected_pos.y,
             tile_size.x,
             tile_size.y,
-            BLACK);
+            HIGHLIGHT_COLOR);
 }
 
 GameMap* generate_map(
