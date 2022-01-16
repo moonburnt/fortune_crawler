@@ -53,6 +53,10 @@ void MapObject::set_affix(std::string _affix) {
     full_description = TextFormat("%s (%s)", description.c_str(), affix.c_str());
 }
 
+void MapObject::set_texture(Texture2D* _texture) {
+    texture = _texture;
+}
+
 Event MapObject::get_player_collision_event() {
     is_inspected = true;
     return player_collision_event;
@@ -117,11 +121,13 @@ Structure::Structure(bool is_obstacle, std::string desc)
 }
 
 // Treasure / Chest.
-Treasure::Treasure(bool lock_state, int _money_amount, Texture2D* sprite)
-    : Structure(false, "Treasure", Event::loot, Event::nothing, sprite) {
+Treasure::Treasure(
+    bool lock_state, int _money_amount, Texture2D* normal_sprite, Texture2D* empty_sprite)
+    : Structure(false, "Treasure", Event::loot, Event::nothing, normal_sprite) {
     if (lock_state) lock();
     else unlock();
     money_amount = _money_amount;
+    empty_texture = empty_sprite;
 }
 
 void Treasure::lock() {
@@ -144,6 +150,7 @@ int Treasure::get_reward() {
     int reward = money_amount;
     money_amount = 0;
     set_affix("empty");
+    set_texture(empty_texture);
 
     return reward;
 }

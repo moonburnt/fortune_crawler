@@ -52,6 +52,9 @@ protected:
     // Change/set affix'es text and update full_description.
     void set_affix(std::string affix);
 
+    // Change/set object's texture.
+    void set_texture(Texture2D* texture);
+
 public:
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc);
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite);
@@ -107,6 +110,8 @@ public:
 
 class Treasure : public Structure {
 private:
+    // Texture for looted treasure
+    Texture2D* empty_texture;
     // Lock state of treasure.
     bool _is_locked;
     // Amount of money inside chest. Added on init.
@@ -115,7 +120,11 @@ private:
     void lock();
 
 public:
-    Treasure(bool lock_state, int money_amount, Texture2D* sprite);
+    Treasure(
+        bool lock_state,
+        int money_amount,
+        Texture2D* normal_sprite,
+        Texture2D* empty_sprite);
 
     // Return money_amount and set it to 0.
     int get_reward();

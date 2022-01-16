@@ -315,7 +315,8 @@ GameMap* generate_map(
                     new Treasure(
                         randbool(),
                         std::rand() % 100 * dungeon_level,
-                        &AssetLoader::loader.sprites["treasure_tile"]),
+                        &AssetLoader::loader.sprites["treasure_tile_full"],
+                        &AssetLoader::loader.sprites["treasure_tile_empty"]),
                     grid_index);
             }
             else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
