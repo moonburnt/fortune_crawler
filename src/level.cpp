@@ -3,6 +3,7 @@
 #include "loader.hpp"
 #include "utility.hpp"
 
+#include <algorithm>
 #include <optional>
 #include <raylib.h>
 
@@ -14,6 +15,33 @@ static constexpr float CAMERA_ZOOM = 2.0f;
 static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
 static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 static constexpr Color BG_COLOR{63, 63, 116, 255};
+
+InputController::InputController() {
+    buttons_held = {KEY_NULL};
+    add_relationship(KEY_NULL, MovementDirection::none);
+}
+
+void InputController::add_relationship(int key, MovementDirection direction) {
+    key_binds[key] = direction;
+}
+
+void InputController::update() {
+    for (auto& kv : key_binds) {
+        if (IsKeyDown(kv.first)) {
+            if (!std::count(buttons_held.begin(), buttons_held.end(), kv.first)) {
+                buttons_held.push_back(kv.first);
+            }
+        }
+        else {
+            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
+            if (it != buttons_held.end()) buttons_held.erase(it);
+        }
+    }
+}
+
+MovementDirection InputController::get_movement_direction() {
+    return key_binds[buttons_held.back()];
+}
 
 void Level::center_camera() {
     camera.target = player_pos;
@@ -147,6 +175,15 @@ Level::Level(SceneManager* p)
     : Scene(BG_COLOR) {
     parent = p;
 
+    input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
+    input_controller.add_relationship(KEY_KP_8, MovementDirection::up);
+    input_controller.add_relationship(KEY_KP_9, MovementDirection::upright);
+    input_controller.add_relationship(KEY_KP_4, MovementDirection::left);
+    input_controller.add_relationship(KEY_KP_6, MovementDirection::right);
+    input_controller.add_relationship(KEY_KP_1, MovementDirection::downleft);
+    input_controller.add_relationship(KEY_KP_2, MovementDirection::down);
+    input_controller.add_relationship(KEY_KP_3, MovementDirection::downright);
+
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 1;
@@ -224,27 +261,68 @@ void Level::update(float dt) {
     case Event::nothing: {
         if (is_player_turn) {
             bool move_player = false;
+            bool key_pressed;
+
             Vector2 new_pos = player_pos;
-            if (IsKeyDown(KEY_UP)) {
-                new_pos.y -= map->get_tile_size().y;
-                if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
-                else new_pos = player_pos;
+            input_controller.update();
+            switch (input_controller.get_movement_direction()) {
+            case MovementDirection::none: {
+                key_pressed = false;
+                break;
             }
-            else if (IsKeyDown(KEY_DOWN)) {
-                new_pos.y += map->get_tile_size().y;
-                if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
-                else new_pos = player_pos;
-            }
-            else if (IsKeyDown(KEY_LEFT)) {
+            case MovementDirection::upleft: {
                 new_pos.x -= map->get_tile_size().x;
-                if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
-                else new_pos = player_pos;
+                new_pos.y -= map->get_tile_size().y;
+                key_pressed = true;
+                break;
             }
-            else if (IsKeyDown(KEY_RIGHT)) {
+            case MovementDirection::up: {
+                new_pos.y -= map->get_tile_size().y;
+                key_pressed = true;
+                break;
+            }
+            case MovementDirection::upright: {
                 new_pos.x += map->get_tile_size().x;
-                if (!map->is_tile_blocked(map->vec_to_tile(new_pos))) move_player = true;
-                else new_pos = player_pos;
+                new_pos.y -= map->get_tile_size().y;
+                key_pressed = true;
+                break;
             }
+            case MovementDirection::left: {
+                new_pos.x -= map->get_tile_size().x;
+                key_pressed = true;
+                break;
+            }
+            // No ability to stay on same tile and pass turn, for now
+            case MovementDirection::right: {
+                new_pos.x += map->get_tile_size().x;
+                key_pressed = true;
+                break;
+            }
+            case MovementDirection::downleft: {
+                new_pos.x -= map->get_tile_size().x;
+                new_pos.y += map->get_tile_size().y;
+                key_pressed = true;
+                break;
+            }
+            case MovementDirection::down: {
+                new_pos.y += map->get_tile_size().y;
+                key_pressed = true;
+                break;
+            }
+            case MovementDirection::downright: {
+                new_pos.x += map->get_tile_size().x;
+                new_pos.y += map->get_tile_size().y;
+                key_pressed = true;
+                break;
+            }
+            default: {
+                key_pressed = false;
+                break;
+            }
+            }
+
+            if (key_pressed && !map->is_tile_blocked(map->vec_to_tile(new_pos)))
+                move_player = true;
 
             if (move_player) {
                 int current_tile_id = map->tile_to_index(player_tile);
