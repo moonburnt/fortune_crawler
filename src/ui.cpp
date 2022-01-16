@@ -147,7 +147,6 @@ void TextButton::set_pos(Vector2 position) {
 }
 
 // Checkbox shenanigans
-
 Checkbox::Checkbox(
     Texture2D* texture_on_default,
     Texture2D* texture_on_hover,

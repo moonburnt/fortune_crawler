@@ -5,6 +5,13 @@
 #include <string>
 
 // Base map object
+void MapObject::set_description(std::string desc) {
+    description = desc;
+    full_description = desc;
+    // Not initializing affix there, coz full_description wont be re-generated
+    // without calling set_affix() anyway. So, I think, its fine to leave it empty?
+}
+
 MapObject::MapObject(
     bool is_obstacle,
     ObjectCategory cat,
@@ -13,9 +20,10 @@ MapObject::MapObject(
     Event _enemy_collision_event) {
     _is_obstacle = is_obstacle;
     category = cat;
-    description = desc;
+    set_description(desc);
     player_collision_event = _player_collision_event;
     enemy_collision_event = _enemy_collision_event;
+    is_inspected = false;
 }
 
 MapObject::MapObject(bool is_obstacle, ObjectCategory cat, std::string desc)
@@ -38,7 +46,15 @@ MapObject::MapObject(
     : MapObject(is_obstacle, cat, desc, Event::nothing, Event::nothing, sprite) {
 }
 
+void MapObject::set_affix(std::string _affix) {
+    // This is a really messy way of doing it, but gcc doesn't have <format> yet.
+    // TODO: bump project's cpp to c++20, rework this to std::format.
+    affix = _affix;
+    full_description = TextFormat("%s (%s)", description.c_str(), affix.c_str());
+}
+
 Event MapObject::get_player_collision_event() {
+    is_inspected = true;
     return player_collision_event;
 }
 
@@ -48,6 +64,11 @@ Event MapObject::get_enemy_collision_event() {
 
 ObjectCategory MapObject::get_category() {
     return category;
+}
+
+std::string MapObject::get_description() {
+    if (is_inspected) return full_description;
+    return description;
 }
 
 bool MapObject::is_obstacle() {
@@ -104,11 +125,13 @@ Treasure::Treasure(bool lock_state, int _money_amount, Texture2D* sprite)
 }
 
 void Treasure::lock() {
+    set_affix("locked");
     _is_locked = true;
     player_collision_event = Event::lockpick;
 }
 
 void Treasure::unlock() {
+    set_affix("unlocked");
     _is_locked = false;
     player_collision_event = Event::loot;
 }
@@ -120,6 +143,7 @@ bool Treasure::is_locked() {
 int Treasure::get_reward() {
     int reward = money_amount;
     money_amount = 0;
+    set_affix("empty");
 
     return reward;
 }
@@ -157,12 +181,8 @@ Player::Player(Texture2D* sprite)
 // There may be a better way to initialize it
 Enemy::Enemy(bool is_boss, Texture2D* sprite)
     : Creature(false, "", Event::fight, Event::nothing, sprite) {
-    if (is_boss) {
-        description = "Boss";
-    }
-    else {
-        description = "Enemy";
-    }
+    if (is_boss) set_description("Boss");
+    else set_description("Enemy");
 
     _is_boss = is_boss;
 };

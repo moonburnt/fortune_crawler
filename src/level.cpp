@@ -320,14 +320,6 @@ void Level::update(float dt) {
             static_cast<Treasure*>(map->get_object(current_event_cause.value()))
                 ->get_reward();
 
-        // TODO: maybe I shouldn't delete chest, but change its texture?
-        int current_tile_id = map->tile_to_index(player_tile);
-        map->delete_object(
-            current_tile_id,
-            map->find_object_in_tile(current_tile_id, current_event_cause.value())
-                .value(),
-            true);
-
         reset_event();
         break;
     }

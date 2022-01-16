@@ -47,11 +47,6 @@ int GameMap::add_object(MapObject* object) {
         static_cast<Creature*>(object)->is_player()) {
         player_id = map_objects_amount;
     }
-    else if (
-        object->get_category() == ObjectCategory::structure &&
-        object->get_player_collision_event() == Event::exit_map) {
-        exit_id = map_objects_amount;
-    }
 
     map_objects_amount++;
     return map_objects_amount - 1;
@@ -80,10 +75,6 @@ int GameMap::get_player_id() {
     return player_id;
 }
 
-int GameMap::get_exit_id() {
-    return exit_id;
-}
-
 std::vector<int>* GameMap::get_tile_content(size_t grid_index) {
     // Protection against out-of-bounds index values
     grid_index = std::clamp(grid_index, 0lu, grid_size);
@@ -97,7 +88,7 @@ std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
     std::vector<std::string> descriptions;
 
     for (auto item : grid[grid_index]) {
-        descriptions.push_back(map_objects[item]->description);
+        descriptions.push_back(map_objects[item]->get_description());
     }
     return descriptions;
 }

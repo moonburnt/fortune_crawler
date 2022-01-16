@@ -30,7 +30,6 @@ private:
     Vector2 selected_pos;
 
     int player_id;
-    int exit_id;
 
 public:
     GameMap(Point map_size, Point tile_size);
@@ -53,7 +52,6 @@ public:
     void move_object(int grid_index, int tile_index, int new_grid_index);
 
     int get_player_id();
-    int get_exit_id();
 
     std::vector<int>* get_tile_content(size_t grid_index);
 

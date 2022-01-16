@@ -24,6 +24,15 @@ class MapObject {
 private:
     std::optional<Texture2D*> texture;
 
+    // These things below can probably be done better. TODO
+    // Default description of an object.
+    std::string description;
+    // Affix that will be added to description if is_inspected is true.
+    std::string affix;
+    // New description that will be created rom description + affix and returned,
+    // if is_inspected is true.
+    std::string full_description;
+
 protected:
     ObjectCategory category;
     Event player_collision_event;
@@ -33,11 +42,17 @@ protected:
     // If set to true - prevents from passing this tile.
     bool _is_obstacle;
 
+    // Inspection state of object. If player has interacted with it at least
+    // once - will be set to true.
+    bool is_inspected;
+
+    // Set description. Overrides both description and full_description.
+    void set_description(std::string desc);
+
+    // Change/set affix'es text and update full_description.
+    void set_affix(std::string affix);
+
 public:
-    std::string description; // TODO: move to protected, add getter
-    ObjectCategory get_category();
-    Event get_player_collision_event();
-    Event get_enemy_collision_event();
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc);
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite);
     MapObject(
@@ -53,6 +68,18 @@ public:
         std::string desc,
         Event player_collision_event,
         Event enemy_collision_event);
+
+    // Get object's category
+    ObjectCategory get_category();
+
+    // Get object's description string
+    std::string get_description();
+
+    // Get object's player collision event
+    Event get_player_collision_event();
+
+    // Get object's enemy collision event
+    Event get_enemy_collision_event();
 
     // Returns _is_obstacle
     bool is_obstacle();
@@ -89,6 +116,7 @@ private:
 
 public:
     Treasure(bool lock_state, int money_amount, Texture2D* sprite);
+
     // Return money_amount and set it to 0.
     int get_reward();
     // Return lock state
