@@ -50,36 +50,19 @@ private:
 
     int dungeon_lvl;
 
-    std::string turn_title;
-    Vector2 turn_title_pos;
+    DynamicLabel turn_label;
+    DynamicLabel turn_num_label;
+    DynamicLabel selected_tile_label;
+    Label player_info_label;
+    DynamicLabel player_currency_label;
+    DynamicLabel player_tile_label;
+    DynamicLabel tile_content_label;
+    DynamicLabel dungeon_lvl_label;
+    Label completion_label;
 
-    std::string turn_num_title;
-    Vector2 turn_num_title_pos;
-
-    std::string selected_tile_text;
-    Vector2 selected_tile_pos;
-
-    std::string player_info_title;
-    Vector2 player_info_pos;
-
-    std::string player_currency_title;
-    Vector2 player_currency_pos;
-
-    std::string player_tile_text;
-    Vector2 player_tile_text_pos;
-
-    std::string tile_content_title;
-    Vector2 tile_content_pos;
-    int tile_content_vert_gap;
+    void set_player_tile(Point tile);
 
     int last_selected_tile;
-    std::string last_selected_descriptions;
-
-    std::string completion_msg;
-    Vector2 completion_msg_pos;
-
-    std::string dungeon_lvl_title;
-    Vector2 dungeon_lvl_title_pos;
 
     Timer* turn_switch_timer;
 

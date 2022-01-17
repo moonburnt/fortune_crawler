@@ -135,3 +135,37 @@ public:
     // Resets state_switched.
     void reset_state();
 };
+
+// Basic label. You can move it around, but cant alter its text after creation.
+class Label {
+protected:
+    std::string text;
+
+public:
+    Label(std::string txt, Vector2 position);
+    Label(std::string txt, int x, int y);
+    Label();
+
+    Vector2 pos;
+
+    // Center message around its position
+    void center();
+
+    void draw();
+};
+
+// Dynamic label. It has an additional storage for text set during initialization,
+// which allows to reuse it
+class DynamicLabel : public Label {
+private:
+    std::string default_text;
+
+public:
+    DynamicLabel(std::string txt, Vector2 position);
+    DynamicLabel(std::string txt, int x, int y);
+    DynamicLabel();
+
+    void set_text(std::string txt, bool override_default);
+    void set_text(std::string txt);
+    std::string get_default_text();
+};

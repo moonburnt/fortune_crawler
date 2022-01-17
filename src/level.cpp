@@ -6,6 +6,10 @@
 #include <algorithm>
 #include <optional>
 #include <raylib.h>
+// For basic formatting
+#include <fmt/core.h>
+// For fmt::join
+#include <fmt/format.h>
 
 // TODO: make this configurable from settings
 // Sane values would be 1.0 -> 3.0, everything bigger would make things render
@@ -57,6 +61,12 @@ void Level::set_camera() {
     camera.rotation = 0.0f;
 }
 
+void Level::set_player_tile(Point tile) {
+    player_tile = tile;
+    player_tile_label.set_text(
+        fmt::format(player_tile_label.get_default_text(), player_tile.y, player_tile.x));
+}
+
 void Level::configure_hud() {
     // Maybe I shouldnt do it like that. But for now, borders on sides should
     // make visible part of screen form a perfect rectangle.
@@ -72,6 +82,22 @@ void Level::configure_hud() {
     right_bg.width = left_bg.width;
     right_bg.height = left_bg.height;
 
+    // This is nasty but will do for now
+    int left_bg_txt_x = 30;
+    int right_bg_txt_x = right_bg.x + left_bg_txt_x;
+    int bg_txt_starting_y = 30;
+    int bg_text_vert_gap = 30;
+
+    dungeon_lvl_label =
+        DynamicLabel("Dungeon Level: {}", right_bg_txt_x, bg_txt_starting_y);
+    turn_num_label = DynamicLabel(
+        "Current Turn: {}",
+        right_bg_txt_x,
+        bg_txt_starting_y + bg_text_vert_gap);
+    // text of this one will be overwritten in change_turn()
+    turn_label =
+        DynamicLabel("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2);
+
     playground_vec_start.x = left_bg.width;
     playground_vec_start.y = left_bg.y;
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
@@ -82,33 +108,23 @@ void Level::configure_hud() {
     event_screen_bg.width = (GetScreenWidth() - left_bg.width * 2) - 60;
     event_screen_bg.height = left_bg.height - 60;
 
-    selected_tile_text = "Selected Tile: ";
-    selected_tile_pos.x =
-        center_text_h(selected_tile_text + "00 x 00", right_bg.x + right_bg.width / 2);
-    selected_tile_pos.y = GetScreenHeight() - 200;
+    selected_tile_label =
+        DynamicLabel("Selected Tile: {} x {}", right_bg_txt_x, GetScreenHeight() - 200);
 
-    tile_content_vert_gap = 30;
+    tile_content_label = DynamicLabel(
+        "Contains: \n - {}",
+        right_bg_txt_x,
+        GetScreenHeight() - 200 + bg_text_vert_gap);
 
-    tile_content_title = "Contains: ";
-    tile_content_pos.x = selected_tile_pos.x;
-    tile_content_pos.y = selected_tile_pos.y + tile_content_vert_gap;
+    player_info_label = Label("Player Info:", left_bg_txt_x, bg_txt_starting_y);
+    player_currency_label =
+        DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
+    player_tile_label =
+        DynamicLabel("Current Tile: {} x {}", left_bg_txt_x, GetScreenHeight() - 50.0);
 
-    player_info_title = "Player Info:";
-    player_info_pos.x = center_text_h(selected_tile_text, left_bg.x + left_bg.width / 2);
-    player_info_pos.y = 30;
-
-    player_currency_title = "Coins: ";
-    player_currency_pos = Vector2{30.0f, player_info_pos.y + tile_content_vert_gap};
-
-    player_tile_text = "Current Tile: ";
-    player_tile_text_pos.x =
-        center_text_h(player_tile_text + "00 x 00", left_bg.x + left_bg.width / 2);
-    player_tile_text_pos.y = GetScreenHeight() - 50;
-
-    completion_msg = "Level Completed!";
-    completion_msg_pos = center_text(
-        completion_msg,
-        Vector2{GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    completion_label =
+        Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2);
+    completion_label.center();
 
     next_level_button = new TextButton(
         &AssetLoader::loader.sprites["button_default"],
@@ -152,14 +168,11 @@ void Level::configure_hud() {
 }
 
 void Level::configure_new_map() {
-    dungeon_lvl_title = TextFormat("Dungeon Level: %i", dungeon_lvl);
-    dungeon_lvl_title_pos = Vector2{
-        static_cast<float>(
-            center_text_h(dungeon_lvl_title, right_bg.x + right_bg.width / 2)),
-        30};
+    dungeon_lvl_label.set_text(
+        fmt::format(dungeon_lvl_label.get_default_text(), dungeon_lvl));
 
     // This will fail if no player spawns are available
-    player_tile = map->find_object_tile(map->get_player_id()).value();
+    set_player_tile(map->find_object_tile(map->get_player_id()).value());
     player_pos = map->tile_to_vec(player_tile);
     player_obj = static_cast<Player*>(map->get_object(map->get_player_id()));
     set_camera();
@@ -222,26 +235,15 @@ void Level::back_to_menu() {
 void Level::change_turn() {
     if (is_player_turn) {
         is_player_turn = false;
-        turn_title = "Enemy's Turn";
-        turn_title_pos = {
-            static_cast<float>(
-                center_text_h(turn_title, right_bg.x + right_bg.width / 2)),
-            70};
+        turn_label.set_text("Enemy's Turn");
     }
     else {
         is_player_turn = true;
-        turn_title = "Player's Turn";
-        turn_title_pos = {
-            static_cast<float>(
-                center_text_h(turn_title, right_bg.x + right_bg.width / 2)),
-            70};
+        turn_label.set_text("Player's Turn");
         // This may backfire on multiple players
         current_turn++;
-        turn_num_title = TextFormat("Current Turn: %i", current_turn);
-        turn_num_title_pos = {
-            static_cast<float>(
-                center_text_h(turn_num_title, right_bg.x + right_bg.width / 2)),
-            50};
+        turn_num_label.set_text(
+            fmt::format(turn_num_label.get_default_text(), current_turn));
     }
     turn_switch_timer->start();
 }
@@ -344,7 +346,7 @@ void Level::update(float dt) {
 
                 map->move_object(current_tile_id, pt_index, new_tile_id);
                 player_pos = new_pos;
-                player_tile = map->vec_to_tile(player_pos);
+                set_player_tile(map->vec_to_tile(player_pos));
 
                 center_camera();
                 change_turn();
@@ -414,6 +416,9 @@ void Level::update(float dt) {
         back_to_menu();
         return;
     }
+
+    player_currency_label.set_text(
+        fmt::format(player_currency_label.get_default_text(), player_obj->money_amount));
 }
 
 void Level::draw() {
@@ -427,24 +432,9 @@ void Level::draw() {
     DrawRectangleRec(right_bg, SIDE_BG_COLOR);
     DrawLine(right_bg.x, right_bg.y, right_bg.x, right_bg.height, CORNER_COLOR);
 
-    DrawText(
-        dungeon_lvl_title.c_str(),
-        dungeon_lvl_title_pos.x,
-        dungeon_lvl_title_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
-    DrawText(
-        turn_num_title.c_str(),
-        turn_num_title_pos.x,
-        turn_num_title_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
-    DrawText(
-        turn_title.c_str(),
-        turn_title_pos.x,
-        turn_title_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
+    dungeon_lvl_label.draw();
+    turn_num_label.draw();
+    turn_label.draw();
 
     switch (current_event) {
     case Event::nothing: {
@@ -455,31 +445,25 @@ void Level::draw() {
             Vector2 real_mouse_pos = GetScreenToWorld2D(mouse_pos, camera);
             if (map->is_vec_on_map(real_mouse_pos)) {
                 Point mtt = map->vec_to_tile(real_mouse_pos);
-                DrawText(
-                    TextFormat("%s%02i x %02i", selected_tile_text.c_str(), mtt.y, mtt.x),
-                    selected_tile_pos.x,
-                    selected_tile_pos.y,
-                    DEFAULT_TEXT_SIZE,
-                    DEFAULT_TEXT_COLOR);
-                map->select_tile(mtt);
-
                 int selected_tile = map->tile_to_index(mtt);
                 // This may backfire if selected tile has been changed between checks
                 if (selected_tile != last_selected_tile) {
+                    selected_tile_label.set_text(fmt::format(
+                        selected_tile_label.get_default_text(),
+                        mtt.y,
+                        mtt.x));
+                    map->select_tile(mtt);
+
                     last_selected_tile = selected_tile;
-                    std::string descriptions = tile_content_title;
-                    for (auto desc : map->get_tile_descriptions(last_selected_tile)) {
-                        descriptions += "\n - " + desc;
-                    }
-                    last_selected_descriptions = descriptions;
+                    tile_content_label.set_text(fmt::format(
+                        tile_content_label.get_default_text(),
+                        fmt::join(
+                            map->get_tile_descriptions(last_selected_tile),
+                            "\n - ")));
                 }
 
-                DrawText(
-                    last_selected_descriptions.c_str(),
-                    tile_content_pos.x,
-                    tile_content_pos.y,
-                    DEFAULT_TEXT_SIZE,
-                    DEFAULT_TEXT_COLOR);
+                selected_tile_label.draw();
+                tile_content_label.draw();
             }
             else map->deselect_tile();
         }
@@ -490,12 +474,7 @@ void Level::draw() {
     case Event::exit_map: {
         DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
         DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
-        DrawText(
-            completion_msg.c_str(),
-            completion_msg_pos.x,
-            completion_msg_pos.y,
-            DEFAULT_TEXT_SIZE,
-            DEFAULT_TEXT_COLOR);
+        completion_label.draw();
         next_level_button->draw();
         close_event_screen_button->draw();
         break;
@@ -505,30 +484,9 @@ void Level::draw() {
         break;
     }
 
-    DrawText(
-        player_info_title.c_str(),
-        player_info_pos.x,
-        player_info_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
-
-    DrawText(
-        TextFormat(
-            "%s%02i x %02i",
-            player_tile_text.c_str(),
-            player_tile.y,
-            player_tile.x),
-        player_tile_text_pos.x,
-        player_tile_text_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
-
-    DrawText(
-        TextFormat("%s%i", player_currency_title.c_str(), player_obj->money_amount),
-        player_currency_pos.x,
-        player_currency_pos.y,
-        DEFAULT_TEXT_SIZE,
-        DEFAULT_TEXT_COLOR);
+    player_info_label.draw();
+    player_tile_label.draw();
+    player_currency_label.draw();
 
     back_to_menu_button->draw();
 }

@@ -5,7 +5,7 @@ MAPS_DIR = maps
 GAME_NAME = fortune_crawler
 
 CC = g++
-DEPS = json-c raylib
+DEPS = json-c raylib fmt
 CFLAGS = -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -std=c++17 $(shell pkg-config --cflags $(DEPS))
 LDFLAGS = -lm $(shell pkg-config --libs $(DEPS))
 
