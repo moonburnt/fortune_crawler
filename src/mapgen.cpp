@@ -203,18 +203,26 @@ std::optional<int> GameMap::find_object_in_tile(int grid_index, int object_id) {
     return std::nullopt;
 }
 
-std::tuple<int, std::optional<Event>>
-GameMap::get_tile_event(int grid_index, bool is_player_event) {
-    int last_item_id = grid[grid_index].back();
+std::vector<std::tuple<int, Event>> GameMap::get_player_events(int grid_index) {
+    std::vector<std::tuple<int, Event>> tile_events;
 
-    if (is_player_event)
-        return std::make_tuple(
-            last_item_id,
-            map_objects[last_item_id]->get_player_collision_event());
+    for (auto i : grid[grid_index]) {
+        auto event = map_objects[i]->get_player_collision_event();
+        if (event) tile_events.push_back(std::make_tuple(i, event.value()));
+    }
 
-    return std::make_tuple(
-        last_item_id,
-        map_objects[last_item_id]->get_enemy_collision_event());
+    return tile_events;
+}
+
+std::vector<std::tuple<int, Event>> GameMap::get_enemy_events(int grid_index) {
+    std::vector<std::tuple<int, Event>> tile_events;
+
+    for (auto i : grid[grid_index]) {
+        auto event = map_objects[i]->get_enemy_collision_event();
+        if (event) tile_events.push_back(std::make_tuple(i, event.value()));
+    }
+
+    return tile_events;
 }
 
 void GameMap::select_tile(Point tile) {

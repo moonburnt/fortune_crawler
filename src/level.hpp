@@ -82,7 +82,15 @@ private:
     Button* close_event_screen_button;
 
     std::optional<Event> current_event;
+    std::vector<std::tuple<int, Event>> scheduled_events;
     std::optional<int> current_event_cause;
+
+    // Reset current_event and its cause to std::nullopt, then remove the last
+    // event (assuming this has been the completed one) from scheduled_events.
+    void complete_event();
+
+    // Unpack current_event and current_event_cause from tail of scheduled_events
+    void set_new_event();
 
     // Handle input and move player accordingly
     void handle_player_movement();
@@ -97,9 +105,6 @@ private:
     void center_camera();
 
     void change_turn();
-
-    // Reset current event to Event::nothing and event cause to std::nullopt
-    void reset_event();
 
     // Set new map and apply related changes.
     void configure_new_map();

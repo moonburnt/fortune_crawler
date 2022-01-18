@@ -171,9 +171,18 @@ void Level::configure_hud() {
                 150.0f});
 }
 
-void Level::reset_event() {
+void Level::complete_event() {
     current_event = std::nullopt;
     current_event_cause = std::nullopt;
+    scheduled_events.pop_back();
+}
+
+void Level::set_new_event() {
+    if (scheduled_events.empty()) return;
+
+    // This is a syntax sugar to unpack tuple, equal to std::tie(x, y) = tuple;
+    // auto [current_event_cause, current_event] = scheduled_events.back();
+    std::tie(current_event_cause, current_event) = scheduled_events.back();
 }
 
 void Level::configure_new_map() {
@@ -188,7 +197,6 @@ void Level::configure_new_map() {
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
-    reset_event();
     last_selected_tile = -1;
     change_turn();
 }
@@ -229,6 +237,7 @@ void Level::change_map() {
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
     configure_new_map();
+    scheduled_events.clear();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {
@@ -253,6 +262,7 @@ void Level::change_turn() {
         current_turn++;
         turn_num_label.set_text(
             fmt::format(turn_num_label.get_default_text(), current_turn));
+        set_new_event();
     }
     turn_switch_timer->start();
 }
@@ -327,9 +337,7 @@ void Level::handle_player_movement() {
         // This may be an overkill or oversight. May need to remove it
         // if I will ever add floor tiles that cause events
         if (map->is_tile_occupied(new_tile_id))
-            // Tie unpacks provided tuple into specified vars.
-            std::tie(current_event_cause, current_event) =
-                map->get_tile_event(new_tile_id, true);
+            scheduled_events = map->get_player_events(new_tile_id);
 
         map->move_object(current_tile_id, pt_index, new_tile_id);
         player_pos = new_pos;
@@ -355,13 +363,14 @@ void Level::update(float dt) {
             close_event_screen_button->update();
 
             if (next_level_button->is_clicked()) {
+                complete_event();
                 change_map();
                 next_level_button->reset_state();
                 return;
             }
 
             if (close_event_screen_button->is_clicked()) {
-                reset_event();
+                complete_event();
                 close_event_screen_button->reset_state();
                 return;
             }
@@ -381,7 +390,7 @@ void Level::update(float dt) {
                     .value(),
                 true);
 
-            reset_event();
+            complete_event();
             break;
         }
 
@@ -391,12 +400,12 @@ void Level::update(float dt) {
                 static_cast<Treasure*>(map->get_object(current_event_cause.value()))
                     ->get_reward();
 
-            reset_event();
+            complete_event();
             break;
         }
 
         default: {
-            reset_event();
+            complete_event();
             break;
         }
         }
