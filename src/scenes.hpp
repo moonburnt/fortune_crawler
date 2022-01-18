@@ -47,9 +47,9 @@ public:
 class MainMenu : public Scene {
 private:
     SceneManager* parent;
-    TextButton* exit_button;
-    TextButton* start_button;
-    TextButton* settings_button;
+    TextButton start_button;
+    TextButton settings_button;
+    TextButton exit_button;
 
     void call_exit();
     void start_game();

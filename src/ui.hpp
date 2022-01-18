@@ -21,10 +21,6 @@ protected:
     ButtonStates state;
 
 private:
-    // Texture2D* textures[3];
-    // Sound* sounds[2]; // Hover and click
-    // Same as above, but as maps, which are cpp's version of dict
-    // These ones in particular don't retain order, like dicts in >3.4
     std::unordered_map<ButtonStates, Texture2D*> textures;
     std::unordered_map<int, Sound*> sounds;
     // Button's hitbox. X and Y are offsets from texture's top left
@@ -169,3 +165,8 @@ public:
     void set_text(std::string txt);
     std::string get_default_text();
 };
+
+// Fabriques for some common button types
+Button make_close_button();
+TextButton make_text_button(std::string txt);
+Checkbox make_checkbox(bool default_state);

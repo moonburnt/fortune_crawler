@@ -1,8 +1,8 @@
 #include "ui.hpp"
+#include "loader.hpp"
 #include "utility.hpp"
 
 #include <raylib.h>
-
 #include <string>
 
 // It's not necessary to use "this" in these, but it may be good for readability
@@ -278,4 +278,41 @@ void DynamicLabel::set_text(std::string txt) {
 
 std::string DynamicLabel::get_default_text() {
     return default_text;
+}
+
+// Constructors of commonly used buttons. These will fail if assets loader hasn't
+// been prior initialized and populated with required assets.
+Button make_close_button() {
+    return Button(
+        &AssetLoader::loader.sprites["cross_default"],
+        &AssetLoader::loader.sprites["cross_hover"],
+        &AssetLoader::loader.sprites["cross_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 64, 64});
+}
+
+TextButton make_text_button(std::string txt) {
+    return TextButton(
+        &AssetLoader::loader.sprites["button_default"],
+        &AssetLoader::loader.sprites["button_hover"],
+        &AssetLoader::loader.sprites["button_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 256, 64},
+        txt);
+}
+
+Checkbox make_checkbox(bool default_state) {
+    return Checkbox(
+        &AssetLoader::loader.sprites["toggle_on_default"],
+        &AssetLoader::loader.sprites["toggle_on_hover"],
+        &AssetLoader::loader.sprites["toggle_on_pressed"],
+        &AssetLoader::loader.sprites["toggle_off_default"],
+        &AssetLoader::loader.sprites["toggle_off_hover"],
+        &AssetLoader::loader.sprites["toggle_off_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 32, 32},
+        default_state);
 }

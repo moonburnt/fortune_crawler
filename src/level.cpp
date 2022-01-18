@@ -130,40 +130,16 @@ void Level::configure_hud() {
         Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2);
     completion_label.center();
 
-    next_level_button = new TextButton(
-        &AssetLoader::loader.sprites["button_default"],
-        &AssetLoader::loader.sprites["button_hover"],
-        &AssetLoader::loader.sprites["button_pressed"],
-        &AssetLoader::loader.sounds["button_hover"],
-        &AssetLoader::loader.sounds["button_clicked"],
-        Rectangle{0, 0, 256, 64},
-        "Go Deeper!");
-    next_level_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - next_level_button->get_rect().width / 2,
+    next_level_button.set_pos(Vector2{
+        GetScreenWidth() / 2.0f - next_level_button.get_rect().width / 2,
         GetScreenHeight() / 2.0f + 200});
 
-    close_event_screen_button = new Button(
-        &AssetLoader::loader.sprites["cross_default"],
-        &AssetLoader::loader.sprites["cross_hover"],
-        &AssetLoader::loader.sprites["cross_pressed"],
-        &AssetLoader::loader.sounds["button_hover"],
-        &AssetLoader::loader.sounds["button_clicked"],
-        Rectangle{0, 0, 64, 64});
-
-    close_event_screen_button->set_pos(Vector2{
+    close_event_screen_button.set_pos(Vector2{
         event_screen_bg.x + event_screen_bg.width -
-            close_event_screen_button->get_rect().width,
+            close_event_screen_button.get_rect().width,
         event_screen_bg.y});
 
-    back_to_menu_button = new Button(
-        &AssetLoader::loader.sprites["cross_default"],
-        &AssetLoader::loader.sprites["cross_hover"],
-        &AssetLoader::loader.sprites["cross_pressed"],
-        &AssetLoader::loader.sounds["button_hover"],
-        &AssetLoader::loader.sounds["button_clicked"],
-        Rectangle{0, 0, 64, 64});
-
-    back_to_menu_button->set_pos(
+    back_to_menu_button.set_pos(
         Vector2{// static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
                 // Temporary pos to dont overlap with other elements.
                 // TODO: reposition things
@@ -180,8 +156,6 @@ void Level::complete_event() {
 void Level::set_new_event() {
     if (scheduled_events.empty()) return;
 
-    // This is a syntax sugar to unpack tuple, equal to std::tie(x, y) = tuple;
-    // auto [current_event_cause, current_event] = scheduled_events.back();
     std::tie(current_event_cause, current_event) = scheduled_events.back();
 }
 
@@ -202,7 +176,10 @@ void Level::configure_new_map() {
 }
 
 Level::Level(SceneManager* p)
-    : Scene(BG_COLOR) {
+    : Scene(BG_COLOR)
+    , back_to_menu_button(make_close_button())
+    , next_level_button(make_text_button("Go Deeper!"))
+    , close_event_screen_button(make_close_button()) {
     parent = p;
 
     input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
@@ -221,11 +198,8 @@ Level::Level(SceneManager* p)
 }
 
 Level::~Level() {
-    delete next_level_button;
-    delete close_event_screen_button;
     delete map;
     delete turn_switch_timer;
-    delete back_to_menu_button;
     delete player_obj;
 }
 
@@ -246,7 +220,7 @@ bool Level::is_vec_on_playground(Vector2 vec) {
 }
 
 void Level::back_to_menu() {
-    back_to_menu_button->reset_state();
+    back_to_menu_button.reset_state();
     parent->set_current_scene(new MainMenu(parent));
 }
 
@@ -359,19 +333,19 @@ void Level::update(float dt) {
         case Event::exit_map: {
             // TODO: add details to completion screen (amount of turns made,
             // enemies killed, etc)
-            next_level_button->update();
-            close_event_screen_button->update();
+            next_level_button.update();
+            close_event_screen_button.update();
 
-            if (next_level_button->is_clicked()) {
+            if (next_level_button.is_clicked()) {
                 complete_event();
                 change_map();
-                next_level_button->reset_state();
+                next_level_button.reset_state();
                 return;
             }
 
-            if (close_event_screen_button->is_clicked()) {
+            if (close_event_screen_button.is_clicked()) {
                 complete_event();
-                close_event_screen_button->reset_state();
+                close_event_screen_button.reset_state();
                 return;
             }
             break;
@@ -416,8 +390,8 @@ void Level::update(float dt) {
         else change_turn();
     }
 
-    back_to_menu_button->update();
-    if (back_to_menu_button->is_clicked()) {
+    back_to_menu_button.update();
+    if (back_to_menu_button.is_clicked()) {
         // TODO: perform some serialization there, to be able to continue
         back_to_menu();
         return;
@@ -448,8 +422,8 @@ void Level::draw() {
             DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
             DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
             completion_label.draw();
-            next_level_button->draw();
-            close_event_screen_button->draw();
+            next_level_button.draw();
+            close_event_screen_button.draw();
             break;
         }
 
@@ -495,5 +469,5 @@ void Level::draw() {
     player_tile_label.draw();
     player_currency_label.draw();
 
-    back_to_menu_button->draw();
+    back_to_menu_button.draw();
 }

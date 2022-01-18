@@ -75,11 +75,11 @@ private:
     Rectangle right_bg;
     Vector2 playground_vec_start;
     Vector2 playground_vec_end;
-    Button* back_to_menu_button;
+    Button back_to_menu_button;
 
     Rectangle event_screen_bg;
-    TextButton* next_level_button;
-    Button* close_event_screen_button;
+    TextButton next_level_button;
+    Button close_event_screen_button;
 
     std::optional<Event> current_event;
     std::vector<std::tuple<int, Event>> scheduled_events;
