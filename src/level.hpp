@@ -81,8 +81,11 @@ private:
     TextButton* next_level_button;
     Button* close_event_screen_button;
 
-    Event current_event;
+    std::optional<Event> current_event;
     std::optional<int> current_event_cause;
+
+    // Handle input and move player accordingly
+    void handle_player_movement();
 
     // Exit from level to main menu.
     void back_to_menu();

@@ -97,12 +97,13 @@ public:
     bool is_tile_occupied(int grid_index);
     bool is_tile_occupied(Point tile);
 
-    // Returns last event in tile and object_id of item that caused it.
+    // Returns event (or std::optional) and id of last object in tile.
     // If is_player_event is set to true - will search for player events, else -
     // for enemy events.
     // TODO: remake it into function that returns vector of items, to support
     // multiple events per tile (since these may and will occur)
-    std::tuple<int, Event> get_tile_event(int grid_index, bool is_player_event);
+    std::tuple<int, std::optional<Event>>
+    get_tile_event(int grid_index, bool is_player_event);
 
     // Set specified tile to be highlighted
     void select_tile(Point tile);

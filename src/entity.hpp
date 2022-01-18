@@ -13,7 +13,6 @@ enum class ObjectCategory
 
 enum class Event
 {
-    nothing,
     exit_map,
     loot,
     lockpick,
@@ -35,9 +34,8 @@ private:
 
 protected:
     ObjectCategory category;
-    Event player_collision_event;
-    // This theoretically also affects boss, but it doesn't move so whatever
-    Event enemy_collision_event;
+    std::optional<Event> player_collision_event;
+    std::optional<Event> enemy_collision_event;
 
     // If set to true - prevents from passing this tile.
     bool _is_obstacle;
@@ -58,19 +56,6 @@ protected:
 public:
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc);
     MapObject(bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite);
-    MapObject(
-        bool is_obstacle,
-        ObjectCategory cat,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event,
-        Texture2D* sprite);
-    MapObject(
-        bool is_obstacle,
-        ObjectCategory cat,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event);
 
     // Get object's category
     ObjectCategory get_category();
@@ -78,11 +63,13 @@ public:
     // Get object's description string
     std::string get_description();
 
-    // Get object's player collision event
-    Event get_player_collision_event();
+    // Setters for collision events
+    void set_player_collision_event(Event event);
+    void set_enemy_collision_event(Event event);
 
-    // Get object's enemy collision event
-    Event get_enemy_collision_event();
+    // Getters for collision events
+    std::optional<Event> get_player_collision_event();
+    std::optional<Event> get_enemy_collision_event();
 
     // Returns _is_obstacle
     bool is_obstacle();
@@ -93,17 +80,6 @@ public:
 
 class Structure : public MapObject {
 public:
-    Structure(
-        bool is_obstacle,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event,
-        Texture2D* sprite);
-    Structure(
-        bool is_obstacle,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event);
     Structure(bool is_obstacle, std::string desc, Texture2D* sprite);
     Structure(bool is_obstacle, std::string desc);
 };
@@ -139,14 +115,7 @@ protected:
     bool _is_player;
 
 public:
-    Creature(
-        bool is_player,
-        std::string desc,
-        Event player_collision_event,
-        Event enemy_collision_event,
-        Texture2D* sprite);
-
-    void update();
+    Creature(bool is_player, std::string desc, Texture2D* sprite);
 
     // Returns true if its player, false otherwise
     bool is_player();

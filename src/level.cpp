@@ -108,8 +108,10 @@ void Level::configure_hud() {
     event_screen_bg.width = (GetScreenWidth() - left_bg.width * 2) - 60;
     event_screen_bg.height = left_bg.height - 60;
 
-    selected_tile_label =
-        DynamicLabel("Selected Tile: {} x {}", right_bg_txt_x, GetScreenHeight() - 200);
+    selected_tile_label = DynamicLabel(
+        "Selected Tile: {:02} x {:02}",
+        right_bg_txt_x,
+        GetScreenHeight() - 200);
 
     tile_content_label = DynamicLabel(
         "Contains: \n - {}",
@@ -119,8 +121,10 @@ void Level::configure_hud() {
     player_info_label = Label("Player Info:", left_bg_txt_x, bg_txt_starting_y);
     player_currency_label =
         DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
-    player_tile_label =
-        DynamicLabel("Current Tile: {} x {}", left_bg_txt_x, GetScreenHeight() - 50.0);
+    player_tile_label = DynamicLabel(
+        "Current Tile: {:02} x {:02}",
+        left_bg_txt_x,
+        GetScreenHeight() - 50.0);
 
     completion_label =
         Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2);
@@ -167,6 +171,11 @@ void Level::configure_hud() {
                 150.0f});
 }
 
+void Level::reset_event() {
+    current_event = std::nullopt;
+    current_event_cause = std::nullopt;
+}
+
 void Level::configure_new_map() {
     dungeon_lvl_label.set_text(
         fmt::format(dungeon_lvl_label.get_default_text(), dungeon_lvl));
@@ -179,7 +188,7 @@ void Level::configure_new_map() {
     is_player_turn = false;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
-    current_event = Event::nothing;
+    reset_event();
     last_selected_tile = -1;
     change_turn();
 }
@@ -248,9 +257,87 @@ void Level::change_turn() {
     turn_switch_timer->start();
 }
 
-void Level::reset_event() {
-    current_event = Event::nothing;
-    current_event_cause = std::nullopt;
+void Level::handle_player_movement() {
+    bool key_pressed = false;
+
+    Vector2 new_pos = player_pos;
+    input_controller.update();
+    switch (input_controller.get_movement_direction()) {
+    case MovementDirection::none:
+        break;
+    case MovementDirection::upleft: {
+        new_pos.x -= map->get_tile_size().x;
+        new_pos.y -= map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::up: {
+        new_pos.y -= map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::upright: {
+        new_pos.x += map->get_tile_size().x;
+        new_pos.y -= map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::left: {
+        new_pos.x -= map->get_tile_size().x;
+        key_pressed = true;
+        break;
+    }
+    // No ability to stay on same tile and pass turn, for now
+    case MovementDirection::right: {
+        new_pos.x += map->get_tile_size().x;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::downleft: {
+        new_pos.x -= map->get_tile_size().x;
+        new_pos.y += map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::down: {
+        new_pos.y += map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    case MovementDirection::downright: {
+        new_pos.x += map->get_tile_size().x;
+        new_pos.y += map->get_tile_size().y;
+        key_pressed = true;
+        break;
+    }
+    default:
+        break;
+    }
+
+    if (key_pressed && !map->is_tile_blocked(map->vec_to_tile(new_pos))) {
+        int current_tile_id = map->tile_to_index(player_tile);
+
+        // This should always return player index in tile, thus not
+        // checking the completion status
+        int pt_index =
+            map->find_object_in_tile(current_tile_id, map->get_player_id()).value();
+
+        int new_tile_id = map->vec_to_index(new_pos);
+
+        // This may be an overkill or oversight. May need to remove it
+        // if I will ever add floor tiles that cause events
+        if (map->is_tile_occupied(new_tile_id))
+            // Tie unpacks provided tuple into specified vars.
+            std::tie(current_event_cause, current_event) =
+                map->get_tile_event(new_tile_id, true);
+
+        map->move_object(current_tile_id, pt_index, new_tile_id);
+        player_pos = new_pos;
+        set_player_tile(map->vec_to_tile(player_pos));
+
+        center_camera();
+        change_turn();
+    }
 }
 
 void Level::update(float dt) {
@@ -259,155 +346,65 @@ void Level::update(float dt) {
         else return;
     }
 
-    switch (current_event) {
-    case Event::nothing: {
-        if (is_player_turn) {
-            bool move_player = false;
-            bool key_pressed;
+    if (current_event) {
+        switch (current_event.value()) {
+        case Event::exit_map: {
+            // TODO: add details to completion screen (amount of turns made,
+            // enemies killed, etc)
+            next_level_button->update();
+            close_event_screen_button->update();
 
-            Vector2 new_pos = player_pos;
-            input_controller.update();
-            switch (input_controller.get_movement_direction()) {
-            case MovementDirection::none: {
-                key_pressed = false;
-                break;
-            }
-            case MovementDirection::upleft: {
-                new_pos.x -= map->get_tile_size().x;
-                new_pos.y -= map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::up: {
-                new_pos.y -= map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::upright: {
-                new_pos.x += map->get_tile_size().x;
-                new_pos.y -= map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::left: {
-                new_pos.x -= map->get_tile_size().x;
-                key_pressed = true;
-                break;
-            }
-            // No ability to stay on same tile and pass turn, for now
-            case MovementDirection::right: {
-                new_pos.x += map->get_tile_size().x;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::downleft: {
-                new_pos.x -= map->get_tile_size().x;
-                new_pos.y += map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::down: {
-                new_pos.y += map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            case MovementDirection::downright: {
-                new_pos.x += map->get_tile_size().x;
-                new_pos.y += map->get_tile_size().y;
-                key_pressed = true;
-                break;
-            }
-            default: {
-                key_pressed = false;
-                break;
-            }
+            if (next_level_button->is_clicked()) {
+                change_map();
+                next_level_button->reset_state();
+                return;
             }
 
-            if (key_pressed && !map->is_tile_blocked(map->vec_to_tile(new_pos)))
-                move_player = true;
-
-            if (move_player) {
-                int current_tile_id = map->tile_to_index(player_tile);
-
-                // This should always return player index in tile, thus not
-                // checking the completion status
-                int pt_index =
-                    map->find_object_in_tile(current_tile_id, map->get_player_id())
-                        .value();
-
-                int new_tile_id = map->vec_to_index(new_pos);
-
-                // This may be an overkill or oversight. May need to remove it
-                // if I will ever add floor tiles that cause events
-                if (map->is_tile_occupied(new_tile_id))
-                    // Tie unpacks provided tuple into specified vars.
-                    std::tie(current_event_cause, current_event) =
-                        map->get_tile_event(new_tile_id, true);
-
-                map->move_object(current_tile_id, pt_index, new_tile_id);
-                player_pos = new_pos;
-                set_player_tile(map->vec_to_tile(player_pos));
-
-                center_camera();
-                change_turn();
+            if (close_event_screen_button->is_clicked()) {
+                reset_event();
+                close_event_screen_button->reset_state();
+                return;
             }
-        }
-        // TODO: stub
-        else change_turn();
-        break;
-    }
-
-    case Event::exit_map: {
-        // TODO: add details to completion screen (amount of turns made, enemies
-        // killed, etc)
-        next_level_button->update();
-        close_event_screen_button->update();
-
-        if (next_level_button->is_clicked()) {
-            change_map();
-            next_level_button->reset_state();
-            return;
+            break;
         }
 
-        if (close_event_screen_button->is_clicked()) {
+        case Event::fight: {
+            // TODO: stub
+
+            int current_tile_id = map->tile_to_index(player_tile);
+
+            // This will fail if current_event_cause is set to nullopt, but that
+            // shouldn't happen. I hope.
+            map->delete_object(
+                current_tile_id,
+                map->find_object_in_tile(current_tile_id, current_event_cause.value())
+                    .value(),
+                true);
+
             reset_event();
-            close_event_screen_button->reset_state();
-            return;
+            break;
         }
-        break;
+
+        case Event::loot: {
+            // TODO: stub
+            player_obj->money_amount +=
+                static_cast<Treasure*>(map->get_object(current_event_cause.value()))
+                    ->get_reward();
+
+            reset_event();
+            break;
+        }
+
+        default: {
+            reset_event();
+            break;
+        }
+        }
     }
 
-    case Event::fight: {
-        // TODO: stub
-
-        int current_tile_id = map->tile_to_index(player_tile);
-
-        // This will fail if current_event_cause is set to nullopt, but that
-        // shouldn't happen. I hope.
-        map->delete_object(
-            current_tile_id,
-            map->find_object_in_tile(current_tile_id, current_event_cause.value())
-                .value(),
-            true);
-
-        reset_event();
-        break;
-    }
-
-    case Event::loot: {
-        // TODO: stub
-        player_obj->money_amount +=
-            static_cast<Treasure*>(map->get_object(current_event_cause.value()))
-                ->get_reward();
-
-        reset_event();
-        break;
-    }
-
-    default: {
-        reset_event();
-        break;
-    }
+    else {
+        if (is_player_turn) handle_player_movement();
+        else change_turn();
     }
 
     back_to_menu_button->update();
@@ -436,8 +433,23 @@ void Level::draw() {
     turn_num_label.draw();
     turn_label.draw();
 
-    switch (current_event) {
-    case Event::nothing: {
+    if (current_event) {
+        switch (current_event.value()) {
+        case Event::exit_map: {
+            DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
+            DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
+            completion_label.draw();
+            next_level_button->draw();
+            close_event_screen_button->draw();
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    else {
         // I may want to move this above everything else in draw cycle
         // This isn't really efficient, may need some improvements. TODO
         Vector2 mouse_pos = GetMousePosition();
@@ -468,20 +480,6 @@ void Level::draw() {
             else map->deselect_tile();
         }
         else map->deselect_tile();
-        break;
-    }
-
-    case Event::exit_map: {
-        DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
-        DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
-        completion_label.draw();
-        next_level_button->draw();
-        close_event_screen_button->draw();
-        break;
-    }
-
-    default:
-        break;
     }
 
     player_info_label.draw();

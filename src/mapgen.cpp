@@ -203,19 +203,8 @@ std::optional<int> GameMap::find_object_in_tile(int grid_index, int object_id) {
     return std::nullopt;
 }
 
-std::tuple<int, Event> GameMap::get_tile_event(int grid_index, bool is_player_event) {
-    // Event tile_event;
-    // if (is_player_event) {
-    //     for (auto i: grid[grid_index]) {
-    //         tile_event = map_objects[i]->get_player_collision_event();
-    //     }
-    // }
-    // else {
-    //     for (auto i: grid[grid_index]) {
-    //         tile_event = map_objects[i]->get_enemy_collision_event();
-    //     }
-    // }
-    // return tile_event;
+std::tuple<int, std::optional<Event>>
+GameMap::get_tile_event(int grid_index, bool is_player_event) {
     int last_item_id = grid[grid_index].back();
 
     if (is_player_event)
@@ -284,8 +273,6 @@ GameMap* generate_map(
                     new Structure(
                         false,
                         "Entrance",
-                        Event::nothing,
-                        Event::nothing,
                         &AssetLoader::loader.sprites["entrance_tile"]),
                     grid_index);
                 gm->add_object(player_object, grid_index);
@@ -293,14 +280,13 @@ GameMap* generate_map(
             else if (pix_color == ColorToInt(Color{0, 242, 255, 255})) {
                 gm->place_object(grid_index, floor_id);
 
-                gm->add_object(
-                    new Structure(
-                        false,
-                        "Exit",
-                        Event::exit_map,
-                        Event::nothing,
-                        &AssetLoader::loader.sprites["exit_tile"]),
-                    grid_index);
+                MapObject* exit = new Structure(
+                    false,
+                    "Exit",
+                    &AssetLoader::loader.sprites["exit_tile"]);
+                exit->set_player_collision_event(Event::exit_map);
+
+                gm->add_object(exit, grid_index);
             }
             else if (pix_color == ColorToInt(Color{255, 0, 0, 255})) {
                 gm->place_object(grid_index, floor_id);
