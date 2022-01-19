@@ -4,6 +4,8 @@
 #include <optional>
 #include <raylib.h>
 #include <string>
+// For std::rand()
+#include <cstdlib>
 
 // Base map object
 void MapObject::set_description(std::string desc) {
@@ -116,9 +118,11 @@ int Treasure::get_reward() {
 // Base Creature
 // For now, there wont be implenetrable creatures, due to how collision
 // handling works. May rework this in future. TODO
-Creature::Creature(bool is_player, std::string desc, Texture2D* sprite)
+Creature::Creature(
+    bool is_player, CreatureStats _stats, std::string desc, Texture2D* sprite)
     : MapObject(false, ObjectCategory::creature, desc, sprite) {
     _is_player = is_player;
+    stats = _stats;
 }
 
 bool Creature::is_player() {
@@ -126,24 +130,49 @@ bool Creature::is_player() {
 }
 
 // Player
+// For now, starting stats will be hardcoded
 Player::Player(Texture2D* sprite)
-    : Creature(true, "Player", sprite) {
+    : Creature(true, CreatureStats{100, 10, 10, 10, 10, 10, 10}, "Player", sprite) {
     enemy_collision_event = Event::fight;
     money_amount = 0;
-};
+}
 
 // Enemy
-// There may be a better way to initialize it
-Enemy::Enemy(bool is_boss, Texture2D* sprite)
-    : Creature(false, "", sprite) {
-    if (is_boss) set_description("Boss");
-    else set_description("Enemy");
+CreatureStats give_random_stats(int multiplier) {
+    // Values are temporary, will play with them later.
+    int stats_amount = 10 + 10 * multiplier;
 
+    // All stats but hp are calculated randomly, from general stats amount
+    int stats[6];
+    for (int i = 0; i < 6; i++) {
+        if (stats_amount > 0) {
+            stats[i] = rand() % stats_amount;
+            stats_amount -= stats[i];
+        }
+        else {
+            stats[i] = 0;
+        }
+    }
+
+    return CreatureStats{// Base hp will be about 30, + 10 per dungeon level
+                         30 + 10 * multiplier,
+                         stats[0],
+                         stats[1],
+                         stats[2],
+                         stats[3],
+                         stats[4],
+                         stats[5]};
+}
+
+Enemy::Enemy(CreatureStats _stats, std::string desc, Texture2D* sprite)
+    : Creature(false, _stats, desc, sprite) {
     player_collision_event = Event::fight;
+}
 
-    _is_boss = is_boss;
-};
+Enemy* Enemy::make_enemy(int stats_multiplier, Texture2D* sprite) {
+    return new Enemy(give_random_stats(stats_multiplier), "Enemy", sprite);
+}
 
-bool Enemy::is_boss() {
-    return _is_boss;
-};
+Enemy* Enemy::make_boss(int stats_multiplier, Texture2D* sprite) {
+    return new Enemy(give_random_stats(stats_multiplier * 2), "Boss", sprite);
+}

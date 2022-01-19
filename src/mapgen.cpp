@@ -300,7 +300,9 @@ GameMap* generate_map(
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Enemy(false, &AssetLoader::loader.sprites["enemy_tile"]),
+                    Enemy::make_enemy(
+                        dungeon_level,
+                        &AssetLoader::loader.sprites["enemy_tile"]),
                     grid_index);
             }
             else if (pix_color == ColorToInt(Color{255, 233, 0, 255})) {
@@ -318,7 +320,9 @@ GameMap* generate_map(
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Enemy(true, &AssetLoader::loader.sprites["boss_tile"]),
+                    Enemy::make_boss(
+                        dungeon_level,
+                        &AssetLoader::loader.sprites["boss_tile"]),
                     grid_index);
             }
             else {

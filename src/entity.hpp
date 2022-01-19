@@ -19,6 +19,23 @@ enum class Event
     fight
 };
 
+struct CreatureStats {
+    // Health. If it reaches 0 - creature dies.
+    int hp;
+    // Physical Damage
+    int pdmg;
+    // Ranged Damage
+    int rdmg;
+    // Magical Damage
+    int mdmg;
+    // Physical Defence
+    int pdef;
+    // Ranged Defence
+    int rdef;
+    // Magical Defence
+    int mdef;
+};
+
 class MapObject {
 private:
     std::optional<Texture2D*> texture;
@@ -115,7 +132,8 @@ protected:
     bool _is_player;
 
 public:
-    Creature(bool is_player, std::string desc, Texture2D* sprite);
+    CreatureStats stats;
+    Creature(bool is_player, CreatureStats _stats, std::string desc, Texture2D* sprite);
 
     // Returns true if its player, false otherwise
     bool is_player();
@@ -129,10 +147,12 @@ public:
 
 class Enemy : public Creature {
 private:
-    bool _is_boss;
+    Enemy(CreatureStats _stats, std::string desc, Texture2D* sprite);
 
 public:
-    Enemy(bool is_boss, Texture2D* sprite);
-
-    bool is_boss();
+    static Enemy* make_enemy(int stats_multiplier, Texture2D* sprite);
+    static Enemy* make_boss(int stats_multiplier, Texture2D* sprite);
 };
+
+// Give random stats of specified level/multiplier.
+CreatureStats give_random_stats(int multiplier);
