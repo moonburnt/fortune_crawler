@@ -150,13 +150,15 @@ void Level::configure_hud() {
 void Level::complete_event() {
     current_event = std::nullopt;
     current_event_cause = std::nullopt;
+    force_description_update = true;
     scheduled_events.pop_back();
 }
 
-void Level::set_new_event() {
-    if (scheduled_events.empty()) return;
+bool Level::set_new_event() {
+    if (scheduled_events.empty()) return false;
 
     std::tie(current_event_cause, current_event) = scheduled_events.back();
+    return true;
 }
 
 void Level::configure_new_map() {
@@ -169,6 +171,8 @@ void Level::configure_new_map() {
     player_obj = static_cast<Player*>(map->get_object(map->get_player_id()));
     set_camera();
     is_player_turn = false;
+    force_description_update = false;
+    show_tile_description = true;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
     last_selected_tile = -1;
@@ -236,9 +240,14 @@ void Level::change_turn() {
         current_turn++;
         turn_num_label.set_text(
             fmt::format(turn_num_label.get_default_text(), current_turn));
-        set_new_event();
     }
     turn_switch_timer->start();
+}
+
+void Level::update_tile_description() {
+    tile_content_label.set_text(fmt::format(
+        tile_content_label.get_default_text(),
+        fmt::join(map->get_tile_descriptions(last_selected_tile), "\n - ")));
 }
 
 void Level::handle_player_movement() {
@@ -298,27 +307,31 @@ void Level::handle_player_movement() {
         break;
     }
 
-    if (key_pressed && !map->is_tile_blocked(map->vec_to_tile(new_pos))) {
-        int current_tile_id = map->tile_to_index(player_tile);
-
-        // This should always return player index in tile, thus not
-        // checking the completion status
-        int pt_index =
-            map->find_object_in_tile(current_tile_id, map->get_player_id()).value();
-
+    if (key_pressed) {
         int new_tile_id = map->vec_to_index(new_pos);
-
         // This may be an overkill or oversight. May need to remove it
         // if I will ever add floor tiles that cause events
         if (map->is_tile_occupied(new_tile_id))
             scheduled_events = map->get_player_events(new_tile_id);
 
-        map->move_object(current_tile_id, pt_index, new_tile_id);
-        player_pos = new_pos;
-        set_player_tile(map->vec_to_tile(player_pos));
+        if (map->is_tile_blocked(map->vec_to_tile(new_pos))) {
+            if (set_new_event()) change_turn();
+        }
+        else {
+            int current_tile_id = map->tile_to_index(player_tile);
+            // This should always return player index in tile, thus not
+            // checking the completion status
+            int pt_index =
+                map->find_object_in_tile(current_tile_id, map->get_player_id()).value();
 
-        center_camera();
-        change_turn();
+            map->move_object(current_tile_id, pt_index, new_tile_id);
+            player_pos = new_pos;
+            set_player_tile(map->vec_to_tile(player_pos));
+
+            center_camera();
+            set_new_event();
+            change_turn();
+        }
     }
 }
 
@@ -328,9 +341,12 @@ void Level::update(float dt) {
         else return;
     }
 
+    show_tile_description = true;
+
     if (current_event) {
         switch (current_event.value()) {
         case Event::exit_map: {
+            show_tile_description = false;
             // TODO: add details to completion screen (amount of turns made,
             // enemies killed, etc)
             next_level_button.update();
@@ -353,7 +369,7 @@ void Level::update(float dt) {
 
         case Event::fight: {
             // TODO: stub
-
+            show_tile_description = false;
             int current_tile_id = map->tile_to_index(player_tile);
 
             // This will fail if current_event_cause is set to nullopt, but that
@@ -369,7 +385,6 @@ void Level::update(float dt) {
         }
 
         case Event::loot: {
-            // TODO: stub
             player_obj->money_amount +=
                 static_cast<Treasure*>(map->get_object(current_event_cause.value()))
                     ->get_reward();
@@ -388,6 +403,41 @@ void Level::update(float dt) {
     else {
         if (is_player_turn) handle_player_movement();
         else change_turn();
+    }
+
+    if (show_tile_description) {
+        // This isn't really efficient, may need some improvements. TODO
+        Vector2 mouse_pos = GetMousePosition();
+        if (is_vec_on_playground(mouse_pos)) {
+            Vector2 real_mouse_pos = GetScreenToWorld2D(mouse_pos, camera);
+            if (map->is_vec_on_map(real_mouse_pos)) {
+                Point mtt = map->vec_to_tile(real_mouse_pos);
+                int selected_tile = map->tile_to_index(mtt);
+                // This may backfire if selected tile has been changed between checks
+                if (selected_tile != last_selected_tile) {
+                    selected_tile_label.set_text(fmt::format(
+                        selected_tile_label.get_default_text(),
+                        mtt.y,
+                        mtt.x));
+                    map->select_tile(mtt);
+
+                    last_selected_tile = selected_tile;
+                    update_tile_description();
+                }
+                else if (force_description_update) {
+                    update_tile_description();
+                    force_description_update = false;
+                }
+            }
+            else {
+                map->deselect_tile();
+                show_tile_description = false;
+            }
+        }
+        else {
+            map->deselect_tile();
+            show_tile_description = false;
+        }
     }
 
     back_to_menu_button.update();
@@ -432,37 +482,9 @@ void Level::draw() {
         }
     }
 
-    else {
-        // I may want to move this above everything else in draw cycle
-        // This isn't really efficient, may need some improvements. TODO
-        Vector2 mouse_pos = GetMousePosition();
-        if (is_vec_on_playground(mouse_pos)) {
-            Vector2 real_mouse_pos = GetScreenToWorld2D(mouse_pos, camera);
-            if (map->is_vec_on_map(real_mouse_pos)) {
-                Point mtt = map->vec_to_tile(real_mouse_pos);
-                int selected_tile = map->tile_to_index(mtt);
-                // This may backfire if selected tile has been changed between checks
-                if (selected_tile != last_selected_tile) {
-                    selected_tile_label.set_text(fmt::format(
-                        selected_tile_label.get_default_text(),
-                        mtt.y,
-                        mtt.x));
-                    map->select_tile(mtt);
-
-                    last_selected_tile = selected_tile;
-                    tile_content_label.set_text(fmt::format(
-                        tile_content_label.get_default_text(),
-                        fmt::join(
-                            map->get_tile_descriptions(last_selected_tile),
-                            "\n - ")));
-                }
-
-                selected_tile_label.draw();
-                tile_content_label.draw();
-            }
-            else map->deselect_tile();
-        }
-        else map->deselect_tile();
+    if (show_tile_description) {
+        selected_tile_label.draw();
+        tile_content_label.draw();
     }
 
     player_info_label.draw();

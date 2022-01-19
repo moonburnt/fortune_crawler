@@ -81,7 +81,7 @@ Structure::Structure(bool is_obstacle, std::string desc)
 // Treasure / Chest.
 Treasure::Treasure(
     bool lock_state, int _money_amount, Texture2D* normal_sprite, Texture2D* empty_sprite)
-    : Structure(false, "Treasure", normal_sprite) {
+    : Structure(true, "Treasure", normal_sprite) {
     if (lock_state) lock();
     else unlock();
     money_amount = _money_amount;

@@ -63,6 +63,11 @@ private:
     void set_player_tile(Point tile);
 
     int last_selected_tile;
+    bool show_tile_description;
+    // This toggles requirement to update description of current tile.
+    bool force_description_update;
+
+    void update_tile_description();
 
     Timer* turn_switch_timer;
 
@@ -89,8 +94,9 @@ private:
     // event (assuming this has been the completed one) from scheduled_events.
     void complete_event();
 
-    // Unpack current_event and current_event_cause from tail of scheduled_events
-    void set_new_event();
+    // Unpack current_event and current_event_cause from tail of scheduled_events.
+    // Returns true if new event is scheduled, false if all events has been done.
+    bool set_new_event();
 
     // Handle input and move player accordingly
     void handle_player_movement();

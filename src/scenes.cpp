@@ -218,15 +218,12 @@ MainMenu::MainMenu(SceneManager* p)
     float center_x = GetScreenWidth() / 2.0f;
     float center_y = GetScreenHeight() / 2.0f;
 
-    // start_button = make_text_button("Start");
     start_button.set_pos(
         Vector2{center_x - start_button.get_rect().width / 2, center_y - 100});
 
-    // settings_button = make_text_button("Settings");
     settings_button.set_pos(
         Vector2{center_x - exit_button.get_rect().width / 2, center_y});
 
-    // exit_button = make_text_button("Exit");
     exit_button.set_pos(
         Vector2{center_x - exit_button.get_rect().width / 2, center_y + 100});
 }
