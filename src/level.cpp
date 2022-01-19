@@ -121,6 +121,11 @@ void Level::configure_hud() {
     player_info_label = Label("Player Info:", left_bg_txt_x, bg_txt_starting_y);
     player_currency_label =
         DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
+    player_stats_label = DynamicLabel(
+        "HP: {}\n\nOffensive:\nPhysical DMG: {}\nRanged DMG: {}\nMagical DMG: {}\n\n"
+        "Defensive:\nPsycical DEF: {}\nRanged DEF: {}\nMagical DEF: {}",
+        left_bg_txt_x,
+        bg_txt_starting_y + bg_text_vert_gap * 3);
     player_tile_label = DynamicLabel(
         "Current Tile: {:02} x {:02}",
         left_bg_txt_x,
@@ -155,10 +160,28 @@ void Level::complete_event() {
 }
 
 bool Level::set_new_event() {
-    if (scheduled_events.empty()) return false;
+    if (scheduled_events.empty()) {
+        // This may be inefficient, but will do for now
+        current_event_tile_id = std::nullopt;
+        return false;
+    }
 
     std::tie(current_event_cause, current_event) = scheduled_events.back();
     return true;
+}
+
+void Level::update_player_stats_hud() {
+    player_stats_label.set_text(
+        // TODO: write a formatter template for this
+        fmt::format(
+            player_stats_label.get_default_text(),
+            player_obj->stats.hp,
+            player_obj->stats.pdmg,
+            player_obj->stats.rdmg,
+            player_obj->stats.mdmg,
+            player_obj->stats.pdef,
+            player_obj->stats.rdef,
+            player_obj->stats.mdef));
 }
 
 void Level::configure_new_map() {
@@ -240,6 +263,8 @@ void Level::change_turn() {
         current_turn++;
         turn_num_label.set_text(
             fmt::format(turn_num_label.get_default_text(), current_turn));
+        // TODO: move this somewhere else
+        update_player_stats_hud();
     }
     turn_switch_timer->start();
 }
@@ -311,8 +336,10 @@ void Level::handle_player_movement() {
         int new_tile_id = map->vec_to_index(new_pos);
         // This may be an overkill or oversight. May need to remove it
         // if I will ever add floor tiles that cause events
-        if (map->is_tile_occupied(new_tile_id))
+        if (map->is_tile_occupied(new_tile_id)) {
             scheduled_events = map->get_player_events(new_tile_id);
+            current_event_tile_id = new_tile_id;
+        }
 
         if (map->is_tile_blocked(map->vec_to_tile(new_pos))) {
             if (set_new_event()) change_turn();
@@ -369,17 +396,26 @@ void Level::update(float dt) {
 
         case Event::fight: {
             // TODO: stub
-            show_tile_description = false;
-            int current_tile_id = map->tile_to_index(player_tile);
+            // show_tile_description = false;
 
-            // This will fail if current_event_cause is set to nullopt, but that
-            // shouldn't happen. I hope.
-            map->delete_object(
-                current_tile_id,
-                map->find_object_in_tile(current_tile_id, current_event_cause.value())
-                    .value(),
-                true);
+            // For now its but average roguelike battle system, which kinda falls
+            // apart with pure-random stats generation (and without ability to
+            // see enemy stats. And with autoattack with physical damage. Yeah).
+            // TODO: remake this into a proper minigame
+            if (static_cast<Creature*>(map->get_object(current_event_cause.value()))
+                    ->damage(player_obj->stats.pdmg, DamageType::physical)) {
+                // This will fail if current_event_cause is set to nullopt, but that
+                // shouldn't happen. I hope.
+                map->delete_object(
+                    current_event_tile_id.value(),
+                    map->find_object_in_tile(
+                           current_event_tile_id.value(),
+                           current_event_cause.value())
+                        .value(),
+                    true);
 
+                // complete_event();
+            }
             complete_event();
             break;
         }
@@ -490,6 +526,7 @@ void Level::draw() {
     player_info_label.draw();
     player_tile_label.draw();
     player_currency_label.draw();
+    player_stats_label.draw();
 
     back_to_menu_button.draw();
 }

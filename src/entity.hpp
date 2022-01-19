@@ -19,6 +19,13 @@ enum class Event
     fight
 };
 
+enum class DamageType
+{
+    physical,
+    ranged,
+    magical
+};
+
 struct CreatureStats {
     // Health. If it reaches 0 - creature dies.
     int hp;
@@ -133,10 +140,22 @@ protected:
 
 public:
     CreatureStats stats;
-    Creature(bool is_player, CreatureStats _stats, std::string desc, Texture2D* sprite);
+    Creature(
+        bool is_player,
+        bool is_obstacle,
+        CreatureStats _stats,
+        std::string desc,
+        Texture2D* sprite);
 
     // Returns true if its player, false otherwise
     bool is_player();
+
+    // Returns true if hp <= 0, false otherwise
+    bool is_dead();
+
+    // Damage creature. If creature's hp fall below 0 - sets _is_dead to true.
+    // Returns is_dead().
+    bool damage(int dmg_amount, DamageType dmg_type);
 };
 
 class Player : public Creature {

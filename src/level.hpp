@@ -60,6 +60,10 @@ private:
     DynamicLabel dungeon_lvl_label;
     Label completion_label;
 
+    DynamicLabel player_stats_label;
+
+    void update_player_stats_hud();
+
     void set_player_tile(Point tile);
 
     int last_selected_tile;
@@ -89,6 +93,9 @@ private:
     std::optional<Event> current_event;
     std::vector<std::tuple<int, Event>> scheduled_events;
     std::optional<int> current_event_cause;
+    // This will cause problems if at some point we will need to operate on events
+    // That came from multiple tiles.
+    std::optional<int> current_event_tile_id;
 
     // Reset current_event and its cause to std::nullopt, then remove the last
     // event (assuming this has been the completed one) from scheduled_events.

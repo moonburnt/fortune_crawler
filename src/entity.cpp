@@ -111,16 +111,19 @@ int Treasure::get_reward() {
     money_amount = 0;
     set_affix("empty");
     set_texture(empty_texture);
+    player_collision_event = std::nullopt;
 
     return reward;
 }
 
 // Base Creature
-// For now, there wont be implenetrable creatures, due to how collision
-// handling works. May rework this in future. TODO
 Creature::Creature(
-    bool is_player, CreatureStats _stats, std::string desc, Texture2D* sprite)
-    : MapObject(false, ObjectCategory::creature, desc, sprite) {
+    bool is_player,
+    bool is_obstacle,
+    CreatureStats _stats,
+    std::string desc,
+    Texture2D* sprite)
+    : MapObject(is_obstacle, ObjectCategory::creature, desc, sprite) {
     _is_player = is_player;
     stats = _stats;
 }
@@ -129,10 +132,37 @@ bool Creature::is_player() {
     return _is_player;
 }
 
+bool Creature::is_dead() {
+    return (stats.hp <= 0);
+}
+
+bool Creature::damage(int dmg_amount, DamageType dmg_type) {
+    if (is_dead()) return true;
+
+    switch (dmg_type) {
+    case DamageType::physical: {
+        // damage amount cant be nullified below 1
+        stats.hp -= std::min(dmg_amount - stats.pdef, 1);
+        break;
+    }
+    case DamageType::ranged: {
+        stats.hp -= std::min(dmg_amount - stats.rdef, 1);
+        break;
+    }
+    case DamageType::magical: {
+        stats.hp -= std::min(dmg_amount - stats.mdef, 1);
+        break;
+    }
+    }
+
+    return is_dead();
+}
+
 // Player
 // For now, starting stats will be hardcoded
 Player::Player(Texture2D* sprite)
-    : Creature(true, CreatureStats{100, 10, 10, 10, 10, 10, 10}, "Player", sprite) {
+    : Creature(
+          true, false, CreatureStats{100, 10, 10, 10, 10, 10, 10}, "Player", sprite) {
     enemy_collision_event = Event::fight;
     money_amount = 0;
 }
@@ -140,7 +170,8 @@ Player::Player(Texture2D* sprite)
 // Enemy
 CreatureStats give_random_stats(int multiplier) {
     // Values are temporary, will play with them later.
-    int stats_amount = 10 + 10 * multiplier;
+    // int stats_amount = 10 + 10 * multiplier;
+    int stats_amount = 10 + 2 * multiplier;
 
     // All stats but hp are calculated randomly, from general stats amount
     int stats[6];
@@ -165,7 +196,7 @@ CreatureStats give_random_stats(int multiplier) {
 }
 
 Enemy::Enemy(CreatureStats _stats, std::string desc, Texture2D* sprite)
-    : Creature(false, _stats, desc, sprite) {
+    : Creature(false, true, _stats, desc, sprite) {
     player_collision_event = Event::fight;
 }
 

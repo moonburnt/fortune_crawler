@@ -7,14 +7,7 @@
 static constexpr uint32_t DEFAULT_TEXT_SIZE = 20u;
 static constexpr Color DEFAULT_TEXT_COLOR = BLACK;
 
-class CounterBase {
-public:
-    virtual void start() = 0;
-    virtual bool tick(float dt) = 0;
-    virtual ~CounterBase() = default;
-};
-
-class Timer : public CounterBase {
+class Timer {
 private:
     bool started;
     bool completed;
@@ -23,9 +16,13 @@ private:
 
 public:
     Timer(float length);
-    void start() override;
-    bool tick(float dt) override;
+    // Start/restart timer.
+    void start();
+    // Update timer for specific value. Returns completion status.
+    bool tick(float dt);
+    // Stop timer.
     void stop();
+    // Get timer's startup status.
     bool is_started();
 };
 
