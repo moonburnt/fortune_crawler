@@ -545,6 +545,11 @@ Level::Level(SceneManager* p)
     input_controller.add_relationship(KEY_KP_2, MovementDirection::down);
     input_controller.add_relationship(KEY_KP_3, MovementDirection::downright);
 
+    input_controller.add_relationship(KEY_UP, MovementDirection::up);
+    input_controller.add_relationship(KEY_LEFT, MovementDirection::left);
+    input_controller.add_relationship(KEY_RIGHT, MovementDirection::right);
+    input_controller.add_relationship(KEY_DOWN, MovementDirection::down);
+
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 1;
