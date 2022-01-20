@@ -415,9 +415,9 @@ void Level::configure_hud() {
 }
 
 void Level::purge_current_event_screen() {
-    if (current_event_screen) {
-        delete current_event_screen.value();
-        current_event_screen = std::nullopt;
+    if (current_event_screen != nullptr) {
+        delete current_event_screen;
+        current_event_screen = nullptr;
     }
 }
 
@@ -697,11 +697,10 @@ void Level::update(float dt) {
     }
 
     show_tile_description = true;
-    if (current_event_screen) {
+    if (current_event_screen != nullptr) {
         show_tile_description = false;
-        current_event_screen.value()->update();
+        current_event_screen->update();
     }
-
     else {
         if (is_player_turn) handle_player_movement();
         // TODO: enemy movement handler
@@ -769,8 +768,8 @@ void Level::draw() {
     turn_num_label.draw();
     turn_label.draw();
 
-    if (current_event_screen) {
-        current_event_screen.value()->draw();
+    if (current_event_screen != nullptr) {
+        current_event_screen->draw();
     }
 
     if (show_tile_description) {
