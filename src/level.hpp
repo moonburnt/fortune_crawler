@@ -99,7 +99,7 @@ private:
     Vector2 playground_vec_end;
     Button back_to_menu_button;
 
-    std::optional<EventScreen*> current_event_screen;
+    EventScreen* current_event_screen = nullptr;
     void purge_current_event_screen();
 
     std::vector<std::tuple<int, Event>> scheduled_events;

@@ -39,13 +39,14 @@ void InputController::update() {
             }
         }
         else {
-            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
+            auto it = std::find(buttons_held.begin() + 1, buttons_held.end(), kv.first);
             if (it != buttons_held.end()) buttons_held.erase(it);
         }
     }
 }
 
 MovementDirection InputController::get_movement_direction() {
+    ASSERT(buttons_held.empty() == false);
     return key_binds[buttons_held.back()];
 }
 
@@ -69,7 +70,7 @@ public:
                   30,
                   (GetScreenWidth() + 30) / 2.0f,
                   (GetScreenHeight() - 60.0f)},
-              bg_color)
+              {0, 0, 0, 0})
         , lvl(level)
         , completion_label(
               Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2))
@@ -92,15 +93,13 @@ public:
         close_screen_button.update();
 
         if (next_level_button.is_clicked()) {
-            lvl->complete_event();
             lvl->change_map();
-            next_level_button.reset_state();
+            lvl->complete_event();
             return;
         }
 
         if (close_screen_button.is_clicked()) {
             lvl->complete_event();
-            close_screen_button.reset_state();
             return;
         }
     }
@@ -191,7 +190,7 @@ MinigameStatus play_rps(RPS your_throw) {
     }
 
     return result;
-};
+}
 
 class LockpickScreen : public EventScreen {
 private:
@@ -214,7 +213,7 @@ public:
                   30,
                   (GetScreenWidth() + 30) / 2.0f,
                   (GetScreenHeight() - 60.0f)},
-              bg_color)
+              {0, 0, 0, 0})
         , lvl(level)
         , player_obj(_player_obj)
         , treasure_obj(_treasure_obj)
@@ -243,7 +242,6 @@ public:
 
             if (exit_button.is_clicked()) {
                 lvl->complete_event();
-                // exit_button.reset_state();
                 return;
             }
         }
@@ -414,9 +412,9 @@ void Level::configure_hud() {
 }
 
 void Level::purge_current_event_screen() {
-    if (current_event_screen) {
-        delete current_event_screen.value();
-        current_event_screen = std::nullopt;
+    if (current_event_screen != nullptr) {
+        delete current_event_screen;
+        current_event_screen = nullptr;
     }
 }
 
@@ -544,6 +542,11 @@ Level::Level(SceneManager* p)
     input_controller.add_relationship(KEY_KP_2, MovementDirection::down);
     input_controller.add_relationship(KEY_KP_3, MovementDirection::downright);
 
+    input_controller.add_relationship(KEY_UP, MovementDirection::up);
+    input_controller.add_relationship(KEY_LEFT, MovementDirection::left);
+    input_controller.add_relationship(KEY_RIGHT, MovementDirection::right);
+    input_controller.add_relationship(KEY_DOWN, MovementDirection::down);
+
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 1;
@@ -565,7 +568,6 @@ void Level::change_map() {
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
     configure_new_map();
-    scheduled_events.clear();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {
@@ -696,11 +698,10 @@ void Level::update(float dt) {
     }
 
     show_tile_description = true;
-    if (current_event_screen) {
+    if (current_event_screen != nullptr) {
         show_tile_description = false;
-        current_event_screen.value()->update();
+        current_event_screen->update();
     }
-
     else {
         if (is_player_turn) handle_player_movement();
         // TODO: enemy movement handler
@@ -768,8 +769,8 @@ void Level::draw() {
     turn_num_label.draw();
     turn_label.draw();
 
-    if (current_event_screen) {
-        current_event_screen.value()->draw();
+    if (current_event_screen != nullptr) {
+        current_event_screen->draw();
     }
 
     if (show_tile_description) {
