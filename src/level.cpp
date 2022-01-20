@@ -39,7 +39,7 @@ void InputController::update() {
             }
         }
         else {
-            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
+            auto it = std::find(buttons_held.begin() + 1, buttons_held.end(), kv.first);
             if (it != buttons_held.end()) buttons_held.erase(it);
         }
     }
