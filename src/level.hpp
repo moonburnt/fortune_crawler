@@ -39,6 +39,20 @@ public:
     MovementDirection get_movement_direction();
 };
 
+// This may be an overkill, but its starting to get hard to get through level's
+// items, so I've needed to move these primitives somewhere
+class EventScreen {
+protected:
+    Rectangle bg;
+    Color bg_color;
+
+public:
+    EventScreen(Rectangle bg, Color bg_color);
+    virtual void update() = 0;
+    virtual void draw() = 0;
+    virtual ~EventScreen() = default;
+};
+
 class Level : public Scene {
 private:
     SceneManager* parent;
@@ -58,7 +72,6 @@ private:
     DynamicLabel player_tile_label;
     DynamicLabel tile_content_label;
     DynamicLabel dungeon_lvl_label;
-    Label completion_label;
 
     DynamicLabel player_stats_label;
 
@@ -86,9 +99,7 @@ private:
     Vector2 playground_vec_end;
     Button back_to_menu_button;
 
-    Rectangle event_screen_bg;
-    TextButton next_level_button;
-    Button close_event_screen_button;
+    EventScreen* completion_screen;
 
     std::optional<Event> current_event;
     std::vector<std::tuple<int, Event>> scheduled_events;
@@ -96,10 +107,6 @@ private:
     // This will cause problems if at some point we will need to operate on events
     // That came from multiple tiles.
     std::optional<int> current_event_tile_id;
-
-    // Reset current_event and its cause to std::nullopt, then remove the last
-    // event (assuming this has been the completed one) from scheduled_events.
-    void complete_event();
 
     // Unpack current_event and current_event_cause from tail of scheduled_events.
     // Returns true if new event is scheduled, false if all events has been done.
@@ -124,9 +131,6 @@ private:
     // Configure interface parts. This should be called on screen resize
     void configure_hud();
 
-    // Change existing map to the new one. This should be called to switch the map
-    void change_map();
-
     // Returns true if vec is not on side screens, false otherwise
     bool is_vec_on_playground(Vector2 vec);
 
@@ -136,4 +140,11 @@ public:
 
     void update(float dt) override;
     void draw() override;
+
+    // Reset current_event and its cause to std::nullopt, then remove the last
+    // event (assuming this has been the completed one) from scheduled_events.
+    void complete_event();
+
+    // Change existing map to the new one. This should be called to switch the map
+    void change_map();
 };

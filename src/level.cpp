@@ -47,6 +47,71 @@ MovementDirection InputController::get_movement_direction() {
     return key_binds[buttons_held.back()];
 }
 
+EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
+    : bg(_bg)
+    , bg_color(_bg_color) {
+}
+
+class CompletionScreen : public EventScreen {
+private:
+    Level* lvl;
+    Label completion_label;
+    TextButton next_level_button;
+    Button close_screen_button;
+
+public:
+    CompletionScreen(Level* level)
+        : EventScreen(
+              Rectangle{
+                  ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+                  30,
+                  (GetScreenWidth() + 30) / 2.0f,
+                  (GetScreenHeight() - 60.0f)},
+              bg_color)
+        , lvl(level)
+        , completion_label(
+              Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2))
+        , next_level_button(make_text_button("Go Deeper!"))
+        , close_screen_button(make_close_button()) {
+        completion_label.center();
+
+        next_level_button.set_pos(Vector2{
+            GetScreenWidth() / 2.0f - next_level_button.get_rect().width / 2,
+            GetScreenHeight() / 2.0f + 200});
+
+        close_screen_button.set_pos(
+            Vector2{bg.x + bg.width - close_screen_button.get_rect().width, bg.y});
+    }
+
+    void update() override {
+        // TODO: add details to completion screen (amount of turns made,
+        // enemies killed, etc)
+        next_level_button.update();
+        close_screen_button.update();
+
+        if (next_level_button.is_clicked()) {
+            lvl->complete_event();
+            lvl->change_map();
+            next_level_button.reset_state();
+            return;
+        }
+
+        if (close_screen_button.is_clicked()) {
+            lvl->complete_event();
+            close_screen_button.reset_state();
+            return;
+        }
+    }
+
+    void draw() override {
+        DrawRectangleRec(bg, SIDE_BG_COLOR);
+        DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+        completion_label.draw();
+        next_level_button.draw();
+        close_screen_button.draw();
+    }
+};
+
 void Level::center_camera() {
     camera.target = player_pos;
 }
@@ -103,11 +168,6 @@ void Level::configure_hud() {
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    event_screen_bg.x = left_bg.width + 30;
-    event_screen_bg.y = left_bg.y + 30;
-    event_screen_bg.width = (GetScreenWidth() - left_bg.width * 2) - 60;
-    event_screen_bg.height = left_bg.height - 60;
-
     selected_tile_label = DynamicLabel(
         "Selected Tile: {:02} x {:02}",
         right_bg_txt_x,
@@ -122,27 +182,14 @@ void Level::configure_hud() {
     player_currency_label =
         DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
     player_stats_label = DynamicLabel(
-        "HP: {}\n\nOffensive:\nPhysical DMG: {}\nRanged DMG: {}\nMagical DMG: {}\n\n"
-        "Defensive:\nPsycical DEF: {}\nRanged DEF: {}\nMagical DEF: {}",
+        "HP: {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+        "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
         left_bg_txt_x,
         bg_txt_starting_y + bg_text_vert_gap * 3);
     player_tile_label = DynamicLabel(
         "Current Tile: {:02} x {:02}",
         left_bg_txt_x,
         GetScreenHeight() - 50.0);
-
-    completion_label =
-        Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2);
-    completion_label.center();
-
-    next_level_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - next_level_button.get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 200});
-
-    close_event_screen_button.set_pos(Vector2{
-        event_screen_bg.x + event_screen_bg.width -
-            close_event_screen_button.get_rect().width,
-        event_screen_bg.y});
 
     back_to_menu_button.set_pos(
         Vector2{// static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
@@ -205,8 +252,7 @@ void Level::configure_new_map() {
 Level::Level(SceneManager* p)
     : Scene(BG_COLOR)
     , back_to_menu_button(make_close_button())
-    , next_level_button(make_text_button("Go Deeper!"))
-    , close_event_screen_button(make_close_button()) {
+    , completion_screen(new CompletionScreen(this)) {
     parent = p;
 
     input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
@@ -228,6 +274,7 @@ Level::~Level() {
     delete map;
     delete turn_switch_timer;
     delete player_obj;
+    delete completion_screen;
 }
 
 void Level::change_map() {
@@ -374,23 +421,7 @@ void Level::update(float dt) {
         switch (current_event.value()) {
         case Event::exit_map: {
             show_tile_description = false;
-            // TODO: add details to completion screen (amount of turns made,
-            // enemies killed, etc)
-            next_level_button.update();
-            close_event_screen_button.update();
-
-            if (next_level_button.is_clicked()) {
-                complete_event();
-                change_map();
-                next_level_button.reset_state();
-                return;
-            }
-
-            if (close_event_screen_button.is_clicked()) {
-                complete_event();
-                close_event_screen_button.reset_state();
-                return;
-            }
+            completion_screen->update();
             break;
         }
 
@@ -505,11 +536,7 @@ void Level::draw() {
     if (current_event) {
         switch (current_event.value()) {
         case Event::exit_map: {
-            DrawRectangleRec(event_screen_bg, SIDE_BG_COLOR);
-            DrawRectangleLinesEx(event_screen_bg, 1.0f, CORNER_COLOR);
-            completion_label.draw();
-            next_level_button.draw();
-            close_event_screen_button.draw();
+            completion_screen->draw();
             break;
         }
 

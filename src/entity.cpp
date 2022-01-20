@@ -142,15 +142,15 @@ bool Creature::damage(int dmg_amount, DamageType dmg_type) {
     switch (dmg_type) {
     case DamageType::physical: {
         // damage amount cant be nullified below 1
-        stats.hp -= std::min(dmg_amount - stats.pdef, 1);
+        stats.hp -= std::max(dmg_amount - stats.pdef, 1);
         break;
     }
     case DamageType::ranged: {
-        stats.hp -= std::min(dmg_amount - stats.rdef, 1);
+        stats.hp -= std::max(dmg_amount - stats.rdef, 1);
         break;
     }
     case DamageType::magical: {
-        stats.hp -= std::min(dmg_amount - stats.mdef, 1);
+        stats.hp -= std::max(dmg_amount - stats.mdef, 1);
         break;
     }
     }
@@ -170,8 +170,7 @@ Player::Player(Texture2D* sprite)
 // Enemy
 CreatureStats give_random_stats(int multiplier) {
     // Values are temporary, will play with them later.
-    // int stats_amount = 10 + 10 * multiplier;
-    int stats_amount = 10 + 2 * multiplier;
+    int stats_amount = 10 + 5 * multiplier;
 
     // All stats but hp are calculated randomly, from general stats amount
     int stats[6];
@@ -185,8 +184,8 @@ CreatureStats give_random_stats(int multiplier) {
         }
     }
 
-    return CreatureStats{// Base hp will be about 30, + 10 per dungeon level
-                         30 + 10 * multiplier,
+    return CreatureStats{// Base hp will be about 20, + 10 per dungeon level
+                         20 + 10 * multiplier,
                          stats[0],
                          stats[1],
                          stats[2],
