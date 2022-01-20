@@ -93,15 +93,13 @@ public:
         close_screen_button.update();
 
         if (next_level_button.is_clicked()) {
-            lvl->complete_event();
             lvl->change_map();
-            next_level_button.reset_state();
+            lvl->complete_event();
             return;
         }
 
         if (close_screen_button.is_clicked()) {
             lvl->complete_event();
-            close_screen_button.reset_state();
             return;
         }
     }
@@ -244,7 +242,6 @@ public:
 
             if (exit_button.is_clicked()) {
                 lvl->complete_event();
-                // exit_button.reset_state();
                 return;
             }
         }
@@ -571,7 +568,6 @@ void Level::change_map() {
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
     configure_new_map();
-    scheduled_events.clear();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {
