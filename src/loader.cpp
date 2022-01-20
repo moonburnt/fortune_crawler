@@ -2,6 +2,7 @@
 #include "raylib.h"
 #include <algorithm>
 #include <cstdlib>
+#include <random>
 #include <string>
 
 #define ASSET_PATH "./Assets/"
@@ -81,7 +82,10 @@ Image AssetLoader::load_random_map() {
     last_map++;
     if (last_map == map_paths.size()) {
         last_map = 0;
-        std::random_shuffle(map_paths.begin(), map_paths.end());
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(map_paths.begin(), map_paths.end(), g);
     }
 
     return load_map(last_map);

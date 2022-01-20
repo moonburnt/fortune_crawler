@@ -203,7 +203,7 @@ void Checkbox::toggle(bool _toggle_state) {
     Button::reset_state();
     // if (toggle_state != _toggle_state) state_switched = true;
     toggle_state = _toggle_state;
-};
+}
 
 void Checkbox::toggle() {
     if (toggle_state) toggle(false);
@@ -233,16 +233,18 @@ void Checkbox::reset_state() {
 
 Label::Label(std::string txt, Vector2 position)
     : text(txt)
-    , pos(position){};
+    , pos(position) {
+}
 
 Label::Label(std::string txt, int x, int y)
     : text(txt) {
     pos.x = static_cast<float>(x);
     pos.y = static_cast<float>(y);
-};
+}
 
 Label::Label()
-    : Label("", Vector2{0, 0}){};
+    : Label("", Vector2{0, 0}) {
+}
 
 void Label::center() {
     pos = center_text(text, pos);

@@ -69,7 +69,7 @@ public:
                   30,
                   (GetScreenWidth() + 30) / 2.0f,
                   (GetScreenHeight() - 60.0f)},
-              bg_color)
+              {0, 0, 0, 0})
         , lvl(level)
         , completion_label(
               Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2))
@@ -191,7 +191,7 @@ MinigameStatus play_rps(RPS your_throw) {
     }
 
     return result;
-};
+}
 
 class LockpickScreen : public EventScreen {
 private:
@@ -214,7 +214,7 @@ public:
                   30,
                   (GetScreenWidth() + 30) / 2.0f,
                   (GetScreenHeight() - 60.0f)},
-              bg_color)
+              {0, 0, 0, 0})
         , lvl(level)
         , player_obj(_player_obj)
         , treasure_obj(_treasure_obj)
