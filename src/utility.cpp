@@ -2,6 +2,15 @@
 
 #include <cstdlib>
 #include <raylib.h>
+#include <iostream>
+#include <fmt/format.h>
+
+
+void handle_assert(const char* file, int line, const char* fun, const char* expr)
+{
+    std::cout << fmt::format("Assertion failed at {} in {}:{} '{}'\n", fun, file, line, expr);
+    abort();
+}
 
 Timer::Timer(float length) {
     started = false;
