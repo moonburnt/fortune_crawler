@@ -46,6 +46,7 @@ void InputController::update() {
 }
 
 MovementDirection InputController::get_movement_direction() {
+    ASSERT(buttons_held.empty() == false);
     return key_binds[buttons_held.back()];
 }
 
