@@ -20,6 +20,10 @@ all: dir $(BUILD_DIR)/$(GAME_NAME)
 debug: CFLAGS += -ggdb -O0
 debug: all
 
+asan: CFLAGS += -ggdb -O0 -fsanitize=address
+asan: LDFLAGS += -fsanitize=address
+asan: all
+
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
