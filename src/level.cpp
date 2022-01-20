@@ -5,6 +5,8 @@
 
 #include <algorithm>
 #include <optional>
+// For rand() in RPS minigame
+#include <cstdlib>
 #include <raylib.h>
 // For basic formatting
 #include <fmt/core.h>
@@ -112,6 +114,218 @@ public:
     }
 };
 
+enum class RPS
+{
+    rock,
+    paper,
+    scissors
+};
+
+enum class MinigameStatus
+{
+    win,
+    tie,
+    lose
+};
+
+// Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
+// who won.
+MinigameStatus play_rps(RPS your_throw) {
+    // 0 is rock, 1 is paper, 2 is scissors
+
+    MinigameStatus result;
+
+    // This looks cursed, I know...
+    switch (rand() % 3) {
+    case 0: {
+        switch (your_throw) {
+        case RPS::rock: {
+            result = MinigameStatus::tie;
+            break;
+        }
+        case RPS::paper: {
+            result = MinigameStatus::win;
+            break;
+        }
+        case RPS::scissors: {
+            result = MinigameStatus::lose;
+            break;
+        }
+        }
+        break;
+    }
+    case 1: {
+        switch (your_throw) {
+        case RPS::rock: {
+            result = MinigameStatus::lose;
+            break;
+        }
+        case RPS::paper: {
+            result = MinigameStatus::tie;
+            break;
+        }
+        case RPS::scissors: {
+            result = MinigameStatus::win;
+            break;
+        }
+        }
+        break;
+    }
+    case 2: {
+        switch (your_throw) {
+        case RPS::rock: {
+            result = MinigameStatus::win;
+            break;
+        }
+        case RPS::paper: {
+            result = MinigameStatus::lose;
+            break;
+        }
+        case RPS::scissors: {
+            result = MinigameStatus::tie;
+            break;
+        }
+        }
+        break;
+    }
+    }
+
+    return result;
+};
+
+class LockpickScreen : public EventScreen {
+private:
+    Level* lvl;
+    Player* player_obj;
+    Treasure* treasure_obj;
+    Label title_label;
+    DynamicLabel result_label;
+    TextButton rock_button;
+    TextButton paper_button;
+    TextButton scissors_button;
+    TextButton exit_button;
+    bool complete;
+
+public:
+    LockpickScreen(Level* level, Treasure* _treasure_obj, Player* _player_obj)
+        : EventScreen(
+              Rectangle{
+                  ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+                  30,
+                  (GetScreenWidth() + 30) / 2.0f,
+                  (GetScreenHeight() - 60.0f)},
+              bg_color)
+        , lvl(level)
+        , player_obj(_player_obj)
+        , treasure_obj(_treasure_obj)
+        , title_label(Label(
+              "This chest is locked.\nTry to lockpick it!", GetScreenWidth() / 2, 100))
+        , result_label(DynamicLabel("", GetScreenWidth() / 2, GetScreenHeight() / 2))
+        , rock_button(make_text_button("Rock"))
+        , paper_button(make_text_button("Paper"))
+        , scissors_button(make_text_button("Scissors"))
+        , exit_button(make_text_button("OK"))
+        , complete(false) {
+        title_label.center();
+        float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
+        rock_button.set_pos(Vector2{button_x, 200.0f});
+        paper_button.set_pos(Vector2{button_x, 300.0f});
+        scissors_button.set_pos(Vector2{button_x, 400.0f});
+
+        exit_button.set_pos(Vector2{
+            GetScreenWidth() / 2.0f - exit_button.get_rect().width / 2,
+            GetScreenHeight() / 2.0f + 200});
+    }
+
+    void update() override {
+        if (complete) {
+            exit_button.update();
+
+            if (exit_button.is_clicked()) {
+                lvl->complete_event();
+                // exit_button.reset_state();
+                return;
+            }
+        }
+
+        else {
+            rock_button.update();
+            paper_button.update();
+            scissors_button.update();
+
+            bool button_clicked = false;
+            RPS rps_value;
+
+            if (rock_button.is_clicked()) {
+                button_clicked = true;
+                rps_value = RPS::rock;
+            }
+            else if (paper_button.is_clicked()) {
+                button_clicked = true;
+                rps_value = RPS::paper;
+            }
+            else if (scissors_button.is_clicked()) {
+                button_clicked = true;
+                rps_value = RPS::scissors;
+            }
+
+            if (button_clicked) {
+                switch (play_rps(rps_value)) {
+                case MinigameStatus::win: {
+                    int value = treasure_obj->get_reward();
+                    result_label.set_text(fmt::format(
+                        "With no issues, you've flawlessly unlocked the chest.\n"
+                        "{} coins lying inside were totally worth it!",
+                        value));
+                    player_obj->money_amount += value;
+                    break;
+                }
+
+                case MinigameStatus::tie: {
+                    int value = treasure_obj->get_reward() / 2;
+                    result_label.set_text(fmt::format(
+                        "While attempting to unlock the chest, your pick has broke.\n"
+                        "With no other options left, you've had to use brute force.\n"
+                        "Sadly, while doing so, some coins felt into darkness...\n"
+                        "But you've still got {} gold from it.",
+                        value));
+                    player_obj->money_amount += value;
+                    break;
+                }
+
+                case MinigameStatus::lose: {
+                    treasure_obj->get_reward();
+                    result_label.set_text(
+                        "You've spent quite a while to unlock the chest.\n"
+                        "Sadly, when you've finally got inside, you was dissapointed:\n"
+                        "there was nothing but pair of someone's smelly socks.");
+                    break;
+                }
+                }
+                result_label.center();
+                complete = true;
+            }
+        }
+    }
+
+    void draw() override {
+        DrawRectangleRec(bg, SIDE_BG_COLOR);
+        DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+
+        if (complete) {
+            result_label.draw();
+            exit_button.draw();
+        }
+        else {
+            title_label.draw();
+
+            rock_button.draw();
+            paper_button.draw();
+            scissors_button.draw();
+        }
+    }
+};
+
 void Level::center_camera() {
     camera.target = player_pos;
 }
@@ -199,21 +413,88 @@ void Level::configure_hud() {
                 150.0f});
 }
 
+void Level::purge_current_event_screen() {
+    if (current_event_screen) {
+        delete current_event_screen.value();
+        current_event_screen = std::nullopt;
+    }
+}
+
 void Level::complete_event() {
-    current_event = std::nullopt;
-    current_event_cause = std::nullopt;
     force_description_update = true;
+    // show_tile_description = true;
     scheduled_events.pop_back();
+    purge_current_event_screen();
 }
 
 bool Level::set_new_event() {
     if (scheduled_events.empty()) {
         // This may be inefficient, but will do for now
         current_event_tile_id = std::nullopt;
+        // purge_current_event_screen();
         return false;
     }
 
+    int current_event_cause;
+    Event current_event;
+
     std::tie(current_event_cause, current_event) = scheduled_events.back();
+
+    // purge_current_event_screen();
+
+    switch (current_event) {
+    case Event::exit_map: {
+        // show_tile_description = false;
+        current_event_screen = new CompletionScreen(this);
+        break;
+    }
+
+    case Event::fight: {
+        // TODO: stub
+        // show_tile_description = false;
+
+        // For now its but average roguelike battle system, which kinda falls
+        // apart with pure-random stats generation (and without ability to
+        // see enemy stats. And with autoattack with physical damage. Yeah).
+        // TODO: remake this into a proper minigame
+        if (static_cast<Creature*>(map->get_object(current_event_cause))
+                ->damage(player_obj->stats.pdmg, DamageType::physical)) {
+            map->delete_object(
+                current_event_tile_id.value(),
+                map->find_object_in_tile(
+                       current_event_tile_id.value(),
+                       current_event_cause)
+                    .value(),
+                true);
+
+            // complete_event();
+        }
+        complete_event();
+        break;
+    }
+
+    case Event::loot: {
+        player_obj->money_amount +=
+            static_cast<Treasure*>(map->get_object(current_event_cause))->get_reward();
+
+        complete_event();
+        break;
+    }
+
+    case Event::lockpick: {
+        current_event_screen = new LockpickScreen(
+            this,
+            static_cast<Treasure*>(map->get_object(current_event_cause)),
+            player_obj);
+        break;
+    }
+
+    default: {
+        complete_event();
+        break;
+    }
+    }
+
     return true;
 }
 
@@ -251,8 +532,7 @@ void Level::configure_new_map() {
 
 Level::Level(SceneManager* p)
     : Scene(BG_COLOR)
-    , back_to_menu_button(make_close_button())
-    , completion_screen(new CompletionScreen(this)) {
+    , back_to_menu_button(make_close_button()) {
     parent = p;
 
     input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
@@ -274,7 +554,7 @@ Level::~Level() {
     delete map;
     delete turn_switch_timer;
     delete player_obj;
-    delete completion_screen;
+    purge_current_event_screen();
 }
 
 void Level::change_map() {
@@ -416,59 +696,14 @@ void Level::update(float dt) {
     }
 
     show_tile_description = true;
-
-    if (current_event) {
-        switch (current_event.value()) {
-        case Event::exit_map: {
-            show_tile_description = false;
-            completion_screen->update();
-            break;
-        }
-
-        case Event::fight: {
-            // TODO: stub
-            // show_tile_description = false;
-
-            // For now its but average roguelike battle system, which kinda falls
-            // apart with pure-random stats generation (and without ability to
-            // see enemy stats. And with autoattack with physical damage. Yeah).
-            // TODO: remake this into a proper minigame
-            if (static_cast<Creature*>(map->get_object(current_event_cause.value()))
-                    ->damage(player_obj->stats.pdmg, DamageType::physical)) {
-                // This will fail if current_event_cause is set to nullopt, but that
-                // shouldn't happen. I hope.
-                map->delete_object(
-                    current_event_tile_id.value(),
-                    map->find_object_in_tile(
-                           current_event_tile_id.value(),
-                           current_event_cause.value())
-                        .value(),
-                    true);
-
-                // complete_event();
-            }
-            complete_event();
-            break;
-        }
-
-        case Event::loot: {
-            player_obj->money_amount +=
-                static_cast<Treasure*>(map->get_object(current_event_cause.value()))
-                    ->get_reward();
-
-            complete_event();
-            break;
-        }
-
-        default: {
-            complete_event();
-            break;
-        }
-        }
+    if (current_event_screen) {
+        show_tile_description = false;
+        current_event_screen.value()->update();
     }
 
     else {
         if (is_player_turn) handle_player_movement();
+        // TODO: enemy movement handler
         else change_turn();
     }
 
@@ -533,16 +768,8 @@ void Level::draw() {
     turn_num_label.draw();
     turn_label.draw();
 
-    if (current_event) {
-        switch (current_event.value()) {
-        case Event::exit_map: {
-            completion_screen->draw();
-            break;
-        }
-
-        default:
-            break;
-        }
+    if (current_event_screen) {
+        current_event_screen.value()->draw();
     }
 
     if (show_tile_description) {

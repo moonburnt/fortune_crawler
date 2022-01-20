@@ -99,11 +99,10 @@ private:
     Vector2 playground_vec_end;
     Button back_to_menu_button;
 
-    EventScreen* completion_screen;
+    std::optional<EventScreen*> current_event_screen;
+    void purge_current_event_screen();
 
-    std::optional<Event> current_event;
     std::vector<std::tuple<int, Event>> scheduled_events;
-    std::optional<int> current_event_cause;
     // This will cause problems if at some point we will need to operate on events
     // That came from multiple tiles.
     std::optional<int> current_event_tile_id;
