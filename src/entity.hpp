@@ -45,7 +45,7 @@ struct CreatureStats {
 
 class MapObject {
 private:
-    std::optional<Texture2D*> texture;
+    Texture2D* texture;
 
     // These things below can probably be done better. TODO
     // Default description of an object.

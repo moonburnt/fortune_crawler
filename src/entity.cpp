@@ -11,6 +11,7 @@
 void MapObject::set_description(std::string desc) {
     description = desc;
     full_description = desc;
+    texture = nullptr;
     // Not initializing affix there, coz full_description wont be re-generated
     // without calling set_affix() anyway. So, I think, its fine to leave it empty?
 }
@@ -68,7 +69,7 @@ bool MapObject::is_obstacle() {
 }
 
 void MapObject::draw(Vector2 pos) {
-    if (texture) DrawTextureV(*texture.value(), pos, WHITE);
+    if (texture != nullptr) DrawTextureV(*texture, pos, WHITE);
 }
 
 // Base Structure/Building
