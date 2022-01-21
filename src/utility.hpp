@@ -8,11 +8,10 @@ static constexpr Color DEFAULT_TEXT_COLOR = BLACK;
 
 void handle_assert(const char* file, int line, const char* fun, const char* expr);
 
-#define ASSERT(expr)                                            \
-    while (!(expr))                                             \
-    {                                                           \
-        handle_assert(__FILE__, __LINE__, __FUNCTION__, #expr); \
-        break;                                                  \
+#define ASSERT(expr)                                                                     \
+    while (!(expr)) {                                                                    \
+        handle_assert(__FILE__, __LINE__, __FUNCTION__, #expr);                          \
+        break;                                                                           \
     }
 
 class Timer {

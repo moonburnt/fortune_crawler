@@ -23,8 +23,6 @@ static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 static constexpr Color BG_COLOR{63, 63, 116, 255};
 
 InputController::InputController() {
-    buttons_held = {KEY_NULL};
-    add_relationship(KEY_NULL, MovementDirection::none);
 }
 
 void InputController::add_relationship(int key, MovementDirection direction) {
@@ -39,15 +37,15 @@ void InputController::update() {
             }
         }
         else {
-            auto it = std::find(buttons_held.begin() + 1, buttons_held.end(), kv.first);
+            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
             if (it != buttons_held.end()) buttons_held.erase(it);
         }
     }
 }
 
 MovementDirection InputController::get_movement_direction() {
-    ASSERT(buttons_held.empty() == false);
-    return key_binds[buttons_held.back()];
+    if (buttons_held.empty()) return MovementDirection::none;
+    else return key_binds[buttons_held.back()];
 }
 
 EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
@@ -113,11 +111,11 @@ public:
     }
 };
 
-enum class RPS
+enum RPS
 {
-    rock,
-    paper,
-    scissors
+    RPS_ROCK,
+    RPS_PAPER,
+    RPS_SCISSORS
 };
 
 enum class MinigameStatus
@@ -129,67 +127,14 @@ enum class MinigameStatus
 
 // Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
 // who won.
-MinigameStatus play_rps(RPS your_throw) {
+MinigameStatus play_rps(int your_throw) {
     // 0 is rock, 1 is paper, 2 is scissors
+    const static MinigameStatus result[3][3]{
+        {MinigameStatus::tie, MinigameStatus::win, MinigameStatus::lose},
+        {MinigameStatus::lose, MinigameStatus::tie, MinigameStatus::win},
+        {MinigameStatus::win, MinigameStatus::lose, MinigameStatus::tie}};
 
-    MinigameStatus result;
-
-    // This looks cursed, I know...
-    switch (rand() % 3) {
-    case 0: {
-        switch (your_throw) {
-        case RPS::rock: {
-            result = MinigameStatus::tie;
-            break;
-        }
-        case RPS::paper: {
-            result = MinigameStatus::win;
-            break;
-        }
-        case RPS::scissors: {
-            result = MinigameStatus::lose;
-            break;
-        }
-        }
-        break;
-    }
-    case 1: {
-        switch (your_throw) {
-        case RPS::rock: {
-            result = MinigameStatus::lose;
-            break;
-        }
-        case RPS::paper: {
-            result = MinigameStatus::tie;
-            break;
-        }
-        case RPS::scissors: {
-            result = MinigameStatus::win;
-            break;
-        }
-        }
-        break;
-    }
-    case 2: {
-        switch (your_throw) {
-        case RPS::rock: {
-            result = MinigameStatus::win;
-            break;
-        }
-        case RPS::paper: {
-            result = MinigameStatus::lose;
-            break;
-        }
-        case RPS::scissors: {
-            result = MinigameStatus::tie;
-            break;
-        }
-        }
-        break;
-    }
-    }
-
-    return result;
+    return result[rand() % 3][your_throw];
 }
 
 class LockpickScreen : public EventScreen {
@@ -252,19 +197,19 @@ public:
             scissors_button.update();
 
             bool button_clicked = false;
-            RPS rps_value;
+            int rps_value;
 
             if (rock_button.is_clicked()) {
                 button_clicked = true;
-                rps_value = RPS::rock;
+                rps_value = RPS_ROCK;
             }
             else if (paper_button.is_clicked()) {
                 button_clicked = true;
-                rps_value = RPS::paper;
+                rps_value = RPS_PAPER;
             }
             else if (scissors_button.is_clicked()) {
                 button_clicked = true;
-                rps_value = RPS::scissors;
+                rps_value = RPS_SCISSORS;
             }
 
             if (button_clicked) {
