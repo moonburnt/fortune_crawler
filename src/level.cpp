@@ -130,6 +130,11 @@ void Level::complete_event() {
     purge_current_event_screen();
 }
 
+void Level::give_player_money(int amount) {
+    player_obj->money_amount += amount;
+    money_collected += amount;
+}
+
 bool Level::set_new_event() {
     if (scheduled_events.empty()) {
         // This may be inefficient, but will do for now
@@ -148,7 +153,9 @@ bool Level::set_new_event() {
     switch (current_event) {
     case Event::exit_map: {
         // show_tile_description = false;
-        current_event_screen = new CompletionScreen(this);
+        current_event_screen =
+            // + 1 coz turns counter is increased after event's completion.
+            new CompletionScreen(this, current_turn + 1, money_collected, enemies_killed);
         break;
     }
 
@@ -169,7 +176,7 @@ bool Level::set_new_event() {
                        current_event_cause)
                     .value(),
                 true);
-
+            enemies_killed++;
             // complete_event();
         }
         complete_event();
@@ -177,8 +184,8 @@ bool Level::set_new_event() {
     }
 
     case Event::loot: {
-        player_obj->money_amount +=
-            static_cast<Treasure*>(map->get_object(current_event_cause))->get_reward();
+        give_player_money(
+            static_cast<Treasure*>(map->get_object(current_event_cause))->get_reward());
 
         complete_event();
         break;
@@ -187,8 +194,7 @@ bool Level::set_new_event() {
     case Event::lockpick: {
         current_event_screen = new LockpickScreen(
             this,
-            static_cast<Treasure*>(map->get_object(current_event_cause)),
-            player_obj);
+            static_cast<Treasure*>(map->get_object(current_event_cause)));
         break;
     }
 
@@ -229,6 +235,8 @@ void Level::configure_new_map() {
     show_tile_description = true;
     turn_switch_timer = new Timer(0.1f);
     current_turn = 0;
+    money_collected = 0;
+    enemies_killed = 0;
     last_selected_tile = -1;
     change_turn();
 }

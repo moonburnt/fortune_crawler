@@ -21,7 +21,8 @@ MinigameStatus play_rps(int your_throw) {
 }
 
 // Completion Screen
-CompletionScreen::CompletionScreen(Level* level)
+CompletionScreen::CompletionScreen(
+    Level* level, int turns_made, int money_collected, int enemies_killed)
     : EventScreen(
           Rectangle{
               ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
@@ -30,8 +31,15 @@ CompletionScreen::CompletionScreen(Level* level)
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
     , lvl(level)
-    , completion_label(
-          Label("Level Completed!", GetScreenWidth() / 2, GetScreenHeight() / 2))
+    , completion_label(Label(
+          fmt::format(
+              "Level Completed!\n\n"
+              "Turns made: {}\nMoney collected: {}\nEnemies killed: {}",
+              turns_made,
+              money_collected,
+              enemies_killed),
+          GetScreenWidth() / 2,
+          GetScreenHeight() / 2))
     , next_level_button(make_text_button("Go Deeper!"))
     , close_screen_button(make_close_button()) {
     completion_label.center();
@@ -71,7 +79,7 @@ void CompletionScreen::draw() {
 }
 
 // Lockpick Screen
-LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj, Player* _player_obj)
+LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     : EventScreen(
           Rectangle{
               ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
@@ -80,7 +88,6 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj, Player* _p
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
     , lvl(level)
-    , player_obj(_player_obj)
     , treasure_obj(_treasure_obj)
     , title_label(
           Label("This chest is locked.\nTry to lockpick it!", GetScreenWidth() / 2, 100))
@@ -140,7 +147,7 @@ void LockpickScreen::update() {
                     "With no issues, you've flawlessly unlocked the chest.\n"
                     "{} coins lying inside were totally worth it!",
                     value));
-                player_obj->money_amount += value;
+                lvl->give_player_money(value);
                 break;
             }
 
@@ -152,7 +159,7 @@ void LockpickScreen::update() {
                     "Sadly, while doing so, some coins felt into darkness...\n"
                     "But you've still got {} gold from it.",
                     value));
-                player_obj->money_amount += value;
+                lvl->give_player_money(value);
                 break;
             }
 

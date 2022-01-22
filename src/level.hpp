@@ -34,6 +34,8 @@ private:
     InputController input_controller;
 
     int current_turn;
+    int money_collected;
+    int enemies_killed;
     bool is_player_turn;
 
     int dungeon_lvl;
@@ -123,4 +125,8 @@ public:
 
     // Exit from level to main menu.
     void exit_to_menu();
+
+    // Give player specified amount of money.
+    // Will also increase level's "money_collected" counter.
+    void give_player_money(int amount);
 };

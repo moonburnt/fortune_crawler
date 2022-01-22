@@ -29,7 +29,8 @@ private:
     Button close_screen_button;
 
 public:
-    CompletionScreen(Level* level);
+    CompletionScreen(
+        Level* level, int turns_made, int money_collected, int enemies_killed);
     void update() override;
     void draw() override;
 };
@@ -37,7 +38,6 @@ public:
 class LockpickScreen : public EventScreen {
 private:
     Level* lvl;
-    Player* player_obj;
     Treasure* treasure_obj;
     Label title_label;
     DynamicLabel result_label;
@@ -48,7 +48,7 @@ private:
     bool complete;
 
 public:
-    LockpickScreen(Level* level, Treasure* _treasure_obj, Player* _player_obj);
+    LockpickScreen(Level* level, Treasure* _treasure_obj);
     void update() override;
     void draw() override;
 };
