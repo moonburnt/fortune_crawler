@@ -9,6 +9,10 @@
 #include <string>
 #include <vector>
 
+static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
+static constexpr Color CORNER_COLOR{34, 32, 52, 255};
+static constexpr Color BG_COLOR{63, 63, 116, 255};
+
 // This may be an overkill, but its starting to get hard to get through level's
 // items, so I've needed to move these primitives somewhere
 class EventScreen {
