@@ -257,6 +257,60 @@ public:
     }
 };
 
+class PauseScreen : public EventScreen {
+private:
+    Level* lvl;
+    Label title_label;
+    TextButton continue_button;
+    TextButton exit_button;
+
+public:
+    PauseScreen(Level* level)
+        : EventScreen(
+              Rectangle{
+                  ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+                  30,
+                  (GetScreenWidth() + 30) / 2.0f,
+                  (GetScreenHeight() - 60.0f)},
+              {0, 0, 0, 0})
+        , lvl(level)
+        , title_label(Label("Game Paused", GetScreenWidth() / 2, 160.0f))
+        , continue_button(make_text_button("Continue"))
+        , exit_button(make_text_button("Back to menu")) {
+        title_label.center();
+        continue_button.set_pos(Vector2{
+            GetScreenWidth() / 2.0f - continue_button.get_rect().width / 2,
+            GetScreenHeight() / 2.0f});
+        exit_button.set_pos(Vector2{
+            GetScreenWidth() / 2.0f - exit_button.get_rect().width / 2,
+            GetScreenHeight() / 2.0f + 100});
+    }
+
+    void update() override {
+        continue_button.update();
+        exit_button.update();
+
+        if (continue_button.is_clicked()) {
+            lvl->is_paused = false;
+            continue_button.reset_state();
+            return;
+        }
+        if (exit_button.is_clicked()) {
+            lvl->exit_to_menu();
+            return;
+        }
+    }
+
+    void draw() override {
+        DrawRectangleRec(bg, SIDE_BG_COLOR);
+        DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+
+        title_label.draw();
+        continue_button.draw();
+        exit_button.draw();
+    }
+};
+
 void Level::center_camera() {
     camera.target = player_pos;
 }
@@ -335,13 +389,6 @@ void Level::configure_hud() {
         "Current Tile: {:02} x {:02}",
         left_bg_txt_x,
         GetScreenHeight() - 50.0);
-
-    back_to_menu_button.set_pos(
-        Vector2{// static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
-                // Temporary pos to dont overlap with other elements.
-                // TODO: reposition things
-                static_cast<float>(GetScreenWidth() - (30 + 64)),
-                150.0f});
 }
 
 void Level::purge_current_event_screen() {
@@ -463,7 +510,7 @@ void Level::configure_new_map() {
 
 Level::Level(SceneManager* p)
     : Scene(BG_COLOR)
-    , back_to_menu_button(make_close_button()) {
+    , pause_menu(new PauseScreen(this)) {
     parent = p;
 
     input_controller.add_relationship(KEY_KP_7, MD_UPLEFT);
@@ -484,6 +531,7 @@ Level::Level(SceneManager* p)
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 1;
+    is_paused = false;
     configure_new_map();
 }
 
@@ -491,6 +539,7 @@ Level::~Level() {
     delete map;
     delete turn_switch_timer;
     delete player_obj;
+    delete pause_menu;
     purge_current_event_screen();
 }
 
@@ -509,8 +558,7 @@ bool Level::is_vec_on_playground(Vector2 vec) {
         playground_vec_start.y < vec.y && vec.y < playground_vec_end.y;
 }
 
-void Level::back_to_menu() {
-    back_to_menu_button.reset_state();
+void Level::exit_to_menu() {
     parent->set_current_scene(new MainMenu(parent));
 }
 
@@ -626,6 +674,15 @@ void Level::handle_player_movement() {
 }
 
 void Level::update(float dt) {
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        if (is_paused) is_paused = false;
+        else is_paused = true;
+    }
+    if (is_paused) {
+        pause_menu->update();
+        return;
+    }
+
     if (turn_switch_timer->is_started()) {
         if (turn_switch_timer->tick(dt)) turn_switch_timer->stop();
         else return;
@@ -677,13 +734,6 @@ void Level::update(float dt) {
         }
     }
 
-    back_to_menu_button.update();
-    if (back_to_menu_button.is_clicked()) {
-        // TODO: perform some serialization there, to be able to continue
-        back_to_menu();
-        return;
-    }
-
     player_currency_label.set_text(
         fmt::format(player_currency_label.get_default_text(), player_obj->money_amount));
 }
@@ -702,6 +752,15 @@ void Level::draw() {
     dungeon_lvl_label.draw();
     turn_num_label.draw();
     turn_label.draw();
+    player_info_label.draw();
+    player_tile_label.draw();
+    player_currency_label.draw();
+    player_stats_label.draw();
+
+    if (is_paused) {
+        pause_menu->draw();
+        return;
+    }
 
     if (current_event_screen != nullptr) {
         current_event_screen->draw();
@@ -711,11 +770,4 @@ void Level::draw() {
         selected_tile_label.draw();
         tile_content_label.draw();
     }
-
-    player_info_label.draw();
-    player_tile_label.draw();
-    player_currency_label.draw();
-    player_stats_label.draw();
-
-    back_to_menu_button.draw();
 }

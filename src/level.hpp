@@ -67,7 +67,8 @@ private:
     Rectangle right_bg;
     Vector2 playground_vec_start;
     Vector2 playground_vec_end;
-    Button back_to_menu_button;
+
+    EventScreen* pause_menu;
 
     EventScreen* current_event_screen = nullptr;
     void purge_current_event_screen();
@@ -83,9 +84,6 @@ private:
 
     // Handle input and move player accordingly
     void handle_player_movement();
-
-    // Exit from level to main menu.
-    void back_to_menu();
 
     // Initial camera configuration. Must be only used during init
     void set_camera();
@@ -104,6 +102,8 @@ private:
     bool is_vec_on_playground(Vector2 vec);
 
 public:
+    bool is_paused;
+
     Level(SceneManager* p);
     ~Level();
 
@@ -116,4 +116,7 @@ public:
 
     // Change existing map to the new one. This should be called to switch the map
     void change_map();
+
+    // Exit from level to main menu.
+    void exit_to_menu();
 };
