@@ -22,31 +22,19 @@ static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
 static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 static constexpr Color BG_COLOR{63, 63, 116, 255};
 
-InputController::InputController() {
-}
-
-void InputController::add_relationship(int key, MovementDirection direction) {
-    key_binds[key] = direction;
-}
-
-void InputController::update() {
-    for (auto& kv : key_binds) {
-        if (IsKeyDown(kv.first)) {
-            if (!std::count(buttons_held.begin(), buttons_held.end(), kv.first)) {
-                buttons_held.push_back(kv.first);
-            }
-        }
-        else {
-            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
-            if (it != buttons_held.end()) buttons_held.erase(it);
-        }
-    }
-}
-
-MovementDirection InputController::get_movement_direction() {
-    if (buttons_held.empty()) return MovementDirection::none;
-    else return key_binds[buttons_held.back()];
-}
+enum MovementDirection
+{
+    MD_NONE,
+    MD_UPLEFT,
+    MD_UP,
+    MD_UPRIGHT,
+    MD_LEFT,
+    MD_STAND,
+    MD_RIGHT,
+    MD_DOWNLEFT,
+    MD_DOWN,
+    MD_DOWNRIGHT
+};
 
 EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
     : bg(_bg)
@@ -478,19 +466,20 @@ Level::Level(SceneManager* p)
     , back_to_menu_button(make_close_button()) {
     parent = p;
 
-    input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
-    input_controller.add_relationship(KEY_KP_8, MovementDirection::up);
-    input_controller.add_relationship(KEY_KP_9, MovementDirection::upright);
-    input_controller.add_relationship(KEY_KP_4, MovementDirection::left);
-    input_controller.add_relationship(KEY_KP_6, MovementDirection::right);
-    input_controller.add_relationship(KEY_KP_1, MovementDirection::downleft);
-    input_controller.add_relationship(KEY_KP_2, MovementDirection::down);
-    input_controller.add_relationship(KEY_KP_3, MovementDirection::downright);
+    input_controller.add_relationship(KEY_KP_7, MD_UPLEFT);
+    input_controller.add_relationship(KEY_KP_8, MD_UP);
+    input_controller.add_relationship(KEY_KP_9, MD_UPRIGHT);
+    input_controller.add_relationship(KEY_KP_4, MD_LEFT);
+    input_controller.add_relationship(KEY_KP_6, MD_RIGHT);
+    input_controller.add_relationship(KEY_KP_1, MD_DOWNLEFT);
+    input_controller.add_relationship(KEY_KP_2, MD_DOWN);
+    input_controller.add_relationship(KEY_KP_3, MD_DOWNRIGHT);
 
-    input_controller.add_relationship(KEY_UP, MovementDirection::up);
-    input_controller.add_relationship(KEY_LEFT, MovementDirection::left);
-    input_controller.add_relationship(KEY_RIGHT, MovementDirection::right);
-    input_controller.add_relationship(KEY_DOWN, MovementDirection::down);
+    // TODO: remove duplicates, make buttons above configurable from settings.
+    input_controller.add_relationship(KEY_UP, MD_UP);
+    input_controller.add_relationship(KEY_LEFT, MD_LEFT);
+    input_controller.add_relationship(KEY_RIGHT, MD_RIGHT);
+    input_controller.add_relationship(KEY_DOWN, MD_DOWN);
 
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
@@ -554,49 +543,49 @@ void Level::handle_player_movement() {
 
     Vector2 new_pos = player_pos;
     input_controller.update();
-    switch (input_controller.get_movement_direction()) {
-    case MovementDirection::none:
+    switch (input_controller.get_action()) {
+    case MD_NONE:
         break;
-    case MovementDirection::upleft: {
+    case MD_UPLEFT: {
         new_pos.x -= map->get_tile_size().x;
         new_pos.y -= map->get_tile_size().y;
         key_pressed = true;
         break;
     }
-    case MovementDirection::up: {
+    case MD_UP: {
         new_pos.y -= map->get_tile_size().y;
         key_pressed = true;
         break;
     }
-    case MovementDirection::upright: {
+    case MD_UPRIGHT: {
         new_pos.x += map->get_tile_size().x;
         new_pos.y -= map->get_tile_size().y;
         key_pressed = true;
         break;
     }
-    case MovementDirection::left: {
+    case MD_LEFT: {
         new_pos.x -= map->get_tile_size().x;
         key_pressed = true;
         break;
     }
     // No ability to stay on same tile and pass turn, for now
-    case MovementDirection::right: {
+    case MD_RIGHT: {
         new_pos.x += map->get_tile_size().x;
         key_pressed = true;
         break;
     }
-    case MovementDirection::downleft: {
+    case MD_DOWNLEFT: {
         new_pos.x -= map->get_tile_size().x;
         new_pos.y += map->get_tile_size().y;
         key_pressed = true;
         break;
     }
-    case MovementDirection::down: {
+    case MD_DOWN: {
         new_pos.y += map->get_tile_size().y;
         key_pressed = true;
         break;
     }
-    case MovementDirection::downright: {
+    case MD_DOWNRIGHT: {
         new_pos.x += map->get_tile_size().x;
         new_pos.y += map->get_tile_size().y;
         key_pressed = true;

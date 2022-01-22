@@ -7,37 +7,7 @@
 #include "utility.hpp"
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
-
-enum class MovementDirection
-{
-    none,
-    upleft,
-    up,
-    upright,
-    left,
-    stand,
-    right,
-    downleft,
-    down,
-    downright
-};
-
-class InputController {
-private:
-    std::vector<int> buttons_held;
-    std::unordered_map<int, MovementDirection> key_binds;
-
-public:
-    InputController();
-    // Bind specific key to specific movement direction
-    void add_relationship(int key, MovementDirection direction);
-    // Update list of held buttons
-    void update();
-    // Get direction of last button held
-    MovementDirection get_movement_direction();
-};
 
 // This may be an overkill, but its starting to get hard to get through level's
 // items, so I've needed to move these primitives somewhere
