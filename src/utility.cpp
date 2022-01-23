@@ -105,3 +105,8 @@ void center_rect_ip(Rectangle* rect, Vector2 center) {
 bool randbool() {
     return (std::rand() % 2);
 }
+
+bool has_mouse_moved() {
+    Vector2 md = GetMouseDelta();
+    return (md.x != 0 && md.y != 0);
+}

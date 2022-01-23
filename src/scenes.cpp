@@ -9,6 +9,7 @@
 #include "raylib.h"
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 Scene::Scene(Color _bg_color)
@@ -195,64 +196,81 @@ public:
 
 // Main menu logic
 void MainMenu::call_exit() {
-    exit_button.reset_state();
     parent->active = false;
 }
 
 void MainMenu::start_game() {
-    start_button.reset_state();
     parent->set_current_scene(new Level(parent));
 }
 
 void MainMenu::open_settings() {
-    settings_button.reset_state();
     parent->set_current_scene(new SettingsScreen(parent));
 }
 
-MainMenu::MainMenu(SceneManager* p)
-    : start_button(make_text_button("Start"))
-    , settings_button(make_text_button("Settings"))
-    , exit_button(make_text_button("Exit")) {
+MainMenu::MainMenu(SceneManager* p) {
     parent = p;
+
+    // TODO: rework this trash
+    buttons.add_button(new TextButton(
+        &AssetLoader::loader.sprites["button_default"],
+        &AssetLoader::loader.sprites["button_hover"],
+        &AssetLoader::loader.sprites["button_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 256, 64},
+        "Start"));
+    buttons.add_button(new TextButton(
+        &AssetLoader::loader.sprites["button_default"],
+        &AssetLoader::loader.sprites["button_hover"],
+        &AssetLoader::loader.sprites["button_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 256, 64},
+        "Settings"));
+    buttons.add_button(new TextButton(
+        &AssetLoader::loader.sprites["button_default"],
+        &AssetLoader::loader.sprites["button_hover"],
+        &AssetLoader::loader.sprites["button_pressed"],
+        &AssetLoader::loader.sounds["button_hover"],
+        &AssetLoader::loader.sounds["button_clicked"],
+        Rectangle{0, 0, 256, 64},
+        "Exit"));
 
     float center_x = GetScreenWidth() / 2.0f;
     float center_y = GetScreenHeight() / 2.0f;
 
-    start_button.set_pos(
-        Vector2{center_x - start_button.get_rect().width / 2, center_y - 100});
+    buttons[0]->set_pos(
+        Vector2{center_x - buttons[0]->get_rect().width / 2, center_y - 100});
 
-    settings_button.set_pos(
-        Vector2{center_x - exit_button.get_rect().width / 2, center_y});
+    buttons[1]->set_pos(Vector2{center_x - buttons[1]->get_rect().width / 2, center_y});
 
-    exit_button.set_pos(
-        Vector2{center_x - exit_button.get_rect().width / 2, center_y + 100});
+    buttons[2]->set_pos(
+        Vector2{center_x - buttons[2]->get_rect().width / 2, center_y + 100});
 }
 
 void MainMenu::update(float) {
-    start_button.update();
-    settings_button.update();
-    exit_button.update();
+    // TODO: add keyboard controller, toggle manual update mode on and off,
+    // depending on what happend the last - some valid key press or mouse movement
+    buttons.update();
 
-    if (start_button.is_clicked()) {
+    if (buttons[0]->is_clicked()) {
         start_game();
         return;
     }
 
-    if (settings_button.is_clicked()) {
+    if (buttons[1]->is_clicked()) {
         open_settings();
         return;
     }
 
-    if (exit_button.is_clicked()) {
+    if (buttons[2]->is_clicked()) {
         call_exit();
         return;
     }
 }
 
 void MainMenu::draw() {
-    start_button.draw();
-    settings_button.draw();
-    exit_button.draw();
+    buttons.draw();
 }
 
 MainMenu::~MainMenu() {

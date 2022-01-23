@@ -2,14 +2,15 @@
 #include "loader.hpp"
 #include "utility.hpp"
 
+#include <optional>
 #include <raylib.h>
 #include <string>
+#include <tuple>
 
 // It's not necessary to use "this" in these, but it may be good for readability
 void Button::reset_state() {
     state = ButtonStates::idle;
     last_state = ButtonStates::idle;
-    clicked = false;
 }
 
 // Constructors dont need to specify return state
@@ -23,19 +24,22 @@ Button::Button(
     textures[ButtonStates::idle] = texture_default;
     textures[ButtonStates::hover] = texture_hover;
     textures[ButtonStates::pressed] = texture_pressed;
+    textures[ButtonStates::clicked] = texture_default;
     sounds[0] = sfx_hover;
     sounds[1] = sfx_click;
     rect = rectangle;
     pos = Vector2{0, 0};
-
+    manual_update_mode = false;
     reset_state();
 }
 
 enum ButtonStates Button::update() {
+    if (manual_update_mode) return state;
+
     if (CheckCollisionPointRec(GetMousePosition(), rect)) {
         if (last_state == ButtonStates::pressed) {
             if (IsMouseButtonUp(MOUSE_BUTTON_LEFT)) {
-                clicked = true;
+                state = ButtonStates::clicked;
                 PlaySound(*sounds[1]);
             }
         }
@@ -55,6 +59,22 @@ enum ButtonStates Button::update() {
 
 void Button::draw() {
     DrawTexture(*textures[state], pos.x, pos.y, WHITE);
+}
+
+void Button::set_state(ButtonStates _state) {
+    if (_state == ButtonStates::clicked) PlaySound(*sounds[1]);
+    else if (_state == ButtonStates::hover) PlaySound(*sounds[0]);
+
+    state = _state;
+    last_state = state;
+}
+
+ButtonStates Button::get_state() {
+    return state;
+}
+
+void Button::set_manual_update_mode(bool mode) {
+    manual_update_mode = mode;
 }
 
 void Button::set_pos(Vector2 position) {
@@ -81,7 +101,7 @@ Rectangle Button::get_rect() {
 // Getter for private clicked var. This allows to make it readable, but prevent
 // overwriting from outside
 bool Button::is_clicked() {
-    return clicked;
+    return state == ButtonStates::clicked;
 }
 
 // This is how we call parent's constructor from child constructor, with passing
@@ -168,6 +188,7 @@ Checkbox::Checkbox(
     textures_off[ButtonStates::idle] = texture_off_default,
     textures_off[ButtonStates::hover] = texture_off_hover,
     textures_off[ButtonStates::pressed] = texture_off_pressed,
+    textures_off[ButtonStates::clicked] = texture_off_default,
     toggle_state = default_state;
     state_switched = false;
 }
@@ -217,9 +238,10 @@ void Checkbox::draw() {
     else DrawTexture(*textures_off[state], pos.x, pos.y, WHITE);
 }
 
-void Checkbox::update() {
+ButtonStates Checkbox::update() {
     Button::update();
     if (Button::is_clicked()) toggle();
+    return state;
 }
 
 bool Checkbox::is_clicked() {
@@ -280,6 +302,118 @@ void DynamicLabel::set_text(std::string txt) {
 
 std::string DynamicLabel::get_default_text() {
     return default_text;
+}
+
+// Button Storage
+ButtonStorage::ButtonStorage() {
+    selected_button = -1;
+    manual_update_mode = false;
+}
+
+ButtonStorage::~ButtonStorage() {
+    // This may be not the right way to do things, idk
+    for (auto i : storage) {
+        delete i;
+    }
+}
+
+ButtonBase* ButtonStorage::operator[](int i) {
+    return storage[i];
+}
+
+void ButtonStorage::add_button(ButtonBase* button) {
+    storage.push_back(button);
+    if (manual_update_mode) button->set_manual_update_mode(true);
+}
+
+void ButtonStorage::set_manual_update_mode(bool mode) {
+    if (mode == manual_update_mode) return;
+
+    if (mode) {
+        for (auto i : storage) {
+            i->set_manual_update_mode(true);
+            i->reset_state();
+        }
+    }
+    else {
+        for (auto i : storage) {
+            i->set_manual_update_mode(false);
+            i->reset_state();
+        }
+    }
+
+    manual_update_mode = mode;
+}
+
+void ButtonStorage::select_button(size_t button) {
+    if (!storage.empty() && button >= 0 && button < storage.size()) {
+        set_manual_update_mode(true);
+        if (selected_button && selected_button != -1ul) {
+            storage[selected_button]->reset_state();
+        }
+        selected_button = button;
+        storage[selected_button]->set_state(ButtonStates::hover);
+    }
+}
+
+void ButtonStorage::select_next(bool cycle) {
+    int button;
+    if (cycle && (selected_button + 1ul == storage.size())) {
+        button = 0;
+    }
+    else {
+        button = selected_button + 1;
+    }
+
+    select_button(button);
+}
+
+void ButtonStorage::select_previous(bool cycle) {
+    int button;
+    if (cycle && (selected_button - 1ul < 0)) {
+        // TODO: may need to set it to size-1.
+        button = storage.size();
+    }
+    else {
+        button = selected_button - 1;
+    }
+
+    select_button(button);
+}
+
+void ButtonStorage::update() {
+    if (manual_update_mode) {
+        if (selected_button >= 0) {
+            storage[selected_button]->update();
+        }
+    }
+    else {
+        for (auto button : storage) {
+            button->update();
+        }
+    }
+}
+
+std::optional<std::tuple<int, ButtonStates>> ButtonStorage::get_selected_button_state() {
+    if (selected_button >= 0) {
+        return std::make_tuple(selected_button, storage[selected_button]->get_state());
+    }
+
+    return std::nullopt;
+}
+
+bool ButtonStorage::set_selected_button_state(ButtonStates state) {
+    if (selected_button < 0) return false;
+
+    storage[selected_button]->set_state(state);
+
+    return true;
+}
+
+void ButtonStorage::draw() {
+    for (auto button : storage) {
+        button->draw();
+    }
 }
 
 // Constructors of commonly used buttons. These will fail if assets loader hasn't

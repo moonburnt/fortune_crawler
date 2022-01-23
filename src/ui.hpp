@@ -2,23 +2,44 @@
 
 #include <raylib.h>
 
+#include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
+#include <vector>
 
 // UI primitives.
 enum class ButtonStates
 {
     idle,
     hover,
-    pressed
+    pressed,
+    clicked
 };
 
-class Button {
+class ButtonBase {
+public:
+    virtual ButtonStates update() = 0;
+    virtual void draw() = 0;
+    virtual void set_manual_update_mode(bool mode) = 0;
+    virtual void reset_state() = 0;
+    virtual void set_state(ButtonStates state) = 0;
+    virtual void set_pos(Vector2 position) = 0;
+    virtual ButtonStates get_state() = 0;
+    virtual Rectangle get_rect() = 0;
+    virtual bool is_clicked() = 0;
+
+    virtual ~ButtonBase() = default;
+};
+
+class Button : public ButtonBase {
 protected:
     // Button position. Hitbox will always appear at center of it
     Vector2 pos;
     // State is current button state
     ButtonStates state;
+    // State update mode. See set_manual_update_mode();
+    bool manual_update_mode;
 
 private:
     std::unordered_map<ButtonStates, Texture2D*> textures;
@@ -27,8 +48,6 @@ private:
     Rectangle rect;
     // Button state from previous screen
     ButtonStates last_state;
-    // This shows if button has been clicked
-    bool clicked;
 
 public:
     Button(
@@ -38,17 +57,25 @@ public:
         Sound* sfx_hover,
         Sound* sfx_click,
         Rectangle rectangle);
-    ButtonStates update();
-    void draw();
-    void reset_state();
-    void set_pos(Vector2 position);
-    bool is_clicked();
+    ButtonStates update() override;
+    void draw() override;
+
+    // Set manual update mode. If true - won't update state with update(),
+    // instead will only respond to manual set_state() calls.
+    void set_manual_update_mode(bool mode) override;
+    // Override button state. Will also toggle on manual update mode.
+    void set_state(ButtonStates state) override;
+    ButtonStates get_state() override;
+    // Reset button state and last_state to ButtonStates::idle.
+    void reset_state() override;
+    void set_pos(Vector2 position) override;
+    bool is_clicked() override;
     // This getter is necessary to use pos from outside without being able
     // to overwrite its value directly (coz its meant to be done together
     // with changing position of other button's elements)
     Vector2 get_pos();
     // Same there
-    Rectangle get_rect();
+    Rectangle get_rect() override;
 };
 
 class TextButton : public Button {
@@ -78,8 +105,8 @@ public:
         Rectangle rectangle,
         std::string msg);
 
-    void draw();
-    void set_pos(Vector2 position);
+    void draw() override;
+    void set_pos(Vector2 position) override;
 };
 
 class Checkbox : public Button {
@@ -123,13 +150,13 @@ public:
     // reset_state() is used.
     void toggle();
 
-    void draw();
-    void update();
+    void draw() override;
+    ButtonStates update() override;
 
     // Returns state_switched.
-    bool is_clicked();
+    bool is_clicked() override;
     // Resets state_switched.
-    void reset_state();
+    void reset_state() override;
 };
 
 // Basic label. You can move it around, but cant alter its text after creation.
@@ -164,6 +191,42 @@ public:
     void set_text(std::string txt, bool override_default);
     void set_text(std::string txt);
     std::string get_default_text();
+};
+
+class ButtonStorage {
+private:
+    // Storage that holds buttons. Since there is no way to remove these, its
+    // a vector. May rework into map if there will be need to remove elements.
+    std::vector<ButtonBase*> storage;
+    // Number of selected button in storage
+    size_t selected_button;
+    bool manual_update_mode;
+
+public:
+    ButtonStorage();
+    ~ButtonStorage();
+    // Add button or its derivatives to storage.
+    void add_button(ButtonBase* button);
+    void set_manual_update_mode(bool mode);
+    // Select button with specific id in storage. Any of these selectors will
+    // automatically toggle on set_manual_update_mode().
+    void select_button(size_t button);
+    void select_next(bool cycle);
+    void select_previous(bool cycle);
+    // Update all buttons assigned to storage. If manual_update_mode has been set
+    // to true - only updates selected button.
+    void update();
+    // Set state of selected button. Returns true if there is such button, else false
+    bool set_selected_button_state(ButtonStates state);
+    // Draw all buttons in storage
+    void draw();
+
+    std::optional<std::tuple<int, ButtonStates>> get_selected_button_state();
+
+    // Overload to [], that provides access to storage elements.
+    // For now, doesn't have safety checks - requiesting out of bounds value will
+    // probably lead to segfault.
+    ButtonBase* operator[](int i);
 };
 
 // Fabriques for some common button types

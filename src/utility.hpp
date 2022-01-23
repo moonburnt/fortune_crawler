@@ -78,3 +78,7 @@ void center_rect_ip(Rectangle* rect, Vector2 center);
 
 // Get random bool value
 bool randbool();
+
+// Returns true if mouse position has been changed this frame, false otherwise.
+// It may be wiser to move it somewhere else. TODO
+bool has_mouse_moved();
