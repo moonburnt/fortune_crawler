@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+// To find() things in InputHandler
+#include <algorithm>
 
 static constexpr uint32_t DEFAULT_TEXT_SIZE = 20u;
 static constexpr Color DEFAULT_TEXT_COLOR = BLACK;

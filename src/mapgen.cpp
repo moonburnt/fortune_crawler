@@ -95,18 +95,13 @@ std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
 }
 
 Point GameMap::index_to_tile(size_t index) {
-    index = std::clamp(index, 0ul, grid_size - 1);
-
     int y = index / map_size.x;
     int x = index % map_size.x;
     return Point{x, y};
 }
 
 int GameMap::tile_to_index(Point pos) {
-    return std::clamp(
-        static_cast<size_t>(pos.y * map_size.x + pos.x),
-        0lu,
-        grid_size - 1);
+    return static_cast<size_t>(pos.y * map_size.x + pos.x);
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
@@ -131,13 +126,22 @@ Vector2 GameMap::index_to_vec(size_t index) {
 int GameMap::vec_to_index(Vector2 vec) {
     int x = vec.x / tile_size.x;
     int y = vec.y / tile_size.y;
-    return std::clamp(static_cast<size_t>(y * map_size.x + x), 0lu, grid_size - 1);
+    return static_cast<size_t>(y * map_size.x + x);
 }
 
 bool GameMap::is_vec_on_map(Vector2 vec) {
     return (
-        (0 < vec.x) && (vec.x < map_real_size.x) && (0 < vec.y) &&
+        (0 <= vec.x) && (vec.x < map_real_size.x) && (0 <= vec.y) &&
         (vec.y < map_real_size.y));
+}
+
+bool GameMap::is_index_on_map(size_t grid_index) {
+    return ((0 <= grid_index) && (grid_index < grid_size));
+}
+
+bool GameMap::is_tile_on_map(Point tile) {
+    return (
+        (0 <= tile.x) && (tile.x < map_size.x) && (0 <= tile.y) && (tile.y < map_size.y));
 }
 
 std::optional<Point> GameMap::find_object_tile(int object_id) {

@@ -58,18 +58,19 @@ public:
     // Get descriptions of items in specified tile
     std::vector<std::string> get_tile_descriptions(size_t grid_index);
 
-    // These do have safety clamps to avoid out-of-bounds issues
+    // Returns true if requrested things are within map's borders, false otherwise
+    bool is_vec_on_map(Vector2 vec);
+    bool is_index_on_map(size_t grid_index);
+    bool is_tile_on_map(Point tile);
+
+    // Attempting to use out-of-bounds values on these will cause issues.
+    // Thus don't forget to call is_<type>_on_map before using them!
     Point index_to_tile(size_t index);
     int tile_to_index(Point pos);
     Vector2 index_to_vec(size_t index);
-    int vec_to_index(Vector2 vec);
-
-    // These ones don't
     Point vec_to_tile(Vector2 vec);
     Vector2 tile_to_vec(Point tile);
-
-    // Returns true if vec is part of map, false if its out of bounds
-    bool is_vec_on_map(Vector2 vec);
+    int vec_to_index(Vector2 vec);
 
     Point get_tile_size();
     Point get_map_size();

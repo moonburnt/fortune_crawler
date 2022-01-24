@@ -4,8 +4,6 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <raylib.h>
-// To find() things in InputHandler
-#include <algorithm>
 
 void handle_assert(const char* file, int line, const char* fun, const char* expr) {
     std::cout

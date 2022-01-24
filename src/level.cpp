@@ -309,6 +309,9 @@ void Level::change_turn() {
 }
 
 void Level::update_tile_description() {
+    // Safety thing to fix possible attempt to get description of failsafe tile.
+    if (last_selected_tile == -1) return;
+
     tile_content_label.set_text(fmt::format(
         tile_content_label.get_default_text(),
         fmt::join(map->get_tile_descriptions(last_selected_tile), "\n - ")));
@@ -371,7 +374,7 @@ void Level::handle_player_movement() {
         break;
     }
 
-    if (key_pressed) {
+    if (key_pressed && map->is_vec_on_map(new_pos)) {
         int new_tile_id = map->vec_to_index(new_pos);
         // This may be an overkill or oversight. May need to remove it
         // if I will ever add floor tiles that cause events
@@ -453,6 +456,10 @@ void Level::update(float dt) {
             }
             else {
                 map->deselect_tile();
+                // This should fix issue with tile highlighting not working if
+                // cursor left map's borders while some tile was selected, but
+                // then returned back to that very tile.
+                last_selected_tile = -1;
                 show_tile_description = false;
             }
         }
