@@ -78,13 +78,13 @@ int GameMap::get_player_id() {
 
 std::vector<int>* GameMap::get_tile_content(size_t grid_index) {
     // Protection against out-of-bounds index values
-    grid_index = std::clamp(grid_index, 0lu, grid_size);
+    grid_index = std::clamp(grid_index, 0lu, grid_size - 1);
 
     return &grid[grid_index];
 }
 
 std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
-    grid_index = std::clamp(grid_index, 0lu, grid_size);
+    grid_index = std::clamp(grid_index, 0lu, grid_size - 1);
 
     std::vector<std::string> descriptions;
 
@@ -95,7 +95,7 @@ std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
 }
 
 Point GameMap::index_to_tile(size_t index) {
-    index = std::clamp(index, 0ul, grid_size);
+    index = std::clamp(index, 0ul, grid_size - 1);
 
     int y = index / map_size.x;
     int x = index % map_size.x;
@@ -103,7 +103,10 @@ Point GameMap::index_to_tile(size_t index) {
 }
 
 int GameMap::tile_to_index(Point pos) {
-    return std::clamp(static_cast<size_t>(pos.y * map_size.x + pos.x), 0lu, grid_size);
+    return std::clamp(
+        static_cast<size_t>(pos.y * map_size.x + pos.x),
+        0lu,
+        grid_size - 1);
 }
 
 Point GameMap::vec_to_tile(Vector2 vec) {
@@ -128,7 +131,7 @@ Vector2 GameMap::index_to_vec(size_t index) {
 int GameMap::vec_to_index(Vector2 vec) {
     int x = vec.x / tile_size.x;
     int y = vec.y / tile_size.y;
-    return std::clamp(static_cast<size_t>(y * map_size.x + x), 0lu, grid_size);
+    return std::clamp(static_cast<size_t>(y * map_size.x + x), 0lu, grid_size - 1);
 }
 
 bool GameMap::is_vec_on_map(Vector2 vec) {
