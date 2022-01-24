@@ -51,36 +51,6 @@ bool Timer::is_started() {
     return started;
 }
 
-InputController::InputController() {
-}
-
-void InputController::add_relationship(int key, int action) {
-    key_binds[key] = action;
-}
-
-void InputController::update() {
-    for (auto& kv : key_binds) {
-        if (IsKeyDown(kv.first)) {
-            if (!std::count(buttons_held.begin(), buttons_held.end(), kv.first)) {
-                buttons_held.push_back(kv.first);
-            }
-        }
-        else {
-            auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
-            if (it != buttons_held.end()) buttons_held.erase(it);
-        }
-    }
-}
-
-void InputController::reset_active() {
-    buttons_held.clear();
-}
-
-int InputController::get_action() {
-    if (buttons_held.empty()) return 0;
-    else return key_binds[buttons_held.back()];
-}
-
 Vector2 center_text(const std::string& text, Vector2 center) {
     Vector2 msg_size = MeasureTextEx(
         GetFontDefault(),

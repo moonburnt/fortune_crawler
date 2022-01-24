@@ -29,9 +29,23 @@ public:
 
 class Level : public Scene {
 private:
+    enum class MovementDirection
+    {
+        none,
+        upleft,
+        up,
+        upright,
+        left,
+        stand,
+        right,
+        downleft,
+        down,
+        downright,
+    };
+
     SceneManager* parent;
     GameMap* map;
-    InputController input_controller;
+    InputController<MovementDirection> input_controller;
 
     int current_turn;
     int money_collected;
