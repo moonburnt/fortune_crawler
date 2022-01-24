@@ -42,29 +42,51 @@ public:
 // actions related to them. There may be multiple of these across the program,
 // depending on context that require one or another controls scheme (say, one to
 // handle player movement, other to handle ui, etc etc)
-class InputController {
+template <typename ActionEnum> class InputController {
+public:
+    // Bind specific key to specific action and start tracking it.
+    // Key must be part of raylib's keys enum, action - part of your own enum of
+    // actions, which you wrote down specifically for particular controller type.
+    void add_relationship(int key, ActionEnum action) {
+        key_binds[key] = action;
+    }
+
+    // Update list of held buttons
+    void update() {
+        for (auto& kv : key_binds) {
+            if (IsKeyDown(kv.first)) {
+                if (!std::count(buttons_held.begin(), buttons_held.end(), kv.first)) {
+                    buttons_held.push_back(kv.first);
+                }
+            }
+            else {
+                auto it = std::find(buttons_held.begin(), buttons_held.end(), kv.first);
+                if (it != buttons_held.end()) buttons_held.erase(it);
+            }
+        }
+    }
+
+    // Reset buttons_held, to forget whats been pressed. Doesn't clean up key_binds.
+    void reset_active() {
+        buttons_held.clear();
+    }
+
+    // Get action of button just held. Returns 0 if no valid button presses has
+    // been registered, thus your enum should start with none/nothing.
+    // May rework that to -1 in future.
+    ActionEnum get_action() {
+        if (buttons_held.empty()) return static_cast<ActionEnum>(0);
+        else return key_binds[buttons_held.back()];
+    }
+
 private:
     // List of buttons held simultaneously right now. May be empty, if no keys
     // from key_binds are pressed right now. Last button pressed should always
     // appear at the end of vector.
     std::vector<int> buttons_held;
-    // Tracked buttons. First int is key, second - action.
-    std::unordered_map<int, int> key_binds;
 
-public:
-    InputController();
-    // Bind specific key to specific action and start tracking it.
-    // Key must be part of raylib's keys enum, action - part of your own enum of
-    // actions, which you wrote down specifically for particular controller type.
-    void add_relationship(int key, int action);
-    // Update list of held buttons
-    void update();
-    // Reset buttons_held, to forget whats been pressed. Doesn't clean up key_binds.
-    void reset_active();
-    // Get action of button just held. Returns 0 if no valid button presses has
-    // been registered, thus your enum should start with none/nothing.
-    // May rework that to -1 in future.
-    int get_action();
+    // Tracked buttons. First int is key, second - action.
+    std::unordered_map<int, ActionEnum> key_binds;
 };
 
 // Get position that will be perfect text's center.
