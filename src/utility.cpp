@@ -78,3 +78,10 @@ bool has_mouse_moved() {
     Vector2 md = GetMouseDelta();
     return (md.x != 0 && md.y != 0);
 }
+
+bool is_rect_inside_rect(Rectangle first, Rectangle second) {
+    // I think this will do?
+    return (
+        first.x <= second.x && first.y <= second.y && first.width >= second.width &&
+        first.height >= second.height);
+}

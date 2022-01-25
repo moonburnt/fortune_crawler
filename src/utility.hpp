@@ -106,3 +106,7 @@ bool randbool();
 // Returns true if mouse position has been changed this frame, false otherwise.
 // It may be wiser to move it somewhere else. TODO
 bool has_mouse_moved();
+
+// Returns true if second rect is inside first rect, false if some part of it
+// is outside of borders.
+bool is_rect_inside_rect(Rectangle first, Rectangle second);
