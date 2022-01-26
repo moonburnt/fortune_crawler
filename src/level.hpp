@@ -65,8 +65,6 @@ private:
 
     DynamicLabel player_stats_label;
 
-    void update_player_stats_hud();
-
     void set_player_tile(Point tile);
 
     int last_selected_tile;
@@ -143,4 +141,8 @@ public:
     // Give player specified amount of money.
     // Will also increase level's "money_collected" counter.
     void give_player_money(int amount);
+
+    void update_player_stats_hud();
+
+    void kill_enemy(int tile_id, int entity_id);
 };

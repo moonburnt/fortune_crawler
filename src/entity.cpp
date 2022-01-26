@@ -4,6 +4,8 @@
 #include <optional>
 #include <raylib.h>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 // For std::rand()
 #include <cstdlib>
 
@@ -121,12 +123,17 @@ int Treasure::get_reward() {
 Creature::Creature(
     bool is_player,
     bool is_obstacle,
-    CreatureStats _stats,
+    int hp,
+    std::unordered_map<OffensiveStats, int> _offensive_stats,
+    std::unordered_map<DefensiveStats, int> _defensive_stats,
     std::string desc,
     Texture2D* sprite)
-    : MapObject(is_obstacle, ObjectCategory::creature, desc, sprite) {
-    _is_player = is_player;
-    stats = _stats;
+    : MapObject(is_obstacle, ObjectCategory::creature, desc, sprite)
+    , _is_player(is_player)
+    , current_hp(hp)
+    , max_hp(hp)
+    , offensive_stats(_offensive_stats)
+    , defensive_stats(_defensive_stats) {
 }
 
 bool Creature::is_player() {
@@ -134,24 +141,24 @@ bool Creature::is_player() {
 }
 
 bool Creature::is_dead() {
-    return (stats.hp <= 0);
+    return (current_hp <= 0);
 }
 
-bool Creature::damage(int dmg_amount, DamageType dmg_type) {
+bool Creature::damage(int dmg_amount, OffensiveStats dmg_type) {
     if (is_dead()) return true;
 
     switch (dmg_type) {
-    case DamageType::physical: {
+    case OffensiveStats::pdmg: {
         // damage amount cant be nullified below 1
-        stats.hp -= std::max(dmg_amount - stats.pdef, 1);
+        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::pdef], 1);
         break;
     }
-    case DamageType::ranged: {
-        stats.hp -= std::max(dmg_amount - stats.rdef, 1);
+    case OffensiveStats::rdmg: {
+        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::rdef], 1);
         break;
     }
-    case DamageType::magical: {
-        stats.hp -= std::max(dmg_amount - stats.mdef, 1);
+    case OffensiveStats::mdmg: {
+        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::mdef], 1);
         break;
     }
     }
@@ -159,17 +166,52 @@ bool Creature::damage(int dmg_amount, DamageType dmg_type) {
     return is_dead();
 }
 
+void Creature::heal(int amount) {
+    // This can be weird with negative healing numbers, but why would you do that?
+    current_hp = std::min(current_hp + amount, max_hp);
+}
+
+void Creature::increase_max_hp(int amount, bool heal) {
+    max_hp += amount;
+    if (heal) {
+        current_hp = max_hp;
+    }
+}
+
+void Creature::increase_stat(int amount, OffensiveStats stat) {
+    offensive_stats[stat] += amount;
+}
+
+void Creature::increase_stat(int amount, DefensiveStats stat) {
+    defensive_stats[stat] += amount;
+}
+
 // Player
 // For now, starting stats will be hardcoded
 Player::Player(Texture2D* sprite)
     : Creature(
-          true, false, CreatureStats{100, 10, 10, 10, 10, 10, 10}, "Player", sprite) {
+          true,
+          false,
+          100,
+          // I think we can initialize map like that?
+          {{OffensiveStats::pdmg, 10},
+           {OffensiveStats::rdmg, 10},
+           {OffensiveStats::mdmg, 10}},
+          {{DefensiveStats::pdef, 10},
+           {DefensiveStats::rdef, 10},
+           {DefensiveStats::mdef, 10}},
+          "Player",
+          sprite) {
     enemy_collision_event = Event::fight;
     money_amount = 0;
 }
 
 // Enemy
-CreatureStats give_random_stats(int multiplier) {
+std::tuple<
+    int,
+    std::unordered_map<OffensiveStats, int>,
+    std::unordered_map<DefensiveStats, int>>
+give_random_stats(int multiplier) {
     // Values are temporary, will play with them later.
     int stats_amount = 10 + 5 * multiplier;
 
@@ -185,25 +227,41 @@ CreatureStats give_random_stats(int multiplier) {
         }
     }
 
-    return CreatureStats{// Base hp will be about 20, + 10 per dungeon level
-                         20 + 10 * multiplier,
-                         stats[0],
-                         stats[1],
-                         stats[2],
-                         stats[3],
-                         stats[4],
-                         stats[5]};
+    return std::make_tuple(
+        // Max hp will be about 20, + 10 per dungeon level
+        20 + 10 * multiplier,
+        std::unordered_map<OffensiveStats, int>{
+            {OffensiveStats::pdmg, stats[0]},
+            {OffensiveStats::rdmg, stats[1]},
+            {OffensiveStats::mdmg, stats[2]}},
+        std::unordered_map<DefensiveStats, int>{
+            {DefensiveStats::pdef, stats[3]},
+            {DefensiveStats::rdef, stats[4]},
+            {DefensiveStats::mdef, stats[5]}});
 }
 
-Enemy::Enemy(CreatureStats _stats, std::string desc, Texture2D* sprite)
-    : Creature(false, true, _stats, desc, sprite) {
+Enemy::Enemy(
+    bool boss,
+    int hp,
+    std::unordered_map<OffensiveStats, int> offensive_stats,
+    std::unordered_map<DefensiveStats, int> defensive_stats,
+    std::string desc,
+    Texture2D* sprite)
+    : Creature(false, true, hp, offensive_stats, defensive_stats, desc, sprite)
+    , _is_boss(boss) {
     player_collision_event = Event::fight;
 }
 
 Enemy* Enemy::make_enemy(int stats_multiplier, Texture2D* sprite) {
-    return new Enemy(give_random_stats(stats_multiplier), "Enemy", sprite);
+    auto [hp, offensive, defensive] = give_random_stats(stats_multiplier);
+    return new Enemy(false, hp, offensive, defensive, "Enemy", sprite);
 }
 
 Enemy* Enemy::make_boss(int stats_multiplier, Texture2D* sprite) {
-    return new Enemy(give_random_stats(stats_multiplier * 2), "Boss", sprite);
+    auto [hp, offensive, defensive] = give_random_stats(stats_multiplier * 2);
+    return new Enemy(true, hp, offensive, defensive, "Boss", sprite);
+}
+
+bool Enemy::is_boss() {
+    return _is_boss;
 }

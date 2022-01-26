@@ -3,22 +3,6 @@
 #include "level.hpp"
 #include "raylib.h"
 
-enum RPS
-{
-    RPS_ROCK,
-    RPS_PAPER,
-    RPS_SCISSORS
-};
-
-enum class MinigameStatus
-{
-    win,
-    tie,
-    lose
-};
-
-MinigameStatus play_rps(int your_throw);
-
 // This contains various EventScreen implementations, to de-bloat level.cpp
 // Abstract EventScreen is still part of level.hpp, due to dependency resolution.
 class CompletionScreen : public EventScreen {
@@ -62,6 +46,47 @@ private:
 
 public:
     PauseScreen(Level* level);
+    void update() override;
+    void draw() override;
+};
+
+class BattleScreen : public EventScreen {
+private:
+    Level* lvl;
+    Player* player;
+    Enemy* enemy;
+    int enemy_tile_id;
+    int enemy_id;
+
+    bool is_bossfight;
+    int turn_num;
+
+    Label title_label;
+    DynamicLabel turn_num_label;
+    DynamicLabel turn_phase_label;
+    DynamicLabel turn_phase_description;
+    // DynamicLabel turn_result;
+
+    bool is_player_turn;
+
+    // Rock is physical, paper is ranged, scissors are magic
+    TextButton pdmg_button;
+    TextButton rdmg_button;
+    TextButton mdmg_button;
+
+    TextButton pdef_button;
+    TextButton rdef_button;
+    TextButton mdef_button;
+
+    bool is_completed;
+
+    void get_reward();
+    void show_gameover();
+    void next_phase();
+
+public:
+    BattleScreen(
+        Level* level, Player* player, Enemy* enemy, int enemy_tile_id, int enemy_id);
     void update() override;
     void draw() override;
 };

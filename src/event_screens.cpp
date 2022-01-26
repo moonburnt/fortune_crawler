@@ -7,17 +7,94 @@
 #include <cstdlib>
 // For basic formatting
 #include <fmt/core.h>
+#include <tuple>
 
 // Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
 // who won.
-MinigameStatus play_rps(int your_throw) {
+enum class RPS
+{
+    rock,
+    paper,
+    scissors
+};
+
+enum class MinigameStatus
+{
+    win,
+    tie,
+    lose
+};
+
+int rps_to_int(RPS value) {
+    int result_value;
+    switch (value) {
+    case RPS::rock: {
+        result_value = 0;
+        break;
+    }
+    case RPS::paper: {
+        result_value = 1;
+        break;
+    }
+    case RPS::scissors: {
+        result_value = 2;
+        break;
+    }
+    }
+    return result_value;
+}
+
+OffensiveStats rps_to_offensive(RPS value) {
+    OffensiveStats stat;
+    switch (value) {
+    case RPS::rock: {
+        stat = OffensiveStats::pdmg;
+        break;
+    }
+    case RPS::paper: {
+        stat = OffensiveStats::rdmg;
+        break;
+    }
+    case RPS::scissors: {
+        stat = OffensiveStats::mdmg;
+        break;
+    }
+    }
+    return stat;
+}
+
+DefensiveStats rps_to_defensive(RPS value) {
+    DefensiveStats stat;
+    switch (value) {
+    case RPS::rock: {
+        stat = DefensiveStats::pdef;
+        break;
+    }
+    case RPS::paper: {
+        stat = DefensiveStats::rdef;
+        break;
+    }
+    case RPS::scissors: {
+        stat = DefensiveStats::mdef;
+        break;
+    }
+    }
+    return stat;
+}
+
+std::tuple<MinigameStatus, RPS> play_rps(RPS your_throw) {
+    int throw_value = rps_to_int(your_throw);
+
     // 0 is rock, 1 is paper, 2 is scissors
+    const static RPS int_to_rps[3]{RPS::rock, RPS::paper, RPS::scissors};
+
     const static MinigameStatus result[3][3]{
         {MinigameStatus::tie, MinigameStatus::win, MinigameStatus::lose},
         {MinigameStatus::lose, MinigameStatus::tie, MinigameStatus::win},
         {MinigameStatus::win, MinigameStatus::lose, MinigameStatus::tie}};
 
-    return result[rand() % 3][your_throw];
+    int their_throw = rand() % 3;
+    return std::make_tuple(result[their_throw][throw_value], int_to_rps[their_throw]);
 }
 
 // Completion Screen
@@ -124,23 +201,24 @@ void LockpickScreen::update() {
         scissors_button.update();
 
         bool button_clicked = false;
-        int rps_value;
+        RPS rps_value;
 
         if (rock_button.is_clicked()) {
             button_clicked = true;
-            rps_value = RPS_ROCK;
+            rps_value = RPS::rock;
         }
         else if (paper_button.is_clicked()) {
             button_clicked = true;
-            rps_value = RPS_PAPER;
+            rps_value = RPS::paper;
         }
         else if (scissors_button.is_clicked()) {
             button_clicked = true;
-            rps_value = RPS_SCISSORS;
+            rps_value = RPS::scissors;
         }
 
         if (button_clicked) {
-            switch (play_rps(rps_value)) {
+            auto [status, _] = play_rps(rps_value);
+            switch (status) {
             case MinigameStatus::win: {
                 int value = treasure_obj->get_reward();
                 result_label.set_text(fmt::format(
@@ -239,4 +317,193 @@ void PauseScreen::draw() {
     title_label.draw();
     continue_button.draw();
     exit_button.draw();
+}
+
+// Battle Screen
+
+BattleScreen::BattleScreen(
+    Level* level, Player* _player, Enemy* _enemy, int _enemy_tile_id, int _enemy_id)
+    : EventScreen(
+          Rectangle{
+              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+              30,
+              (GetScreenWidth() + 30) / 2.0f,
+              (GetScreenHeight() - 60.0f)},
+          {0, 0, 0, 0})
+    , lvl(level)
+    , player(_player)
+    , enemy(_enemy)
+    , enemy_tile_id(_enemy_tile_id)
+    , enemy_id(_enemy_id)
+    , is_bossfight(_enemy->is_boss())
+    , turn_num(0)
+    , title_label(Label("Battle", GetScreenWidth() / 2, 60))
+    , turn_num_label(DynamicLabel("Turn {}", GetScreenWidth() / 2, 90))
+    , turn_phase_label(DynamicLabel("", GetScreenWidth() / 2, 120))
+    , turn_phase_description(DynamicLabel("", GetScreenWidth() / 2, 150))
+    , is_player_turn(false)
+    , pdmg_button(make_text_button("Use sword (Physical)"))
+    , rdmg_button(make_text_button("Use bow (Ranged)"))
+    , mdmg_button(make_text_button("Use magic (Magical)"))
+    , pdef_button(make_text_button("Raise shield (Physical)"))
+    , rdef_button(make_text_button("Try to evade (Ranged)"))
+    , mdef_button(make_text_button("Cast protection (Magical)"))
+    , is_completed(false) {
+    // TODO: add ambushes where enemy actually start first
+    next_phase();
+    title_label.center();
+    turn_num_label.center();
+    turn_phase_label.center();
+    turn_phase_description.center();
+
+    float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
+    pdmg_button.set_pos(Vector2{button_x, 200.0f});
+    rdmg_button.set_pos(Vector2{button_x, 300.0f});
+    mdmg_button.set_pos(Vector2{button_x, 400.0f});
+
+    pdef_button.set_pos(Vector2{button_x, 200.0f});
+    rdef_button.set_pos(Vector2{button_x, 300.0f});
+    mdef_button.set_pos(Vector2{button_x, 400.0f});
+}
+
+void BattleScreen::next_phase() {
+    if (is_player_turn) {
+        is_player_turn = false;
+        turn_phase_label.set_text("Enemy Turn");
+        turn_phase_description.set_text("Pick defence type to use");
+    }
+    else {
+        is_player_turn = true;
+        turn_phase_label.set_text("Your Turn");
+        turn_num++;
+        turn_num_label.set_text(fmt::format(turn_num_label.get_default_text(), turn_num));
+        turn_phase_description.set_text("Pick attack type to use");
+    }
+}
+
+void BattleScreen::get_reward() {
+    // TODO: make enemies hold some money in their pouches, like chests
+    // Until then, its hardcoded
+    lvl->give_player_money(100);
+
+    if (is_bossfight) {
+        player->increase_max_hp(10, true);
+    }
+    // TODO: stub
+    lvl->kill_enemy(enemy_tile_id, enemy_id);
+    lvl->complete_event();
+}
+
+void BattleScreen::show_gameover() {
+    // TODO: stub
+}
+
+void BattleScreen::update() {
+    // TODO: stub
+    if (is_completed) return;
+
+    bool button_clicked = false;
+    RPS rps_value;
+
+    if (is_player_turn) {
+        pdmg_button.update();
+        rdmg_button.update();
+        mdmg_button.update();
+
+        if (pdmg_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::rock;
+        }
+        else if (rdmg_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::paper;
+        }
+        else if (mdmg_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::scissors;
+        }
+    }
+    else {
+        pdef_button.update();
+        rdef_button.update();
+        mdef_button.update();
+
+        if (pdef_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::rock;
+        }
+        else if (rdef_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::paper;
+        }
+        else if (mdef_button.is_clicked()) {
+            button_clicked = true;
+            rps_value = RPS::scissors;
+        }
+    }
+
+    if (button_clicked) {
+        auto [status, their_throw] = play_rps(rps_value);
+        switch (status) {
+        case MinigameStatus::win: {
+            OffensiveStats dmg_stat = rps_to_offensive(rps_value);
+            if (is_player_turn) {
+                enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
+            }
+            else {
+                enemy->damage(player->offensive_stats[dmg_stat] / 2, dmg_stat);
+            }
+            break;
+        }
+
+        case MinigameStatus::tie: {
+            // TODO: add description text, telling that damage has been shielded
+            break;
+        }
+
+        case MinigameStatus::lose: {
+            OffensiveStats dmg_stat = rps_to_offensive(their_throw);
+            if (is_player_turn) {
+                player->damage(enemy->offensive_stats[dmg_stat] / 2, dmg_stat);
+            }
+            else {
+                player->damage(enemy->offensive_stats[dmg_stat], dmg_stat);
+            }
+            break;
+        }
+        }
+        lvl->update_player_stats_hud();
+
+        if (player->is_dead()) {
+            is_completed = true;
+            show_gameover();
+        }
+        else if (enemy->is_dead()) {
+            is_completed = true;
+            get_reward();
+        }
+        else {
+            next_phase();
+        }
+    }
+}
+void BattleScreen::draw() {
+    DrawRectangleRec(bg, SIDE_BG_COLOR);
+    DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+
+    title_label.draw();
+    turn_num_label.draw();
+    turn_phase_label.draw();
+    turn_phase_description.draw();
+
+    if (is_player_turn) {
+        pdmg_button.draw();
+        rdmg_button.draw();
+        mdmg_button.draw();
+    }
+    else {
+        pdef_button.draw();
+        rdef_button.draw();
+        mdef_button.draw();
+    }
 }

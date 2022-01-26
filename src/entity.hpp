@@ -4,6 +4,8 @@
 
 #include <optional>
 #include <string>
+#include <tuple>
+#include <unordered_map>
 
 enum class ObjectCategory
 {
@@ -19,28 +21,24 @@ enum class Event
     fight
 };
 
-enum class DamageType
+enum class OffensiveStats
 {
-    physical,
-    ranged,
-    magical
+    // Physical Damage
+    pdmg,
+    // Ranged Damage
+    rdmg,
+    // Magical Damage
+    mdmg
 };
 
-struct CreatureStats {
-    // Health. If it reaches 0 - creature dies.
-    int hp;
-    // Physical Damage
-    int pdmg;
-    // Ranged Damage
-    int rdmg;
-    // Magical Damage
-    int mdmg;
+enum class DefensiveStats
+{
     // Physical Defence
-    int pdef;
+    pdef,
     // Ranged Defence
-    int rdef;
+    rdef,
     // Magical Defence
-    int mdef;
+    mdef
 };
 
 class MapObject {
@@ -139,11 +137,18 @@ protected:
     bool _is_player;
 
 public:
-    CreatureStats stats;
+    // These are public solely coz player's ui require it
+    int current_hp;
+    int max_hp;
+    std::unordered_map<OffensiveStats, int> offensive_stats;
+    std::unordered_map<DefensiveStats, int> defensive_stats;
+
     Creature(
         bool is_player,
         bool is_obstacle,
-        CreatureStats _stats,
+        int hp,
+        std::unordered_map<OffensiveStats, int> offensive_stats,
+        std::unordered_map<DefensiveStats, int> defensive_stats,
         std::string desc,
         Texture2D* sprite);
 
@@ -155,7 +160,15 @@ public:
 
     // Damage creature. If creature's hp fall below 0 - sets _is_dead to true.
     // Returns is_dead().
-    bool damage(int dmg_amount, DamageType dmg_type);
+    bool damage(int dmg_amount, OffensiveStats dmg_type);
+    // Heal creature for specified amount of hp, just not over the max_hp
+    void heal(int amount);
+    // Increase max hp by provided value. If heal is set to true - will also
+    // increase current_hp to new max_hp value.
+    void increase_max_hp(int amount, bool heal);
+    // Increase max stat amount by provided value.
+    void increase_stat(int amount, OffensiveStats stat);
+    void increase_stat(int amount, DefensiveStats stat);
 };
 
 class Player : public Creature {
@@ -166,12 +179,24 @@ public:
 
 class Enemy : public Creature {
 private:
-    Enemy(CreatureStats _stats, std::string desc, Texture2D* sprite);
+    bool _is_boss;
+    Enemy(
+        bool is_boss,
+        int hp,
+        std::unordered_map<OffensiveStats, int> offensive_stats,
+        std::unordered_map<DefensiveStats, int> defensive_stats,
+        std::string desc,
+        Texture2D* sprite);
 
 public:
     static Enemy* make_enemy(int stats_multiplier, Texture2D* sprite);
     static Enemy* make_boss(int stats_multiplier, Texture2D* sprite);
+    bool is_boss();
 };
 
 // Give random stats of specified level/multiplier.
-CreatureStats give_random_stats(int multiplier);
+std::tuple<
+    int,
+    std::unordered_map<OffensiveStats, int>,
+    std::unordered_map<DefensiveStats, int>>
+give_random_stats(int multiplier);

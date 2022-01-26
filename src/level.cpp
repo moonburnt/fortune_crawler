@@ -92,7 +92,7 @@ void Level::configure_hud() {
     player_currency_label =
         DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
     player_stats_label = DynamicLabel(
-        "HP: {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+        "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
         "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
         left_bg_txt_x,
         bg_txt_starting_y + bg_text_vert_gap * 3);
@@ -146,26 +146,12 @@ bool Level::set_new_event() {
     }
 
     case Event::fight: {
-        // TODO: stub
-        // show_tile_description = false;
-
-        // For now its but average roguelike battle system, which kinda falls
-        // apart with pure-random stats generation (and without ability to
-        // see enemy stats. And with autoattack with physical damage. Yeah).
-        // TODO: remake this into a proper minigame
-        if (static_cast<Creature*>(map->get_object(current_event_cause))
-                ->damage(player_obj->stats.pdmg, DamageType::physical)) {
-            map->delete_object(
-                current_event_tile_id.value(),
-                map->find_object_in_tile(
-                       current_event_tile_id.value(),
-                       current_event_cause)
-                    .value(),
-                true);
-            enemies_killed++;
-            // complete_event();
-        }
-        complete_event();
+        current_event_screen = new BattleScreen(
+            this,
+            player_obj,
+            static_cast<Enemy*>(map->get_object(current_event_cause)),
+            current_event_tile_id.value(),
+            current_event_cause);
         break;
     }
 
@@ -198,13 +184,14 @@ void Level::update_player_stats_hud() {
         // TODO: write a formatter template for this
         fmt::format(
             player_stats_label.get_default_text(),
-            player_obj->stats.hp,
-            player_obj->stats.pdmg,
-            player_obj->stats.rdmg,
-            player_obj->stats.mdmg,
-            player_obj->stats.pdef,
-            player_obj->stats.rdef,
-            player_obj->stats.mdef));
+            player_obj->current_hp,
+            player_obj->max_hp,
+            player_obj->offensive_stats[OffensiveStats::pdmg],
+            player_obj->offensive_stats[OffensiveStats::rdmg],
+            player_obj->offensive_stats[OffensiveStats::mdmg],
+            player_obj->defensive_stats[DefensiveStats::pdef],
+            player_obj->defensive_stats[DefensiveStats::rdef],
+            player_obj->defensive_stats[DefensiveStats::mdef]));
 }
 
 void Level::configure_new_map() {
@@ -288,6 +275,14 @@ bool Level::is_vec_on_playground(Vector2 vec) {
 
 void Level::exit_to_menu() {
     parent->set_current_scene(new MainMenu(parent));
+}
+
+void Level::kill_enemy(int tile_id, int entity_id) {
+    map->delete_object(
+        tile_id,
+        map->find_object_in_tile(tile_id, entity_id).value(),
+        true);
+    enemies_killed++;
 }
 
 void Level::change_turn() {
