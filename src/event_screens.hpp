@@ -95,7 +95,7 @@ private:
     TextButton rdef_button;
     TextButton mdef_button;
 
-    bool is_completed;
+    std::optional<NotificationScreen> reward_screen;
 
     void get_reward();
     void show_gameover();

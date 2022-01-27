@@ -390,8 +390,7 @@ BattleScreen::BattleScreen(
     , mdmg_button(make_text_button("Use magic (Magical)"))
     , pdef_button(make_text_button("Raise shield (Physical)"))
     , rdef_button(make_text_button("Try to evade (Ranged)"))
-    , mdef_button(make_text_button("Cast protection (Magical)"))
-    , is_completed(false) {
+    , mdef_button(make_text_button("Cast protection (Magical)")) {
     // TODO: add ambushes where enemy actually start first
     next_phase();
     title_label.center();
@@ -427,14 +426,32 @@ void BattleScreen::next_phase() {
 void BattleScreen::get_reward() {
     // TODO: make enemies hold some money in their pouches, like chests
     // Until then, its hardcoded
-    lvl->give_player_money(100);
+    int reward = 100;
+    lvl->give_player_money(reward);
+
+    std::string result_txt = "Surviving the most powerful enemy attacks, you finally\n"
+                             "deal the final blow.\n";
 
     if (is_bossfight) {
-        player->increase_max_hp(10, true);
+        int hp_reward = 10;
+        player->increase_max_hp(hp_reward, true);
+        result_txt += fmt::format(
+            "Beheaded, creature collapse - yet something keeps beating\n"
+            "in its chest, you can clearly hear it. With help of your\n"
+            "knife, you carve this thing and give it a bite.\n"
+            "Surprisingly, it not only taste like fresh-baked pun, but\n"
+            "also increase your max health by {}!",
+            hp_reward);
     }
-    // TODO: stub
-    lvl->kill_enemy(enemy_tile_id, enemy_id);
-    lvl->complete_event();
+
+    result_txt += fmt::format(
+        "\nAs creature's remains faint, you notice something shiny\n"
+        "lying on the ground. Yay, {} gold to buy some snacks!",
+        reward);
+
+    // TODO: add battle statistics (turns made, damage dealt/received)
+    reward_screen = NotificationScreen("Battle Results", result_txt, "OK");
+    lvl->update_player_stats_hud();
 }
 
 void BattleScreen::show_gameover() {
@@ -442,8 +459,15 @@ void BattleScreen::show_gameover() {
 }
 
 void BattleScreen::update() {
-    // TODO: stub
-    if (is_completed) return;
+    if (reward_screen) {
+        reward_screen.value().update();
+        if (reward_screen.value().complete) {
+            lvl->kill_enemy(enemy_tile_id, enemy_id);
+            lvl->complete_event();
+            return;
+        }
+        return;
+    }
 
     bool button_clicked = false;
     RPS rps_value;
@@ -518,11 +542,9 @@ void BattleScreen::update() {
         lvl->update_player_stats_hud();
 
         if (player->is_dead()) {
-            is_completed = true;
             show_gameover();
         }
         else if (enemy->is_dead()) {
-            is_completed = true;
             get_reward();
         }
         else {
@@ -531,6 +553,11 @@ void BattleScreen::update() {
     }
 }
 void BattleScreen::draw() {
+    if (reward_screen) {
+        reward_screen.value().draw();
+        return;
+    }
+
     DrawRectangleRec(bg, SIDE_BG_COLOR);
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
 
