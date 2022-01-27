@@ -97,6 +97,45 @@ std::tuple<MinigameStatus, RPS> play_rps(RPS your_throw) {
     return std::make_tuple(result[their_throw][throw_value], int_to_rps[their_throw]);
 }
 
+// Notification
+
+NotificationScreen::NotificationScreen(
+    std::string title, std::string body, std::string button_txt)
+    : EventScreen(
+          Rectangle{
+              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+              30,
+              (GetScreenWidth() + 30) / 2.0f,
+              (GetScreenHeight() - 60.0f)},
+          {0, 0, 0, 0})
+    , title_label(Label(title, GetScreenWidth() / 2, 50))
+    , body_label(Label(body, GetScreenWidth() / 2, GetScreenHeight() / 2))
+    , close_button(make_text_button(button_txt))
+    , complete(false) {
+    title_label.center();
+    body_label.center();
+    close_button.set_pos(Vector2{
+        GetScreenWidth() / 2.0f - close_button.get_rect().width / 2,
+        GetScreenHeight() / 2.0f + 200});
+}
+
+void NotificationScreen::update() {
+    if (complete) return;
+    close_button.update();
+
+    if (close_button.is_clicked()) complete = true;
+}
+
+void NotificationScreen::draw() {
+    if (complete) return;
+
+    DrawRectangleRec(bg, SIDE_BG_COLOR);
+    DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+    title_label.draw();
+    body_label.draw();
+    close_button.draw();
+}
+
 // Completion Screen
 CompletionScreen::CompletionScreen(
     Level* level, int turns_made, int money_collected, int enemies_killed)
@@ -168,12 +207,10 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     , treasure_obj(_treasure_obj)
     , title_label(
           Label("This chest is locked.\nTry to lockpick it!", GetScreenWidth() / 2, 100))
-    , result_label(DynamicLabel("", GetScreenWidth() / 2, GetScreenHeight() / 2))
     , rock_button(make_text_button("Rock"))
     , paper_button(make_text_button("Paper"))
     , scissors_button(make_text_button("Scissors"))
-    , exit_button(make_text_button("OK"))
-    , complete(false) {
+    , exit_button(make_text_button("OK")) {
     title_label.center();
     float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
     rock_button.set_pos(Vector2{button_x, 200.0f});
@@ -186,10 +223,9 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
 }
 
 void LockpickScreen::update() {
-    if (complete) {
-        exit_button.update();
-
-        if (exit_button.is_clicked()) {
+    if (result_screen) {
+        result_screen.value().update();
+        if (result_screen.value().complete) {
             lvl->complete_event();
             return;
         }
@@ -217,54 +253,61 @@ void LockpickScreen::update() {
         }
 
         if (button_clicked) {
+            std::string result_label = "Lockpick Result";
+            std::string close_button_txt = "OK";
             auto [status, _] = play_rps(rps_value);
             switch (status) {
             case MinigameStatus::win: {
                 int value = treasure_obj->get_reward();
-                result_label.set_text(fmt::format(
-                    "With no issues, you've flawlessly unlocked the chest.\n"
-                    "{} coins lying inside were totally worth it!",
-                    value));
+                result_screen = NotificationScreen(
+                    result_label,
+                    fmt::format(
+                        "With no issues, you've flawlessly unlocked the chest.\n"
+                        "{} coins lying inside were totally worth it!",
+                        value),
+                    close_button_txt);
                 lvl->give_player_money(value);
                 break;
             }
 
             case MinigameStatus::tie: {
                 int value = treasure_obj->get_reward() / 2;
-                result_label.set_text(fmt::format(
-                    "While attempting to unlock the chest, your pick has broke.\n"
-                    "With no other options left, you've had to use brute force.\n"
-                    "Sadly, while doing so, some coins felt into darkness...\n"
-                    "But you've still got {} gold from it.",
-                    value));
+                result_screen = NotificationScreen(
+                    result_label,
+                    fmt::format(
+                        "While attempting to unlock the chest, your pick has broke.\n"
+                        "With no other options left, you've had to use brute force.\n"
+                        "Sadly, while doing so, some coins felt into darkness...\n"
+                        "But you've still got {} gold from it.",
+                        value),
+                    close_button_txt);
                 lvl->give_player_money(value);
                 break;
             }
 
             case MinigameStatus::lose: {
                 treasure_obj->get_reward();
-                result_label.set_text(
+                result_screen = NotificationScreen(
+                    result_label,
                     "You've spent quite a while to unlock the chest.\n"
                     "Sadly, when you've finally got inside, you was dissapointed:\n"
-                    "there was nothing but pair of someone's smelly socks.");
+                    "there was nothing but pair of someone's smelly socks.",
+                    close_button_txt);
                 break;
             }
             }
-            result_label.center();
-            complete = true;
         }
     }
 }
 
 void LockpickScreen::draw() {
-    DrawRectangleRec(bg, SIDE_BG_COLOR);
-    DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
-
-    if (complete) {
-        result_label.draw();
-        exit_button.draw();
+    if (result_screen) {
+        result_screen.value().draw();
     }
     else {
+        DrawRectangleRec(bg, SIDE_BG_COLOR);
+        DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+
         title_label.draw();
 
         rock_button.draw();

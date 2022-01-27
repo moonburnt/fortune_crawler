@@ -3,8 +3,26 @@
 #include "level.hpp"
 #include "raylib.h"
 
+#include <optional>
+#include <string>
+
 // This contains various EventScreen implementations, to de-bloat level.cpp
 // Abstract EventScreen is still part of level.hpp, due to dependency resolution.
+
+class NotificationScreen : public EventScreen {
+private:
+    Label title_label;
+    Label body_label;
+    TextButton close_button;
+
+public:
+    bool complete;
+    NotificationScreen(std::string title, std::string body, std::string button_txt);
+
+    void update() override;
+    void draw() override;
+};
+
 class CompletionScreen : public EventScreen {
 private:
     Level* lvl;
@@ -24,12 +42,11 @@ private:
     Level* lvl;
     Treasure* treasure_obj;
     Label title_label;
-    DynamicLabel result_label;
     TextButton rock_button;
     TextButton paper_button;
     TextButton scissors_button;
     TextButton exit_button;
-    bool complete;
+    std::optional<NotificationScreen> result_screen;
 
 public:
     LockpickScreen(Level* level, Treasure* _treasure_obj);
