@@ -50,7 +50,6 @@ private:
     TextButton rock_button;
     TextButton paper_button;
     TextButton scissors_button;
-    TextButton exit_button;
     NotificationScreen result_screen;
     bool complete;
 

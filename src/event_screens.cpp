@@ -227,12 +227,13 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
           {0, 0, 0, 0})
     , lvl(level)
     , treasure_obj(_treasure_obj)
-    , title_label(
-          Label("This chest is locked.\nTry to lockpick it!", GetScreenWidth() / 2, 100))
-    , rock_button(make_text_button("Rock"))
-    , paper_button(make_text_button("Paper"))
-    , scissors_button(make_text_button("Scissors"))
-    , exit_button(make_text_button("OK"))
+    , title_label(Label(
+          "This chest is locked.\nMaybe it has something pricey inside?",
+          GetScreenWidth() / 2,
+          100))
+    , rock_button(make_text_button("Use brute force"))
+    , paper_button(make_text_button("Try to lockpick"))
+    , scissors_button(make_text_button("Cast unlocking magic"))
     , result_screen(NotificationScreen("Lockpick Result", "", "OK"))
     , complete(false) {
     title_label.center();
@@ -240,10 +241,6 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     rock_button.set_pos(Vector2{button_x, 200.0f});
     paper_button.set_pos(Vector2{button_x, 300.0f});
     scissors_button.set_pos(Vector2{button_x, 400.0f});
-
-    exit_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - exit_button.get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 200});
 }
 
 void LockpickScreen::update() {
@@ -295,10 +292,13 @@ void LockpickScreen::update() {
                 int value = treasure_obj->get_reward() / 2;
                 result_screen.set_description(
                     fmt::format(
-                        "While attempting to unlock the chest, your pick has broke.\n"
-                        "With no other options left, you've had to use brute force.\n"
-                        "Sadly, while doing so, some coins felt into darkness...\n"
-                        "But you've still got {} gold from it.",
+                        "You've spent quite a while to unlock the chest, but\n"
+                        "it felt like something has jammed inside. Out of anger,\n"
+                        "you kick it in the back. As chest falls, you hear \n"
+                        "something clicking inside - the very next second, it\n"
+                        "finally opens up. Sadly, you can also hear the sound\n"
+                        "of something metal rolling into darkness...\n"
+                        "But, well - you've still got {} gold from it.",
                         value),
                     true);
                 lvl->give_player_money(value);
@@ -308,7 +308,7 @@ void LockpickScreen::update() {
             case MinigameStatus::lose: {
                 treasure_obj->get_reward();
                 result_screen.set_description(
-                    "You've spent quite a while to unlock the chest.\n"
+                    "You've been busy unlocking the chest for what felt as hours.\n"
                     "Sadly, when you've finally got inside, you was dissapointed:\n"
                     "there was nothing but pair of someone's smelly socks.",
                     true);
