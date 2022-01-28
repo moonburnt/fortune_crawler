@@ -87,6 +87,7 @@ private:
     Vector2 playground_vec_end;
 
     EventScreen* pause_menu;
+    EventScreen* game_over_screen = nullptr;
 
     EventScreen* current_event_screen = nullptr;
     void purge_current_event_screen();
@@ -145,4 +146,5 @@ public:
     void update_player_stats_hud();
 
     void kill_enemy(int tile_id, int entity_id);
+    void show_gameover();
 };

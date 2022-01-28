@@ -436,16 +436,16 @@ void BattleScreen::get_reward() {
         int hp_reward = 10;
         player->increase_max_hp(hp_reward, true);
         result_txt += fmt::format(
-            "Beheaded, creature collapse - yet something keeps beating\n"
+            "Beheaded, creature collapses - yet something keeps beating\n"
             "in its chest, you can clearly hear it. With help of your\n"
-            "knife, you carve this thing and give it a bite.\n"
-            "Surprisingly, it not only taste like fresh-baked pun, but\n"
-            "also increase your max health by {}!",
+            "knife, you carve this thing out and give it a bite.\n"
+            "Surprisingly, it not only tastes like freshly-baked bun, but\n"
+            "also increases your max health by {}!",
             hp_reward);
     }
 
     result_txt += fmt::format(
-        "\nAs creature's remains faint, you notice something shiny\n"
+        "\nAs creature's remains decay, you notice something shiny\n"
         "lying on the ground. Yay, {} gold to buy some snacks!",
         reward);
 
@@ -456,6 +456,8 @@ void BattleScreen::get_reward() {
 
 void BattleScreen::show_gameover() {
     // TODO: stub
+    lvl->show_gameover();
+    lvl->complete_event();
 }
 
 void BattleScreen::update() {

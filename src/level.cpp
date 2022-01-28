@@ -214,6 +214,14 @@ void Level::configure_new_map() {
     change_turn();
 }
 
+void Level::show_gameover() {
+    // TODO: add more stats, like global kills amount or money collected
+    game_over_screen = new NotificationScreen(
+        "Game Over",
+        fmt::format("Died on level {}", dungeon_lvl),
+        "Back to Menu");
+}
+
 Level::Level(SceneManager* p)
     : Scene(BG_COLOR)
     , pause_menu(new PauseScreen(this)) {
@@ -255,6 +263,11 @@ Level::~Level() {
     delete turn_switch_timer;
     delete player_obj;
     delete pause_menu;
+
+    if (game_over_screen != nullptr) {
+        delete game_over_screen;
+    }
+
     purge_current_event_screen();
 }
 
@@ -400,6 +413,14 @@ void Level::handle_player_movement() {
 }
 
 void Level::update(float dt) {
+    if (game_over_screen != nullptr) {
+        game_over_screen->update();
+        if (static_cast<NotificationScreen*>(game_over_screen)->complete) {
+            exit_to_menu();
+            return;
+        }
+    }
+
     if (IsKeyPressed(KEY_ESCAPE)) {
         if (is_paused) is_paused = false;
         else is_paused = true;
@@ -486,6 +507,11 @@ void Level::draw() {
     player_tile_label.draw();
     player_currency_label.draw();
     player_stats_label.draw();
+
+    if (game_over_screen != nullptr) {
+        game_over_screen->draw();
+        return;
+    }
 
     if (is_paused) {
         pause_menu->draw();
