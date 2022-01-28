@@ -87,7 +87,8 @@ private:
     Vector2 playground_vec_end;
 
     EventScreen* pause_menu;
-    EventScreen* game_over_screen = nullptr;
+    bool game_over;
+    EventScreen* game_over_screen;
 
     EventScreen* current_event_screen = nullptr;
     void purge_current_event_screen();

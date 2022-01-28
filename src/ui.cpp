@@ -7,6 +7,47 @@
 #include <string>
 #include <tuple>
 
+// Label
+Label::Label(std::string txt, Vector2 position)
+    : text(txt)
+    , pos(position)
+    , real_pos(position) {
+}
+
+Label::Label(std::string txt, int x, int y)
+    : Label(txt, Vector2{static_cast<float>(x), static_cast<float>(y)}) {
+}
+
+Label::Label()
+    : Label("", Vector2{0, 0}) {
+}
+
+void Label::center() {
+    real_pos = center_text(text, pos);
+}
+
+void Label::set_pos(Vector2 _pos, bool _center) {
+    pos = _pos;
+    if (_center) center();
+    else real_pos = pos;
+}
+
+void Label::set_pos(Vector2 _pos) {
+    set_pos(_pos, false);
+}
+
+Vector2 Label::get_pos() {
+    return pos;
+}
+
+void Label::set_text(std::string txt) {
+    text = txt;
+}
+
+void Label::draw() {
+    DrawText(text.c_str(), real_pos.x, real_pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
+}
+
 // It's not necessary to use "this" in these, but it may be good for readability
 void Button::reset_state() {
     state = ButtonStates::idle;
@@ -121,9 +162,8 @@ TextButton::TextButton(
           texture_pressed,
           sfx_hover,
           sfx_click,
-          rectangle) {
-    text = msg;
-    text_pos = msg_pos;
+          rectangle)
+    , text(Label(msg, msg_pos)) {
 }
 
 TextButton::TextButton(
@@ -134,36 +174,38 @@ TextButton::TextButton(
     Sound* sfx_click,
     Rectangle rectangle,
     std::string msg)
-    : Button(
+    : TextButton(
           texture_default,
           texture_hover,
           texture_pressed,
           sfx_hover,
           sfx_click,
-          rectangle) {
-    text = msg;
-    // I'm not sure if this should be based on center of rect or on center of
-    // texture. For now it's done like that, may change in future. TODO
-    text_pos = center_text(
-        text,
-        Vector2{texture_default->width / 2.0f, texture_default->height / 2.0f});
+          rectangle,
+          msg,
+          // I'm not sure if this should be based on center of rect or on center of
+          // texture. For now it's done like that, may change in future
+          center_text(
+              msg,
+              Vector2{texture_default->width / 2.0f, texture_default->height / 2.0f})) {
+}
+
+void TextButton::set_text(std::string txt) {
+    text.set_text(txt);
+    text.center();
 }
 
 void TextButton::draw() {
-    // And this is how we call parent's functions from child functions.
-    // Keep in mind that, to shadow parent's method, we must explicitely specify
-    // it in children's description.
     Button::draw();
-    DrawText(text.c_str(), text_pos.x, text_pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
+    text.draw();
 }
 
 void TextButton::set_pos(Vector2 position) {
-    int text_x_diff = text_pos.x - pos.x;
-    int text_y_diff = text_pos.y - pos.y;
-
-    text_pos.x = position.x + text_x_diff;
-    text_pos.y = position.y + text_y_diff;
     Button::set_pos(position);
+    text.set_pos(
+        Vector2{
+            position.x + (textures[ButtonStates::idle]->width / 2.0f),
+            position.y + (textures[ButtonStates::idle]->height / 2.0f)},
+        true);
 }
 
 // Checkbox shenanigans
@@ -251,33 +293,6 @@ bool Checkbox::is_clicked() {
 void Checkbox::reset_state() {
     Button::reset_state();
     state_switched = false;
-}
-
-Label::Label(std::string txt, Vector2 position)
-    : text(txt)
-    , pos(position) {
-}
-
-Label::Label(std::string txt, int x, int y)
-    : text(txt) {
-    pos.x = static_cast<float>(x);
-    pos.y = static_cast<float>(y);
-}
-
-Label::Label()
-    : Label("", Vector2{0, 0}) {
-}
-
-void Label::center() {
-    pos = center_text(text, pos);
-}
-
-void Label::set_text(std::string txt) {
-    text = txt;
-}
-
-void Label::draw() {
-    DrawText(text.c_str(), pos.x, pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
 }
 
 // Button Storage

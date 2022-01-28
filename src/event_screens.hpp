@@ -3,7 +3,6 @@
 #include "level.hpp"
 #include "raylib.h"
 
-#include <optional>
 #include <string>
 
 // This contains various EventScreen implementations, to de-bloat level.cpp
@@ -18,6 +17,12 @@ private:
 public:
     bool complete;
     NotificationScreen(std::string title, std::string body, std::string button_txt);
+
+    void set_title(std::string txt, bool center);
+    void set_title(std::string txt);
+    void set_description(std::string txt, bool center);
+    void set_description(std::string txt);
+    void set_button_text(std::string txt);
 
     void update() override;
     void draw() override;
@@ -46,7 +51,8 @@ private:
     TextButton paper_button;
     TextButton scissors_button;
     TextButton exit_button;
-    std::optional<NotificationScreen> result_screen;
+    NotificationScreen result_screen;
+    bool complete;
 
 public:
     LockpickScreen(Level* level, Treasure* _treasure_obj);
@@ -69,6 +75,13 @@ public:
 
 class BattleScreen : public EventScreen {
 private:
+    enum class CompletionResult
+    {
+        none,
+        win,
+        lose
+    };
+
     Level* lvl;
     Player* player;
     Enemy* enemy;
@@ -76,8 +89,6 @@ private:
     int enemy_id;
 
     bool is_bossfight;
-    // This will be used to decide, what to do once result screen is closed.
-    bool is_win;
     int turn_num;
 
     Label title_label;
@@ -97,7 +108,8 @@ private:
     TextButton rdef_button;
     TextButton mdef_button;
 
-    std::optional<NotificationScreen> result_screen;
+    CompletionResult completion_result;
+    NotificationScreen result_screen;
 
     void get_reward();
     void show_gameover();

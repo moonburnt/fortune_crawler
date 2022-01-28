@@ -32,6 +32,34 @@ public:
     virtual ~ButtonBase() = default;
 };
 
+// Basic label.
+class Label {
+protected:
+    std::string text;
+
+    // Pos set by set_pos and on init
+    Vector2 pos;
+    // Pos to draw on, that may be different if center() has been used.
+    Vector2 real_pos;
+
+public:
+    Label(std::string txt, Vector2 position);
+    Label(std::string txt, int x, int y);
+    Label();
+
+    // Center message around its position
+    void center();
+
+    void set_pos(Vector2 pos, bool center);
+    void set_pos(Vector2 pos);
+    Vector2 get_pos();
+
+    // Set label's text. May need to re-center message after that.
+    void set_text(std::string txt);
+
+    void draw();
+};
+
 class Button : public ButtonBase {
 protected:
     // Button position. Hitbox will always appear at center of it
@@ -40,9 +68,9 @@ protected:
     ButtonStates state;
     // State update mode. See set_manual_update_mode();
     bool manual_update_mode;
+    std::unordered_map<ButtonStates, Texture2D*> textures;
 
 private:
-    std::unordered_map<ButtonStates, Texture2D*> textures;
     std::unordered_map<int, Sound*> sounds;
     // Button's hitbox. X and Y are offsets from texture's top left
     Rectangle rect;
@@ -80,8 +108,7 @@ public:
 
 class TextButton : public Button {
 private:
-    std::string text;
-    Vector2 text_pos;
+    Label text;
 
 public:
     TextButton(
@@ -104,6 +131,8 @@ public:
         Sound* sfx_click,
         Rectangle rectangle,
         std::string msg);
+
+    void set_text(std::string txt);
 
     void draw() override;
     void set_pos(Vector2 position) override;
@@ -157,27 +186,6 @@ public:
     bool is_clicked() override;
     // Resets state_switched.
     void reset_state() override;
-};
-
-// Basic label.
-class Label {
-protected:
-    std::string text;
-
-public:
-    Label(std::string txt, Vector2 position);
-    Label(std::string txt, int x, int y);
-    Label();
-
-    Vector2 pos;
-
-    // Center message around its position
-    void center();
-
-    // Set label's text. May need to re-center message after that.
-    void set_text(std::string txt);
-
-    void draw();
 };
 
 class ButtonStorage {

@@ -119,6 +119,28 @@ NotificationScreen::NotificationScreen(
         GetScreenHeight() / 2.0f + 200});
 }
 
+void NotificationScreen::set_title(std::string txt, bool center) {
+    title_label.set_text(txt);
+    if (center) title_label.center();
+}
+
+void NotificationScreen::set_title(std::string txt) {
+    set_title(txt, false);
+}
+
+void NotificationScreen::set_description(std::string txt, bool center) {
+    body_label.set_text(txt);
+    if (center) body_label.center();
+}
+
+void NotificationScreen::set_description(std::string txt) {
+    set_description(txt, false);
+}
+
+void NotificationScreen::set_button_text(std::string txt) {
+    close_button.set_text(txt);
+}
+
 void NotificationScreen::update() {
     if (complete) return;
     close_button.update();
@@ -210,7 +232,9 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     , rock_button(make_text_button("Rock"))
     , paper_button(make_text_button("Paper"))
     , scissors_button(make_text_button("Scissors"))
-    , exit_button(make_text_button("OK")) {
+    , exit_button(make_text_button("OK"))
+    , result_screen(NotificationScreen("Lockpick Result", "", "OK"))
+    , complete(false) {
     title_label.center();
     float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
     rock_button.set_pos(Vector2{button_x, 200.0f});
@@ -223,9 +247,9 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
 }
 
 void LockpickScreen::update() {
-    if (result_screen) {
-        result_screen.value().update();
-        if (result_screen.value().complete) {
+    if (complete) {
+        result_screen.update();
+        if (result_screen.complete) {
             lvl->complete_event();
             return;
         }
@@ -253,56 +277,52 @@ void LockpickScreen::update() {
         }
 
         if (button_clicked) {
-            std::string result_label = "Lockpick Result";
-            std::string close_button_txt = "OK";
             auto [status, _] = play_rps(rps_value);
             switch (status) {
             case MinigameStatus::win: {
                 int value = treasure_obj->get_reward();
-                result_screen = NotificationScreen(
-                    result_label,
+                result_screen.set_description(
                     fmt::format(
                         "With no issues, you've flawlessly unlocked the chest.\n"
                         "{} coins lying inside were totally worth it!",
                         value),
-                    close_button_txt);
+                    true);
                 lvl->give_player_money(value);
                 break;
             }
 
             case MinigameStatus::tie: {
                 int value = treasure_obj->get_reward() / 2;
-                result_screen = NotificationScreen(
-                    result_label,
+                result_screen.set_description(
                     fmt::format(
                         "While attempting to unlock the chest, your pick has broke.\n"
                         "With no other options left, you've had to use brute force.\n"
                         "Sadly, while doing so, some coins felt into darkness...\n"
                         "But you've still got {} gold from it.",
                         value),
-                    close_button_txt);
+                    true);
                 lvl->give_player_money(value);
                 break;
             }
 
             case MinigameStatus::lose: {
                 treasure_obj->get_reward();
-                result_screen = NotificationScreen(
-                    result_label,
+                result_screen.set_description(
                     "You've spent quite a while to unlock the chest.\n"
                     "Sadly, when you've finally got inside, you was dissapointed:\n"
                     "there was nothing but pair of someone's smelly socks.",
-                    close_button_txt);
+                    true);
                 break;
             }
             }
+            complete = true;
         }
     }
 }
 
 void LockpickScreen::draw() {
-    if (result_screen) {
-        result_screen.value().draw();
+    if (complete) {
+        result_screen.draw();
     }
     else {
         DrawRectangleRec(bg, SIDE_BG_COLOR);
@@ -379,7 +399,6 @@ BattleScreen::BattleScreen(
     , enemy_tile_id(_enemy_tile_id)
     , enemy_id(_enemy_id)
     , is_bossfight(_enemy->is_boss())
-    , is_win(false)
     , turn_num(0)
     , title_label(Label("Battle", GetScreenWidth() / 2, 60))
     , turn_num_label(Label("", GetScreenWidth() / 2, 90))
@@ -391,7 +410,9 @@ BattleScreen::BattleScreen(
     , mdmg_button(make_text_button("Use magic (Magical)"))
     , pdef_button(make_text_button("Raise shield (Physical)"))
     , rdef_button(make_text_button("Try to evade (Ranged)"))
-    , mdef_button(make_text_button("Cast protection (Magical)")) {
+    , mdef_button(make_text_button("Cast protection (Magical)"))
+    , completion_result(CompletionResult::none)
+    , result_screen(NotificationScreen("", "", "")) {
     // TODO: add ambushes where enemy actually start first
     next_phase();
     title_label.center();
@@ -451,29 +472,34 @@ void BattleScreen::get_reward() {
         reward);
 
     // TODO: add battle statistics (turns made, damage dealt/received)
-    is_win = true;
-    result_screen = NotificationScreen("Battle Results", result_txt, "OK");
+    completion_result = CompletionResult::win;
+    result_screen.set_title("Battle Results", true);
+    result_screen.set_description(result_txt, true);
+    result_screen.set_button_text("OK");
+
     lvl->update_player_stats_hud();
 }
 
 void BattleScreen::show_gameover() {
-    is_win = false;
-    result_screen = NotificationScreen(
-        "Death",
+    completion_result = CompletionResult::lose;
+    result_screen.set_title("Death", true);
+    result_screen.set_description(
         "As enemy's attacks start getting more fearsome, your\n"
         "breath gets heavier. Blood drips onto your eyes, making it\n"
-        "harder to see what s coming next. And thats how you miss it.\n"
+        "harder to see what's coming next. And thats how you miss it.\n"
         "You can't see what exactly hit you. Only feel sadness mixed\n"
-        "with relief. \"Finally, its over\" are your last thoughts\n"
+        "with relief. \"Finally, it's over\" are your last thoughts\n"
         "until your body collapses and consciousness fades away.",
-        "F");
+        true);
+    result_screen.set_button_text("F");
 }
 
 void BattleScreen::update() {
-    if (result_screen) {
-        result_screen.value().update();
-        if (result_screen.value().complete) {
-            if (is_win) {
+    // This could be redone better with switch, I think
+    if (completion_result != CompletionResult::none) {
+        result_screen.update();
+        if (result_screen.complete) {
+            if (completion_result == CompletionResult::win) {
                 lvl->kill_enemy(enemy_tile_id, enemy_id);
             }
             else {
@@ -569,8 +595,8 @@ void BattleScreen::update() {
     }
 }
 void BattleScreen::draw() {
-    if (result_screen) {
-        result_screen.value().draw();
+    if (completion_result != CompletionResult::none) {
+        result_screen.draw();
         return;
     }
 
