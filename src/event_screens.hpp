@@ -95,6 +95,8 @@ private:
     Label turn_phase_label;
     Label turn_phase_description;
     Label turn_result;
+    Label player_stats;
+    Label enemy_stats;
 
     bool is_player_turn;
 
@@ -110,6 +112,7 @@ private:
     CompletionResult completion_result;
     NotificationScreen result_screen;
 
+    void update_stats_hud();
     void get_reward();
     void show_gameover();
     void next_phase();

@@ -95,6 +95,7 @@ void Level::purge_current_event_screen() {
 
 void Level::complete_event() {
     force_description_update = true;
+    show_hud = true;
     // show_tile_description = true;
     scheduled_events.pop_back();
     purge_current_event_screen();
@@ -136,6 +137,7 @@ bool Level::set_new_event() {
             static_cast<Enemy*>(map->get_object(current_event_cause)),
             current_event_tile_id.value(),
             current_event_cause);
+        show_hud = false;
         break;
     }
 
@@ -209,7 +211,9 @@ Level::Level(SceneManager* p)
     : Scene(BG_COLOR)
     , pause_menu(new PauseScreen(this))
     , game_over(false)
-    , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu")) {
+    , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu"))
+    , show_hud(true)
+    , is_paused(false) {
     parent = p;
 
     input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
@@ -239,7 +243,6 @@ Level::Level(SceneManager* p)
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
     dungeon_lvl = 1;
-    is_paused = false;
     configure_new_map();
 }
 
@@ -427,6 +430,10 @@ void Level::update(float dt) {
         else change_turn();
     }
 
+    if (!show_hud) {
+        return;
+    }
+
     if (show_tile_description) {
         // This isn't really efficient, may need some improvements. TODO
         Vector2 mouse_pos = GetMousePosition();
@@ -472,19 +479,26 @@ void Level::draw() {
     map->draw();
     EndMode2D();
 
-    DrawRectangleRec(left_bg, SIDE_BG_COLOR);
-    DrawLine(left_bg.width, left_bg.y, left_bg.width, left_bg.height, CORNER_COLOR);
+    if (show_hud) {
+        DrawRectangleRec(left_bg, SIDE_BG_COLOR);
+        DrawLine(left_bg.width, left_bg.y, left_bg.width, left_bg.height, CORNER_COLOR);
 
-    DrawRectangleRec(right_bg, SIDE_BG_COLOR);
-    DrawLine(right_bg.x, right_bg.y, right_bg.x, right_bg.height, CORNER_COLOR);
+        DrawRectangleRec(right_bg, SIDE_BG_COLOR);
+        DrawLine(right_bg.x, right_bg.y, right_bg.x, right_bg.height, CORNER_COLOR);
 
-    dungeon_lvl_label.draw();
-    turn_num_label.draw();
-    turn_label.draw();
-    player_info_label.draw();
-    player_tile_label.draw();
-    player_currency_label.draw();
-    player_stats_label.draw();
+        dungeon_lvl_label.draw();
+        turn_num_label.draw();
+        turn_label.draw();
+        player_info_label.draw();
+        player_tile_label.draw();
+        player_currency_label.draw();
+        player_stats_label.draw();
+
+        if (show_tile_description) {
+            selected_tile_label.draw();
+            tile_content_label.draw();
+        }
+    }
 
     if (game_over) {
         game_over_screen->draw();
@@ -498,10 +512,5 @@ void Level::draw() {
 
     if (current_event_screen != nullptr) {
         current_event_screen->draw();
-    }
-
-    if (show_tile_description) {
-        selected_tile_label.draw();
-        tile_content_label.draw();
     }
 }

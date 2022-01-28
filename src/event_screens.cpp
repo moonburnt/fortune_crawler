@@ -384,14 +384,38 @@ void PauseScreen::draw() {
 
 // Battle Screen
 
+void BattleScreen::update_stats_hud() {
+    player_stats.set_text(fmt::format(
+        "Your Stats:\n\n"
+        "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+        "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
+        player->current_hp,
+        player->max_hp,
+        player->offensive_stats[OffensiveStats::pdmg],
+        player->offensive_stats[OffensiveStats::rdmg],
+        player->offensive_stats[OffensiveStats::mdmg],
+        player->defensive_stats[DefensiveStats::pdef],
+        player->defensive_stats[DefensiveStats::rdef],
+        player->defensive_stats[DefensiveStats::mdef]));
+
+    enemy_stats.set_text(fmt::format(
+        "Enemy Stats:\n\n"
+        "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+        "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
+        enemy->current_hp,
+        enemy->max_hp,
+        enemy->offensive_stats[OffensiveStats::pdmg],
+        enemy->offensive_stats[OffensiveStats::rdmg],
+        enemy->offensive_stats[OffensiveStats::mdmg],
+        enemy->defensive_stats[DefensiveStats::pdef],
+        enemy->defensive_stats[DefensiveStats::rdef],
+        enemy->defensive_stats[DefensiveStats::mdef]));
+}
+
 BattleScreen::BattleScreen(
     Level* level, Player* _player, Enemy* _enemy, int _enemy_tile_id, int _enemy_id)
     : EventScreen(
-          Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
-              30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
+          Rectangle{30.0f, 30.0f, GetScreenWidth() - 60.0f, GetScreenHeight() - 60.0f},
           {0, 0, 0, 0})
     , lvl(level)
     , player(_player)
@@ -407,6 +431,8 @@ BattleScreen::BattleScreen(
     , turn_result(Label(
           "With your trusted weapon, you\nstand before unholy creature",
           Vector2{0.0f, 0.0f}))
+    , player_stats(Label("", Vector2{0.0f, 0.0f}))
+    , enemy_stats(Label("", Vector2{0.0f, 0.0f}))
     , is_player_turn(false)
     , pdmg_button(make_text_button("Use sword (Physical)"))
     , rdmg_button(make_text_button("Use bow (Ranged)"))
@@ -423,18 +449,27 @@ BattleScreen::BattleScreen(
     turn_phase_label.center();
     turn_phase_description.center();
 
+    player_stats.set_pos(Vector2{bg.x + (bg.width / 10.0f), bg.y + bg.height / 2.0f});
+    enemy_stats.set_pos(
+        Vector2{bg.x + (bg.width / 10.0f) * 9.0f, bg.y + bg.height / 2.0f});
+    update_stats_hud();
+    player_stats.center();
+    enemy_stats.center();
+
     turn_result.set_pos(
-        Vector2{bg.x + (bg.width / 4.0f) * 3.0f, bg.y + bg.height / 2.0f});
+        Vector2{bg.x + (bg.width / 5.0f) * 3.0f, bg.y + bg.height / 2.0f});
     turn_result.center();
 
-    float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
-    pdmg_button.set_pos(Vector2{button_x, 200.0f});
-    rdmg_button.set_pos(Vector2{button_x, 300.0f});
-    mdmg_button.set_pos(Vector2{button_x, 400.0f});
+    float button_x = bg.x + (bg.width / 5.0f);
+    float button_y = bg.y + (bg.height / 2.0f) / 1.5f;
 
-    pdef_button.set_pos(Vector2{button_x, 200.0f});
-    rdef_button.set_pos(Vector2{button_x, 300.0f});
-    mdef_button.set_pos(Vector2{button_x, 400.0f});
+    pdmg_button.set_pos(Vector2{button_x, button_y});
+    rdmg_button.set_pos(Vector2{button_x, button_y + 100.0f});
+    mdmg_button.set_pos(Vector2{button_x, button_y + 200.0f});
+
+    pdef_button.set_pos(Vector2{button_x, button_y});
+    rdef_button.set_pos(Vector2{button_x, button_y + 100.0f});
+    mdef_button.set_pos(Vector2{button_x, button_y + 200.0f});
 }
 
 void BattleScreen::next_phase() {
@@ -483,8 +518,6 @@ void BattleScreen::get_reward() {
     result_screen.set_title("Battle Results", true);
     result_screen.set_description(result_txt, true);
     result_screen.set_button_text("OK");
-
-    lvl->update_player_stats_hud();
 }
 
 void BattleScreen::show_gameover() {
@@ -512,6 +545,7 @@ void BattleScreen::update() {
             else {
                 lvl->show_gameover();
             }
+            lvl->update_player_stats_hud();
             lvl->complete_event();
             return;
         }
@@ -568,7 +602,7 @@ void BattleScreen::update() {
             int dmg_value;
             if (is_player_turn) {
                 dmg_value = enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
-                result = fmt::format("You smash the monster for {} dmg!\n", dmg_value);
+                result = fmt::format("You smash the monster for {} dmg!", dmg_value);
             }
             else {
                 dmg_value =
@@ -617,7 +651,8 @@ void BattleScreen::update() {
             break;
         }
         }
-        lvl->update_player_stats_hud();
+
+        update_stats_hud();
 
         if (player->is_dead()) {
             show_gameover();
@@ -628,7 +663,7 @@ void BattleScreen::update() {
             return;
         }
 
-        result += "\nYour enemy stands still.";
+        result += "\n\nYour enemy stands still.";
         turn_result.set_text(result);
         turn_result.center();
         next_phase();
@@ -647,6 +682,8 @@ void BattleScreen::draw() {
     turn_num_label.draw();
     turn_phase_label.draw();
     turn_phase_description.draw();
+    player_stats.draw();
+    enemy_stats.draw();
     turn_result.draw();
 
     if (is_player_turn) {

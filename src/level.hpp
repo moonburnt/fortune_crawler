@@ -122,6 +122,7 @@ private:
     bool is_vec_on_playground(Vector2 vec);
 
 public:
+    bool show_hud;
     bool is_paused;
 
     Level(SceneManager* p);
