@@ -379,6 +379,7 @@ BattleScreen::BattleScreen(
     , enemy_tile_id(_enemy_tile_id)
     , enemy_id(_enemy_id)
     , is_bossfight(_enemy->is_boss())
+    , is_win(false)
     , turn_num(0)
     , title_label(Label("Battle", GetScreenWidth() / 2, 60))
     , turn_num_label(DynamicLabel("Turn {}", GetScreenWidth() / 2, 90))
@@ -450,21 +451,34 @@ void BattleScreen::get_reward() {
         reward);
 
     // TODO: add battle statistics (turns made, damage dealt/received)
-    reward_screen = NotificationScreen("Battle Results", result_txt, "OK");
+    is_win = true;
+    result_screen = NotificationScreen("Battle Results", result_txt, "OK");
     lvl->update_player_stats_hud();
 }
 
 void BattleScreen::show_gameover() {
-    // TODO: stub
-    lvl->show_gameover();
-    lvl->complete_event();
+    is_win = false;
+    result_screen = NotificationScreen(
+        "Death",
+        "As enemy's attacks start getting more fearsome, your\n"
+        "breath gets heavier. Blood drips onto your eyes, making it\n"
+        "harder to see what s coming next. And thats how you miss it.\n"
+        "You can't see what exactly hit you. Only feel sadness mixed\n"
+        "with relief. \"Finally, its over\" are your last thoughts\n"
+        "until your body collapses and consciousness fades away.",
+        "F");
 }
 
 void BattleScreen::update() {
-    if (reward_screen) {
-        reward_screen.value().update();
-        if (reward_screen.value().complete) {
-            lvl->kill_enemy(enemy_tile_id, enemy_id);
+    if (result_screen) {
+        result_screen.value().update();
+        if (result_screen.value().complete) {
+            if (is_win) {
+                lvl->kill_enemy(enemy_tile_id, enemy_id);
+            }
+            else {
+                lvl->show_gameover();
+            }
             lvl->complete_event();
             return;
         }
@@ -555,8 +569,8 @@ void BattleScreen::update() {
     }
 }
 void BattleScreen::draw() {
-    if (reward_screen) {
-        reward_screen.value().draw();
+    if (result_screen) {
+        result_screen.value().draw();
         return;
     }
 

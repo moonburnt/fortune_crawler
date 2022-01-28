@@ -76,6 +76,8 @@ private:
     int enemy_id;
 
     bool is_bossfight;
+    // This will be used to decide, what to do once result screen is closed.
+    bool is_win;
     int turn_num;
 
     Label title_label;
@@ -95,7 +97,7 @@ private:
     TextButton rdef_button;
     TextButton mdef_button;
 
-    std::optional<NotificationScreen> reward_screen;
+    std::optional<NotificationScreen> result_screen;
 
     void get_reward();
     void show_gameover();
