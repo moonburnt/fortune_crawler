@@ -382,9 +382,9 @@ BattleScreen::BattleScreen(
     , is_win(false)
     , turn_num(0)
     , title_label(Label("Battle", GetScreenWidth() / 2, 60))
-    , turn_num_label(DynamicLabel("Turn {}", GetScreenWidth() / 2, 90))
-    , turn_phase_label(DynamicLabel("", GetScreenWidth() / 2, 120))
-    , turn_phase_description(DynamicLabel("", GetScreenWidth() / 2, 150))
+    , turn_num_label(Label("", GetScreenWidth() / 2, 90))
+    , turn_phase_label(Label("", GetScreenWidth() / 2, 120))
+    , turn_phase_description(Label("", GetScreenWidth() / 2, 150))
     , is_player_turn(false)
     , pdmg_button(make_text_button("Use sword (Physical)"))
     , rdmg_button(make_text_button("Use bow (Ranged)"))
@@ -419,7 +419,7 @@ void BattleScreen::next_phase() {
         is_player_turn = true;
         turn_phase_label.set_text("Your Turn");
         turn_num++;
-        turn_num_label.set_text(fmt::format(turn_num_label.get_default_text(), turn_num));
+        turn_num_label.set_text(fmt::format("Turn {}", turn_num));
         turn_phase_description.set_text("Pick attack type to use");
     }
 }

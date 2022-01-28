@@ -81,10 +81,10 @@ private:
     int turn_num;
 
     Label title_label;
-    DynamicLabel turn_num_label;
-    DynamicLabel turn_phase_label;
-    DynamicLabel turn_phase_description;
-    // DynamicLabel turn_result;
+    Label turn_num_label;
+    Label turn_phase_label;
+    Label turn_phase_description;
+    // Label turn_result;
 
     bool is_player_turn;
 

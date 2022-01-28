@@ -39,7 +39,7 @@ void Level::set_camera() {
 void Level::set_player_tile(Point tile) {
     player_tile = tile;
     player_tile_label.set_text(
-        fmt::format(player_tile_label.get_default_text(), player_tile.y, player_tile.x));
+        fmt::format("Current Tile: {:02} x {:02}", player_tile.y, player_tile.x));
 }
 
 void Level::configure_hud() {
@@ -63,43 +63,27 @@ void Level::configure_hud() {
     int bg_txt_starting_y = 30;
     int bg_text_vert_gap = 30;
 
-    dungeon_lvl_label =
-        DynamicLabel("Dungeon Level: {}", right_bg_txt_x, bg_txt_starting_y);
-    turn_num_label = DynamicLabel(
-        "Current Turn: {}",
-        right_bg_txt_x,
-        bg_txt_starting_y + bg_text_vert_gap);
+    dungeon_lvl_label = Label("", right_bg_txt_x, bg_txt_starting_y);
+    turn_num_label = Label("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
     // text of this one will be overwritten in change_turn()
-    turn_label =
-        DynamicLabel("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2);
+    turn_label = Label("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2);
 
     playground_vec_start.x = left_bg.width;
     playground_vec_start.y = left_bg.y;
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    selected_tile_label = DynamicLabel(
-        "Selected Tile: {:02} x {:02}",
-        right_bg_txt_x,
-        GetScreenHeight() - 200);
+    selected_tile_label = Label("", right_bg_txt_x, GetScreenHeight() - 200);
 
-    tile_content_label = DynamicLabel(
-        "Contains: \n - {}",
-        right_bg_txt_x,
-        GetScreenHeight() - 200 + bg_text_vert_gap);
+    tile_content_label =
+        Label("", right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap);
 
     player_info_label = Label("Player Info:", left_bg_txt_x, bg_txt_starting_y);
     player_currency_label =
-        DynamicLabel("Coins: {}", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
-    player_stats_label = DynamicLabel(
-        "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
-        "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
-        left_bg_txt_x,
-        bg_txt_starting_y + bg_text_vert_gap * 3);
-    player_tile_label = DynamicLabel(
-        "Current Tile: {:02} x {:02}",
-        left_bg_txt_x,
-        GetScreenHeight() - 50.0);
+        Label("", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
+    player_stats_label =
+        Label("", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3);
+    player_tile_label = Label("", left_bg_txt_x, GetScreenHeight() - 50.0);
 }
 
 void Level::purge_current_event_screen() {
@@ -183,7 +167,8 @@ void Level::update_player_stats_hud() {
     player_stats_label.set_text(
         // TODO: write a formatter template for this
         fmt::format(
-            player_stats_label.get_default_text(),
+            "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+            "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
             player_obj->current_hp,
             player_obj->max_hp,
             player_obj->offensive_stats[OffensiveStats::pdmg],
@@ -195,8 +180,7 @@ void Level::update_player_stats_hud() {
 }
 
 void Level::configure_new_map() {
-    dungeon_lvl_label.set_text(
-        fmt::format(dungeon_lvl_label.get_default_text(), dungeon_lvl));
+    dungeon_lvl_label.set_text(fmt::format("Dungeon Level: {}", dungeon_lvl));
 
     // This will fail if no player spawns are available
     set_player_tile(map->find_object_tile(map->get_player_id()).value());
@@ -308,8 +292,7 @@ void Level::change_turn() {
         turn_label.set_text("Player's Turn");
         // This may backfire on multiple players
         current_turn++;
-        turn_num_label.set_text(
-            fmt::format(turn_num_label.get_default_text(), current_turn));
+        turn_num_label.set_text(fmt::format("Current Turn: {}", current_turn));
         // TODO: move this somewhere else
         update_player_stats_hud();
     }
@@ -321,7 +304,7 @@ void Level::update_tile_description() {
     if (last_selected_tile == -1) return;
 
     tile_content_label.set_text(fmt::format(
-        tile_content_label.get_default_text(),
+        "Contains: \n - {}",
         fmt::join(map->get_tile_descriptions(last_selected_tile), "\n - ")));
 }
 
@@ -456,10 +439,8 @@ void Level::update(float dt) {
                 int selected_tile = map->tile_to_index(mtt);
                 // This may backfire if selected tile has been changed between checks
                 if (selected_tile != last_selected_tile) {
-                    selected_tile_label.set_text(fmt::format(
-                        selected_tile_label.get_default_text(),
-                        mtt.y,
-                        mtt.x));
+                    selected_tile_label.set_text(
+                        fmt::format("Selected Tile: {:02} x {:02}", mtt.y, mtt.x));
                     map->select_tile(mtt);
 
                     last_selected_tile = selected_tile;
@@ -485,8 +466,7 @@ void Level::update(float dt) {
         }
     }
 
-    player_currency_label.set_text(
-        fmt::format(player_currency_label.get_default_text(), player_obj->money_amount));
+    player_currency_label.set_text(fmt::format("Coins: {}", player_obj->money_amount));
 }
 
 void Level::draw() {

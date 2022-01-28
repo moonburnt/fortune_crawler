@@ -54,16 +54,16 @@ private:
 
     int dungeon_lvl;
 
-    DynamicLabel turn_label;
-    DynamicLabel turn_num_label;
-    DynamicLabel selected_tile_label;
+    Label turn_label;
+    Label turn_num_label;
+    Label selected_tile_label;
     Label player_info_label;
-    DynamicLabel player_currency_label;
-    DynamicLabel player_tile_label;
-    DynamicLabel tile_content_label;
-    DynamicLabel dungeon_lvl_label;
+    Label player_currency_label;
+    Label player_tile_label;
+    Label tile_content_label;
+    Label dungeon_lvl_label;
 
-    DynamicLabel player_stats_label;
+    Label player_stats_label;
 
     void set_player_tile(Point tile);
 

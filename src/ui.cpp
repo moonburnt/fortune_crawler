@@ -272,36 +272,12 @@ void Label::center() {
     pos = center_text(text, pos);
 }
 
+void Label::set_text(std::string txt) {
+    text = txt;
+}
+
 void Label::draw() {
     DrawText(text.c_str(), pos.x, pos.y, DEFAULT_TEXT_SIZE, DEFAULT_TEXT_COLOR);
-}
-
-DynamicLabel::DynamicLabel(std::string txt, Vector2 position)
-    : Label(txt, position) {
-    default_text = txt;
-}
-
-DynamicLabel::DynamicLabel(std::string txt, int x, int y)
-    : Label(txt, x, y) {
-    default_text = txt;
-}
-
-DynamicLabel::DynamicLabel()
-    : Label() {
-    default_text = "";
-}
-
-void DynamicLabel::set_text(std::string txt, bool override_default) {
-    text = txt;
-    if (override_default) default_text = txt;
-}
-
-void DynamicLabel::set_text(std::string txt) {
-    set_text(txt, false);
-}
-
-std::string DynamicLabel::get_default_text() {
-    return default_text;
 }
 
 // Button Storage

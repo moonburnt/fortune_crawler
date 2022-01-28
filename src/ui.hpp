@@ -159,7 +159,7 @@ public:
     void reset_state() override;
 };
 
-// Basic label. You can move it around, but cant alter its text after creation.
+// Basic label.
 class Label {
 protected:
     std::string text;
@@ -174,23 +174,10 @@ public:
     // Center message around its position
     void center();
 
-    void draw();
-};
-
-// Dynamic label. It has an additional storage for text set during initialization,
-// which allows to reuse it
-class DynamicLabel : public Label {
-private:
-    std::string default_text;
-
-public:
-    DynamicLabel(std::string txt, Vector2 position);
-    DynamicLabel(std::string txt, int x, int y);
-    DynamicLabel();
-
-    void set_text(std::string txt, bool override_default);
+    // Set label's text. May need to re-center message after that.
     void set_text(std::string txt);
-    std::string get_default_text();
+
+    void draw();
 };
 
 class ButtonStorage {
