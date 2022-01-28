@@ -404,6 +404,9 @@ BattleScreen::BattleScreen(
     , turn_num_label(Label("", GetScreenWidth() / 2, 90))
     , turn_phase_label(Label("", GetScreenWidth() / 2, 120))
     , turn_phase_description(Label("", GetScreenWidth() / 2, 150))
+    , turn_result(Label(
+          "With your trusted weapon, you\nstand before unholy creature",
+          Vector2{0.0f, 0.0f}))
     , is_player_turn(false)
     , pdmg_button(make_text_button("Use sword (Physical)"))
     , rdmg_button(make_text_button("Use bow (Ranged)"))
@@ -419,6 +422,10 @@ BattleScreen::BattleScreen(
     turn_num_label.center();
     turn_phase_label.center();
     turn_phase_description.center();
+
+    turn_result.set_pos(
+        Vector2{bg.x + (bg.width / 4.0f) * 3.0f, bg.y + bg.height / 2.0f});
+    turn_result.center();
 
     float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
     pdmg_button.set_pos(Vector2{button_x, 200.0f});
@@ -553,30 +560,59 @@ void BattleScreen::update() {
 
     if (button_clicked) {
         auto [status, their_throw] = play_rps(rps_value);
+        // TODO: result text based on damage type used.
+        std::string result;
         switch (status) {
         case MinigameStatus::win: {
             OffensiveStats dmg_stat = rps_to_offensive(rps_value);
+            int dmg_value;
             if (is_player_turn) {
-                enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
+                dmg_value = enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
+                result = fmt::format("You smash the monster for {} dmg!\n", dmg_value);
             }
             else {
-                enemy->damage(player->offensive_stats[dmg_stat] / 2, dmg_stat);
+                dmg_value =
+                    enemy->damage(player->offensive_stats[dmg_stat] / 2, dmg_stat);
+                result = fmt::format(
+                    "While creature tries to hit you,\n"
+                    "you find an opening and counter\n"
+                    "its attack, dealing {} dmg to it!\n",
+                    dmg_value);
             }
             break;
         }
 
         case MinigameStatus::tie: {
-            // TODO: add description text, telling that damage has been shielded
+            if (is_player_turn) {
+                result = "You try to hit the beast, but\n"
+                         "it easily shields the strike.";
+            }
+            else {
+                result = "You've guessed enemy's intentions\n"
+                         "correctly and avoided getting hurt.";
+            }
             break;
         }
 
         case MinigameStatus::lose: {
             OffensiveStats dmg_stat = rps_to_offensive(their_throw);
+            int dmg_value;
             if (is_player_turn) {
-                player->damage(enemy->offensive_stats[dmg_stat] / 2, dmg_stat);
+                dmg_value =
+                    player->damage(enemy->offensive_stats[dmg_stat] / 2, dmg_stat);
+                result = fmt::format(
+                    "As you try to land a perfect hit,\n"
+                    "enemy suddenly strikes back, dealing\n"
+                    "{} damage to you.",
+                    dmg_value);
             }
             else {
-                player->damage(enemy->offensive_stats[dmg_stat], dmg_stat);
+                dmg_value = player->damage(enemy->offensive_stats[dmg_stat], dmg_stat);
+                result = fmt::format(
+                    "Your attempt to protect youself\n"
+                    "fails miserably, as beast strikes\n"
+                    "you for {} damage. Shame.",
+                    dmg_value);
             }
             break;
         }
@@ -585,13 +621,17 @@ void BattleScreen::update() {
 
         if (player->is_dead()) {
             show_gameover();
+            return;
         }
         else if (enemy->is_dead()) {
             get_reward();
+            return;
         }
-        else {
-            next_phase();
-        }
+
+        result += "\nYour enemy stands still.";
+        turn_result.set_text(result);
+        turn_result.center();
+        next_phase();
     }
 }
 void BattleScreen::draw() {
@@ -607,6 +647,7 @@ void BattleScreen::draw() {
     turn_num_label.draw();
     turn_phase_label.draw();
     turn_phase_description.draw();
+    turn_result.draw();
 
     if (is_player_turn) {
         pdmg_button.draw();

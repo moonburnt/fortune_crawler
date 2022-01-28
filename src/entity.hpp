@@ -158,9 +158,9 @@ public:
     // Returns true if hp <= 0, false otherwise
     bool is_dead();
 
-    // Damage creature. If creature's hp fall below 0 - sets _is_dead to true.
-    // Returns is_dead().
-    bool damage(int dmg_amount, OffensiveStats dmg_type);
+    // Damage creature. Will deal no damage if creature is already dead.
+    // Returns actual amount of damage applied to creature, after its defences.
+    int damage(int dmg_amount, OffensiveStats dmg_type);
     // Heal creature for specified amount of hp, just not over the max_hp
     void heal(int amount);
     // Increase max hp by provided value. If heal is set to true - will also

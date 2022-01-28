@@ -144,26 +144,31 @@ bool Creature::is_dead() {
     return (current_hp <= 0);
 }
 
-bool Creature::damage(int dmg_amount, OffensiveStats dmg_type) {
-    if (is_dead()) return true;
+int Creature::damage(int dmg_amount, OffensiveStats dmg_type) {
+    if (is_dead()) return 0;
+
+    // Actual amount of damage, dealt to creature after all defences.
+    int clear_dmg;
 
     switch (dmg_type) {
     case OffensiveStats::pdmg: {
         // damage amount cant be nullified below 1
-        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::pdef], 1);
+        clear_dmg = std::max(dmg_amount - defensive_stats[DefensiveStats::pdef], 1);
         break;
     }
     case OffensiveStats::rdmg: {
-        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::rdef], 1);
+        clear_dmg = std::max(dmg_amount - defensive_stats[DefensiveStats::rdef], 1);
         break;
     }
     case OffensiveStats::mdmg: {
-        current_hp -= std::max(dmg_amount - defensive_stats[DefensiveStats::mdef], 1);
+        clear_dmg = std::max(dmg_amount - defensive_stats[DefensiveStats::mdef], 1);
         break;
     }
     }
 
-    return is_dead();
+    current_hp -= clear_dmg;
+
+    return clear_dmg;
 }
 
 void Creature::heal(int amount) {

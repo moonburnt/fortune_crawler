@@ -94,7 +94,7 @@ private:
     Label turn_num_label;
     Label turn_phase_label;
     Label turn_phase_description;
-    // Label turn_result;
+    Label turn_result;
 
     bool is_player_turn;
 
