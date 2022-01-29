@@ -100,6 +100,16 @@ private:
 
     bool is_player_turn;
 
+    // This is garbage, but for now this is how we will toggle showcase of certain
+    // enemy stats. The last one is toggled when everything else is toggled
+    bool know_pdmg;
+    bool know_rdmg;
+    bool know_mdmg;
+    bool know_pdef;
+    bool know_rdef;
+    bool know_mdef;
+    bool know_everything;
+
     // Rock is physical, paper is ranged, scissors are magic
     TextButton pdmg_button;
     TextButton rdmg_button;

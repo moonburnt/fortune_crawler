@@ -7,6 +7,8 @@
 #include <cstdlib>
 // For basic formatting
 #include <fmt/core.h>
+// For fmt::dynamic_format_arg_store
+#include <fmt/args.h>
 #include <tuple>
 
 // Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
@@ -398,18 +400,55 @@ void BattleScreen::update_stats_hud() {
         player->defensive_stats[DefensiveStats::rdef],
         player->defensive_stats[DefensiveStats::mdef]));
 
-    enemy_stats.set_text(fmt::format(
-        "Enemy Stats:\n\n"
-        "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
-        "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
-        enemy->current_hp,
-        enemy->max_hp,
-        enemy->offensive_stats[OffensiveStats::pdmg],
-        enemy->offensive_stats[OffensiveStats::rdmg],
-        enemy->offensive_stats[OffensiveStats::mdmg],
-        enemy->defensive_stats[DefensiveStats::pdef],
-        enemy->defensive_stats[DefensiveStats::rdef],
-        enemy->defensive_stats[DefensiveStats::mdef]));
+    // This could and should be done way better. But for now it is what it is. TODO
+    if (!know_everything && know_pdmg && know_rdmg && know_mdmg && know_pdef &&
+        know_rdef && know_mdef) {
+        know_everything = true;
+    }
+
+    if (know_everything) {
+        enemy_stats.set_text(fmt::format(
+            "Enemy Stats:\n\n"
+            "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+            "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
+            enemy->current_hp,
+            enemy->max_hp,
+            enemy->offensive_stats[OffensiveStats::pdmg],
+            enemy->offensive_stats[OffensiveStats::rdmg],
+            enemy->offensive_stats[OffensiveStats::mdmg],
+            enemy->defensive_stats[DefensiveStats::pdef],
+            enemy->defensive_stats[DefensiveStats::rdef],
+            enemy->defensive_stats[DefensiveStats::mdef]));
+    }
+    else {
+        fmt::dynamic_format_arg_store<fmt::format_context> args;
+        args.push_back(enemy->current_hp);
+        args.push_back(enemy->max_hp);
+
+        if (know_pdmg) args.push_back(enemy->offensive_stats[OffensiveStats::pdmg]);
+        else args.push_back("???");
+
+        if (know_rdmg) args.push_back(enemy->offensive_stats[OffensiveStats::rdmg]);
+        else args.push_back("???");
+
+        if (know_mdmg) args.push_back(enemy->offensive_stats[OffensiveStats::mdmg]);
+        else args.push_back("???");
+
+        if (know_pdef) args.push_back(enemy->defensive_stats[DefensiveStats::pdef]);
+        else args.push_back("???");
+
+        if (know_rdef) args.push_back(enemy->defensive_stats[DefensiveStats::rdef]);
+        else args.push_back("???");
+
+        if (know_mdef) args.push_back(enemy->defensive_stats[DefensiveStats::mdef]);
+        else args.push_back("???");
+
+        enemy_stats.set_text(fmt::vformat(
+            "Enemy Stats:\n\n"
+            "HP: {} / {}\n\nDamage:\nPhysical: {}\nRanged: {}\nMagical: {}\n\n"
+            "Defense:\nPhysical: {}\nRanged: {}\nMagical: {}",
+            args));
+    }
 }
 
 BattleScreen::BattleScreen(
@@ -434,6 +473,13 @@ BattleScreen::BattleScreen(
     , player_stats(Label("", Vector2{0.0f, 0.0f}))
     , enemy_stats(Label("", Vector2{0.0f, 0.0f}))
     , is_player_turn(false)
+    , know_pdmg(false)
+    , know_rdmg(false)
+    , know_mdmg(false)
+    , know_pdef(false)
+    , know_rdef(false)
+    , know_mdef(false)
+    , know_everything(false)
     , pdmg_button(make_text_button("Use sword (Physical)"))
     , rdmg_button(make_text_button("Use bow (Ranged)"))
     , mdmg_button(make_text_button("Use magic (Magical)"))
@@ -613,6 +659,23 @@ void BattleScreen::update() {
                     "its attack, dealing {} dmg to it!\n",
                     dmg_value);
             }
+
+            if (!know_everything) {
+                switch (dmg_stat) {
+                case OffensiveStats::pdmg: {
+                    know_pdef = true;
+                    break;
+                }
+                case OffensiveStats::rdmg: {
+                    know_rdef = true;
+                    break;
+                }
+                case OffensiveStats::mdmg: {
+                    know_mdef = true;
+                    break;
+                }
+                }
+            }
             break;
         }
 
@@ -647,6 +710,23 @@ void BattleScreen::update() {
                     "fails miserably, as beast strikes\n"
                     "you for {} damage. Shame.",
                     dmg_value);
+            }
+
+            if (!know_everything) {
+                switch (dmg_stat) {
+                case OffensiveStats::pdmg: {
+                    know_pdmg = true;
+                    break;
+                }
+                case OffensiveStats::rdmg: {
+                    know_rdmg = true;
+                    break;
+                }
+                case OffensiveStats::mdmg: {
+                    know_mdmg = true;
+                    break;
+                }
+                }
             }
             break;
         }
