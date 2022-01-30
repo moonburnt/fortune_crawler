@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <unordered_map>
 
 class SettingsManager {
@@ -14,6 +15,8 @@ private:
     std::unordered_map<SettingsCategory, bool> show_fps;
     std::unordered_map<SettingsCategory, bool> show_grid;
     std::unordered_map<SettingsCategory, float> camera_zoom;
+    // And this could (and should) definely be done better
+    std::unordered_map<SettingsCategory, std::unordered_map<std::string, int>> controls;
 
 public:
     SettingsManager();
@@ -28,6 +31,7 @@ public:
     bool get_show_fps();
     bool get_show_grid();
     float get_camera_zoom();
+    std::unordered_map<std::string, int> get_controls();
 
     void set_show_fps(bool value);
     void set_show_grid(bool value);

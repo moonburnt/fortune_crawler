@@ -212,29 +212,23 @@ Level::Level(SceneManager* p)
     , is_paused(false) {
     parent = p;
 
-    input_controller.add_relationship(KEY_KP_7, MovementDirection::upleft);
-    input_controller.add_relationship(KEY_KP_8, MovementDirection::up);
-    input_controller.add_relationship(KEY_KP_9, MovementDirection::upright);
-    input_controller.add_relationship(KEY_KP_4, MovementDirection::left);
-    input_controller.add_relationship(KEY_KP_6, MovementDirection::right);
-    input_controller.add_relationship(KEY_KP_1, MovementDirection::downleft);
-    input_controller.add_relationship(KEY_KP_2, MovementDirection::down);
-    input_controller.add_relationship(KEY_KP_3, MovementDirection::downright);
+    for (auto& kv : SettingsManager::manager.get_controls()) {
+        // This is hell of a placeholder.
+        MovementDirection direction;
+        bool has_direction = true;
 
-    // TODO: remove duplicates, make buttons above configurable from settings.
-    input_controller.add_relationship(KEY_U, MovementDirection::upleft);
-    input_controller.add_relationship(KEY_I, MovementDirection::up);
-    input_controller.add_relationship(KEY_O, MovementDirection::upright);
-    input_controller.add_relationship(KEY_J, MovementDirection::left);
-    input_controller.add_relationship(KEY_L, MovementDirection::right);
-    input_controller.add_relationship(KEY_M, MovementDirection::downleft);
-    input_controller.add_relationship(KEY_COMMA, MovementDirection::down);
-    input_controller.add_relationship(KEY_PERIOD, MovementDirection::downright);
+        if (kv.first == "UPLEFT") direction = MovementDirection::upleft;
+        else if (kv.first == "UP") direction = MovementDirection::up;
+        else if (kv.first == "UPRIGHT") direction = MovementDirection::upright;
+        else if (kv.first == "LEFT") direction = MovementDirection::left;
+        else if (kv.first == "RIGHT") direction = MovementDirection::right;
+        else if (kv.first == "DOWNLEFT") direction = MovementDirection::downleft;
+        else if (kv.first == "DOWN") direction = MovementDirection::down;
+        else if (kv.first == "DOWNRIGHT") direction = MovementDirection::downright;
+        else has_direction = false;
 
-    input_controller.add_relationship(KEY_UP, MovementDirection::up);
-    input_controller.add_relationship(KEY_LEFT, MovementDirection::left);
-    input_controller.add_relationship(KEY_RIGHT, MovementDirection::right);
-    input_controller.add_relationship(KEY_DOWN, MovementDirection::down);
+        if (has_direction) input_controller.add_relationship(kv.second, direction);
+    }
 
     configure_hud();
     map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});

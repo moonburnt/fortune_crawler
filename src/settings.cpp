@@ -3,8 +3,12 @@
 #include <json-c/json.h>
 // For clamp
 #include <algorithm>
+#include <optional>
 
 static constexpr const char* SETTINGS_PATH = "./settings.json";
+
+static const std::string KEY_NAMES[8] = {
+    "UPLEFT", "UP", "UPRIGHT", "LEFT", "RIGHT", "DOWNLEFT", "DOWN", "DOWNRIGHT"};
 
 SettingsManager SettingsManager::manager;
 
@@ -12,6 +16,7 @@ void SettingsManager::reset_to_defaults() {
     show_fps[SettingsCategory::current] = show_fps[SettingsCategory::standard];
     show_grid[SettingsCategory::current] = show_grid[SettingsCategory::standard];
     camera_zoom[SettingsCategory::current] = camera_zoom[SettingsCategory::standard];
+    controls[SettingsCategory::current] = controls[SettingsCategory::standard];
 }
 
 SettingsManager::SettingsManager() {
@@ -19,8 +24,29 @@ SettingsManager::SettingsManager() {
     show_fps[SettingsCategory::standard] = false;
     show_grid[SettingsCategory::standard] = false;
     camera_zoom[SettingsCategory::standard] = 2.0f;
+    controls[SettingsCategory::standard] = {
+        {"UPLEFT", KEY_KP_7},
+        {"UP", KEY_KP_8},
+        {"UPRIGHT", KEY_KP_9},
+        {"LEFT", KEY_KP_4},
+        {"RIGHT", KEY_KP_6},
+        {"DOWNLEFT", KEY_KP_1},
+        {"DOWN", KEY_KP_2},
+        {"DOWNRIGHT", KEY_KP_3}};
 
     reset_to_defaults();
+}
+
+std::optional<int> get_key(const std::string& key_name, json_object* storage) {
+    std::optional<int> key_index;
+
+    json_object* key_store;
+    json_object_object_get_ex(storage, key_name.c_str(), &key_store);
+
+    if (json_object_get_type(key_store) == json_type_int) {
+        key_index = json_object_get_int(key_store);
+    }
+    return key_index;
 }
 
 bool SettingsManager::load_settings() {
@@ -48,6 +74,19 @@ bool SettingsManager::load_settings() {
         // jsons don't have floats - only ints and doubles
         if (json_object_get_type(cam_distance) == json_type_double) {
             set_camera_zoom(static_cast<float>(json_object_get_double(cam_distance)));
+        }
+
+        json_object* ctrl_storage;
+        json_object_object_get_ex(data, "controls", &ctrl_storage);
+
+        if (json_object_get_type(ctrl_storage) == json_type_object) {
+            for (auto key : KEY_NAMES) {
+                std::optional<int> key_value = get_key(key, ctrl_storage);
+
+                if (key_value) {
+                    controls[SettingsCategory::current][key] = key_value.value();
+                }
+            }
         }
     }
     else {
@@ -80,6 +119,15 @@ bool SettingsManager::save_settings() {
         "camera_zoom",
         json_object_new_double(camera_zoom[SettingsCategory::current]));
 
+    json_object* ctrl_storage = json_object_new_object();
+    for (auto key : KEY_NAMES) {
+        json_object_object_add(
+            ctrl_storage,
+            key.c_str(),
+            json_object_new_int(controls[SettingsCategory::current][key]));
+    }
+    json_object_object_add(data, "controls", ctrl_storage);
+
     if (json_object_to_file(SETTINGS_PATH, data)) {
         success_state = false;
     }
@@ -98,6 +146,10 @@ bool SettingsManager::get_show_grid() {
 
 float SettingsManager::get_camera_zoom() {
     return camera_zoom[SettingsCategory::current];
+}
+
+std::unordered_map<std::string, int> SettingsManager::get_controls() {
+    return controls[SettingsCategory::current];
 }
 
 void SettingsManager::set_show_fps(bool value) {
