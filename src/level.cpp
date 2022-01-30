@@ -2,6 +2,7 @@
 #include "entity.hpp"
 #include "event_screens.hpp"
 #include "loader.hpp"
+#include "settings.hpp"
 #include "utility.hpp"
 
 #include <algorithm>
@@ -11,11 +12,6 @@
 #include <fmt/core.h>
 // For fmt::join
 #include <fmt/format.h>
-
-// TODO: make this configurable from settings
-// Sane values would be 1.0 -> 3.0, everything bigger would make things render
-// too close. Everything less makes no sense.
-static constexpr float CAMERA_ZOOM = 2.0f;
 
 EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
     : bg(_bg)
@@ -29,7 +25,7 @@ void Level::center_camera() {
 void Level::set_camera() {
     center_camera();
     Point tile_size = map->get_tile_size();
-    camera.zoom = CAMERA_ZOOM;
+    camera.zoom = SettingsManager::manager.get_camera_zoom();
     camera.offset = Vector2{
         GetScreenWidth() / 2.0f - tile_size.x / 2.0f * camera.zoom,
         GetScreenHeight() / 2.0f - tile_size.y / 2.0f * camera.zoom};

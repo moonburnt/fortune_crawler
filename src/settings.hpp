@@ -2,17 +2,18 @@
 
 #include <unordered_map>
 
-enum class SettingsCategory
-{
-    standard,
-    current
-};
-
 class SettingsManager {
 private:
+    enum class SettingsCategory
+    {
+        standard,
+        current
+    };
+
     // There must be a way to organize things better
     std::unordered_map<SettingsCategory, bool> show_fps;
     std::unordered_map<SettingsCategory, bool> show_grid;
+    std::unordered_map<SettingsCategory, float> camera_zoom;
 
 public:
     SettingsManager();
@@ -26,9 +27,11 @@ public:
 
     bool get_show_fps();
     bool get_show_grid();
+    float get_camera_zoom();
 
     void set_show_fps(bool value);
     void set_show_grid(bool value);
+    void set_camera_zoom(float value);
 
     static SettingsManager manager;
 };
