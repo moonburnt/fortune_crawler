@@ -83,26 +83,56 @@ Structure::Structure(bool is_obstacle, std::string desc)
     : MapObject(is_obstacle, ObjectCategory::structure, desc) {
 }
 
-// Treasure / Chest.
+// Treasure
+// Constructor for normal chest
 Treasure::Treasure(
     bool lock_state, int _money_amount, Texture2D* normal_sprite, Texture2D* empty_sprite)
     : Structure(true, "Treasure", normal_sprite) {
+    money_amount = _money_amount;
     if (lock_state) lock();
     else unlock();
-    money_amount = _money_amount;
     empty_texture = empty_sprite;
 }
 
+// Constructor for empty chest. This will allow to save map state, without having
+// to explicitely save all properties of each object.
+Treasure::Treasure(Texture2D* sprite)
+    : Structure(true, "Treasure", sprite)
+    , empty_texture(sprite)
+    , _is_locked(false)
+    , money_amount(0) {
+    set_affix("empty");
+    is_inspected = true;
+}
+
+Treasure* Treasure::make_chest(
+    bool lock_state,
+    int money_amount,
+    Texture2D* normal_sprite,
+    Texture2D* empty_sprite) {
+    return new Treasure(lock_state, money_amount, normal_sprite, empty_sprite);
+}
+
+Treasure* Treasure::make_empty_chest(Texture2D* sprite) {
+    return new Treasure(sprite);
+}
+
 void Treasure::lock() {
-    set_affix("locked");
-    _is_locked = true;
-    player_collision_event = Event::lockpick;
+    // Ensuring its impossible to change a lock state of empty chest
+    if (money_amount) {
+        set_affix("locked");
+        _is_locked = true;
+        player_collision_event = Event::lockpick;
+    }
 }
 
 void Treasure::unlock() {
-    set_affix("unlocked");
-    _is_locked = false;
-    player_collision_event = Event::loot;
+    // Be careful: ensure that chest never spawns empty
+    if (money_amount) {
+        set_affix("unlocked");
+        _is_locked = false;
+        player_collision_event = Event::loot;
+    }
 }
 
 bool Treasure::is_locked() {
@@ -110,11 +140,17 @@ bool Treasure::is_locked() {
 }
 
 int Treasure::get_reward() {
-    int reward = money_amount;
-    money_amount = 0;
-    set_affix("empty");
-    set_texture(empty_texture);
-    player_collision_event = std::nullopt;
+    int reward;
+    if (money_amount) {
+        reward = money_amount;
+        money_amount = 0;
+        set_affix("empty");
+        set_texture(empty_texture);
+        player_collision_event = std::nullopt;
+    }
+    else {
+        reward = 0;
+    }
 
     return reward;
 }

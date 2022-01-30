@@ -117,12 +117,22 @@ private:
     // Lock treasure and change player collision event to Event::lockpick
     void lock();
 
-public:
     Treasure(
         bool lock_state,
         int money_amount,
         Texture2D* normal_sprite,
         Texture2D* empty_sprite);
+
+    Treasure(Texture2D* sprite);
+
+public:
+    static Treasure* make_chest(
+        bool lock_state,
+        int money_amount,
+        Texture2D* normal_sprite,
+        Texture2D* empty_sprite);
+
+    static Treasure* make_empty_chest(Texture2D* sprite);
 
     // Return money_amount and set it to 0.
     int get_reward();

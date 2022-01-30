@@ -316,10 +316,18 @@ GameMap* generate_map(
                 gm->place_object(grid_index, floor_id);
 
                 gm->add_object(
-                    new Treasure(
+                    Treasure::make_chest(
                         randbool(),
-                        std::rand() % 100 * dungeon_level,
+                        std::max(std::rand() % 100 * dungeon_level, 10 * dungeon_level),
                         &AssetLoader::loader.sprites["treasure_tile_full"],
+                        &AssetLoader::loader.sprites["treasure_tile_empty"]),
+                    grid_index);
+            }
+            else if (pix_color == ColorToInt(Color{211, 83, 50, 255})) {
+                gm->place_object(grid_index, floor_id);
+
+                gm->add_object(
+                    Treasure::make_empty_chest(
                         &AssetLoader::loader.sprites["treasure_tile_empty"]),
                     grid_index);
             }
