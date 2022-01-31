@@ -138,8 +138,18 @@ bool Level::set_new_event() {
     }
 
     case Event::loot: {
-        give_player_money(
-            static_cast<Treasure*>(map->get_object(current_event_cause))->get_reward());
+        Treasure* treasure = static_cast<Treasure*>(map->get_object(current_event_cause));
+        give_player_money(treasure->get_reward());
+
+        if (treasure->destroy_on_empty) {
+            map->delete_object(
+                current_event_tile_id.value(),
+                map->find_object_in_tile(
+                       current_event_tile_id.value(),
+                       current_event_cause)
+                    .value(),
+                true);
+        }
 
         complete_event();
         break;

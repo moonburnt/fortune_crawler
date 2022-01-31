@@ -270,6 +270,11 @@ GameMap* generate_map(
 
     GameMap* gm = new GameMap(map_size, tile_size);
 
+    static const std::string coin_sprite_names[3] = {
+        "coin_pile_tile_0",
+        "coin_pile_tile_1",
+        "coin_pile_tile_2"};
+
     int abyss_id = gm->add_object(new Structure(true, "Abyss"));
     int floor_id = gm->add_object(
         new Structure(false, "Floor", &AssetLoader::loader.sprites["floor_tile"]));
@@ -329,6 +334,15 @@ GameMap* generate_map(
                 gm->add_object(
                     Treasure::make_empty_chest(
                         &AssetLoader::loader.sprites["treasure_tile_empty"]),
+                    grid_index);
+            }
+            else if (pix_color == ColorToInt(Color{255, 185, 112, 255})) {
+                gm->place_object(grid_index, floor_id);
+
+                gm->add_object(
+                    Treasure::make_coin_pile(
+                        std::max(std::rand() % 20 * dungeon_level, 5 * dungeon_level),
+                        &AssetLoader::loader.sprites[coin_sprite_names[std::rand() % 3]]),
                     grid_index);
             }
             else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {

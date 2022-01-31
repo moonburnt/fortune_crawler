@@ -87,22 +87,34 @@ Structure::Structure(bool is_obstacle, std::string desc)
 // Constructor for normal chest
 Treasure::Treasure(
     bool lock_state, int _money_amount, Texture2D* normal_sprite, Texture2D* empty_sprite)
-    : Structure(true, "Treasure", normal_sprite) {
-    money_amount = _money_amount;
+    : Structure(true, "Chest", normal_sprite)
+    , empty_texture(empty_sprite)
+    , money_amount(_money_amount)
+    , destroy_on_empty(false) {
     if (lock_state) lock();
     else unlock();
-    empty_texture = empty_sprite;
 }
 
 // Constructor for empty chest. This will allow to save map state, without having
 // to explicitely save all properties of each object.
 Treasure::Treasure(Texture2D* sprite)
-    : Structure(true, "Treasure", sprite)
+    : Structure(true, "Chest", sprite)
     , empty_texture(sprite)
     , _is_locked(false)
-    , money_amount(0) {
+    , money_amount(0)
+    , destroy_on_empty(false) {
     set_affix("empty");
     is_inspected = true;
+}
+
+// Constructor for gold pile. TODO: make it more flexible, to merge with others
+Treasure::Treasure(int _money_amount, Texture2D* sprite)
+    : Structure(false, "Coins", sprite)
+    , empty_texture(sprite)
+    , _is_locked(false)
+    , money_amount(_money_amount)
+    , destroy_on_empty(true) {
+    unlock();
 }
 
 Treasure* Treasure::make_chest(
@@ -115,6 +127,10 @@ Treasure* Treasure::make_chest(
 
 Treasure* Treasure::make_empty_chest(Texture2D* sprite) {
     return new Treasure(sprite);
+}
+
+Treasure* Treasure::make_coin_pile(int _money_amount, Texture2D* sprite) {
+    return new Treasure(_money_amount, sprite);
 }
 
 void Treasure::lock() {

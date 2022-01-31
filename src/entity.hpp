@@ -114,6 +114,7 @@ private:
     bool _is_locked;
     // Amount of money inside chest. Added on init.
     int money_amount;
+
     // Lock treasure and change player collision event to Event::lockpick
     void lock();
 
@@ -125,7 +126,11 @@ private:
 
     Treasure(Texture2D* sprite);
 
+    Treasure(int money_amount, Texture2D* sprite);
+
 public:
+    bool destroy_on_empty;
+
     static Treasure* make_chest(
         bool lock_state,
         int money_amount,
@@ -133,6 +138,8 @@ public:
         Texture2D* empty_sprite);
 
     static Treasure* make_empty_chest(Texture2D* sprite);
+
+    static Treasure* make_coin_pile(int money_amount, Texture2D* sprite);
 
     // Return money_amount and set it to 0.
     int get_reward();
