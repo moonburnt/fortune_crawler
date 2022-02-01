@@ -76,6 +76,9 @@ public:
     Point get_map_size();
     size_t get_grid_size();
 
+    // Returns entity id of each object on map.
+    std::vector<std::vector<int>> get_map_layout();
+
     // Get first tile that contains specified object, or std::nullopt
     std::optional<Point> find_object_tile(int object_id);
 

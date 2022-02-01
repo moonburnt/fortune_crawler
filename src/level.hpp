@@ -149,4 +149,7 @@ public:
 
     void kill_enemy(int tile_id, int entity_id);
     void show_gameover();
+
+    // Save level into json on SAVE_PATH
+    bool save();
 };

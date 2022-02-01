@@ -194,6 +194,20 @@ size_t GameMap::get_grid_size() {
     return grid_size;
 }
 
+std::vector<std::vector<int>> GameMap::get_map_layout() {
+    std::vector<std::vector<int>> layout = {};
+
+    for (size_t grid_id = 0; grid_id < grid_size; grid_id++) {
+        std::vector<int> tile_layout = {};
+        for (size_t tile_id = 0; tile_id < grid[grid_id].size(); tile_id++) {
+            tile_layout.push_back(map_objects[grid[grid_id][tile_id]]->get_entity_id());
+        }
+        layout.push_back(tile_layout);
+    }
+
+    return layout;
+}
+
 int GameMap::get_tile_elements_amount(int grid_index) {
     return grid[grid_index].size();
 }

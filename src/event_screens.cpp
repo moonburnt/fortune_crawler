@@ -370,6 +370,7 @@ void PauseScreen::update() {
         return;
     }
     if (exit_button.is_clicked()) {
+        lvl->save();
         lvl->exit_to_menu();
         return;
     }
