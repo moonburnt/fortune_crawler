@@ -18,16 +18,17 @@ void MapObject::set_description(std::string desc) {
     // without calling set_affix() anyway. So, I think, its fine to leave it empty?
 }
 
-MapObject::MapObject(bool is_obstacle, ObjectCategory cat, std::string desc) {
-    _is_obstacle = is_obstacle;
-    category = cat;
+MapObject::MapObject(int _eid, bool is_obstacle, ObjectCategory cat, std::string desc)
+    : eid(_eid)
+    , category(cat)
+    , _is_obstacle(is_obstacle)
+    , is_inspected(false) {
     set_description(desc);
-    is_inspected = false;
 }
 
 MapObject::MapObject(
-    bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite)
-    : MapObject(is_obstacle, cat, desc) {
+    int _eid, bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite)
+    : MapObject(_eid, is_obstacle, cat, desc) {
     texture = sprite;
 }
 
@@ -74,20 +75,28 @@ void MapObject::draw(Vector2 pos) {
     if (texture != nullptr) DrawTextureV(*texture, pos, WHITE);
 }
 
-// Base Structure/Building
-Structure::Structure(bool is_obstacle, std::string desc, Texture2D* sprite)
-    : MapObject(is_obstacle, ObjectCategory::structure, desc, sprite) {
+int MapObject::get_entity_id() {
+    return eid;
 }
 
-Structure::Structure(bool is_obstacle, std::string desc)
-    : MapObject(is_obstacle, ObjectCategory::structure, desc) {
+// Base Structure/Building
+Structure::Structure(int _eid, bool is_obstacle, std::string desc, Texture2D* sprite)
+    : MapObject(_eid, is_obstacle, ObjectCategory::structure, desc, sprite) {
+}
+
+Structure::Structure(int _eid, bool is_obstacle, std::string desc)
+    : MapObject(_eid, is_obstacle, ObjectCategory::structure, desc) {
 }
 
 // Treasure
 // Constructor for normal chest
 Treasure::Treasure(
-    bool lock_state, int _money_amount, Texture2D* normal_sprite, Texture2D* empty_sprite)
-    : Structure(true, "Chest", normal_sprite)
+    int _eid,
+    bool lock_state,
+    int _money_amount,
+    Texture2D* normal_sprite,
+    Texture2D* empty_sprite)
+    : Structure(_eid, true, "Chest", normal_sprite)
     , empty_texture(empty_sprite)
     , money_amount(_money_amount)
     , destroy_on_empty(false) {
@@ -97,8 +106,8 @@ Treasure::Treasure(
 
 // Constructor for empty chest. This will allow to save map state, without having
 // to explicitely save all properties of each object.
-Treasure::Treasure(Texture2D* sprite)
-    : Structure(true, "Chest", sprite)
+Treasure::Treasure(int _eid, Texture2D* sprite)
+    : Structure(_eid, true, "Chest", sprite)
     , empty_texture(sprite)
     , _is_locked(false)
     , money_amount(0)
@@ -108,8 +117,8 @@ Treasure::Treasure(Texture2D* sprite)
 }
 
 // Constructor for gold pile. TODO: make it more flexible, to merge with others
-Treasure::Treasure(int _money_amount, Texture2D* sprite)
-    : Structure(false, "Coins", sprite)
+Treasure::Treasure(int _eid, int _money_amount, Texture2D* sprite)
+    : Structure(_eid, false, "Coins", sprite)
     , empty_texture(sprite)
     , _is_locked(false)
     , money_amount(_money_amount)
@@ -118,19 +127,20 @@ Treasure::Treasure(int _money_amount, Texture2D* sprite)
 }
 
 Treasure* Treasure::make_chest(
+    int _eid,
     bool lock_state,
     int money_amount,
     Texture2D* normal_sprite,
     Texture2D* empty_sprite) {
-    return new Treasure(lock_state, money_amount, normal_sprite, empty_sprite);
+    return new Treasure(_eid, lock_state, money_amount, normal_sprite, empty_sprite);
 }
 
-Treasure* Treasure::make_empty_chest(Texture2D* sprite) {
-    return new Treasure(sprite);
+Treasure* Treasure::make_empty_chest(int _eid, Texture2D* sprite) {
+    return new Treasure(_eid, sprite);
 }
 
-Treasure* Treasure::make_coin_pile(int _money_amount, Texture2D* sprite) {
-    return new Treasure(_money_amount, sprite);
+Treasure* Treasure::make_coin_pile(int _eid, int _money_amount, Texture2D* sprite) {
+    return new Treasure(_eid, _money_amount, sprite);
 }
 
 void Treasure::lock() {
@@ -173,6 +183,7 @@ int Treasure::get_reward() {
 
 // Base Creature
 Creature::Creature(
+    int _eid,
     bool is_player,
     bool is_obstacle,
     int hp,
@@ -180,7 +191,7 @@ Creature::Creature(
     std::unordered_map<DefensiveStats, int> _defensive_stats,
     std::string desc,
     Texture2D* sprite)
-    : MapObject(is_obstacle, ObjectCategory::creature, desc, sprite)
+    : MapObject(_eid, is_obstacle, ObjectCategory::creature, desc, sprite)
     , _is_player(is_player)
     , current_hp(hp)
     , max_hp(hp)
@@ -245,8 +256,9 @@ void Creature::increase_stat(int amount, DefensiveStats stat) {
 
 // Player
 // For now, starting stats will be hardcoded
-Player::Player(Texture2D* sprite)
+Player::Player(int _eid, Texture2D* sprite)
     : Creature(
+          _eid,
           true,
           false,
           100,
@@ -298,25 +310,26 @@ give_random_stats(int multiplier) {
 }
 
 Enemy::Enemy(
+    int _eid,
     bool boss,
     int hp,
     std::unordered_map<OffensiveStats, int> offensive_stats,
     std::unordered_map<DefensiveStats, int> defensive_stats,
     std::string desc,
     Texture2D* sprite)
-    : Creature(false, true, hp, offensive_stats, defensive_stats, desc, sprite)
+    : Creature(_eid, false, true, hp, offensive_stats, defensive_stats, desc, sprite)
     , _is_boss(boss) {
     player_collision_event = Event::fight;
 }
 
-Enemy* Enemy::make_enemy(int stats_multiplier, Texture2D* sprite) {
+Enemy* Enemy::make_enemy(int _eid, int stats_multiplier, Texture2D* sprite) {
     auto [hp, offensive, defensive] = give_random_stats(stats_multiplier);
-    return new Enemy(false, hp, offensive, defensive, "Enemy", sprite);
+    return new Enemy(_eid, false, hp, offensive, defensive, "Enemy", sprite);
 }
 
-Enemy* Enemy::make_boss(int stats_multiplier, Texture2D* sprite) {
+Enemy* Enemy::make_boss(int _eid, int stats_multiplier, Texture2D* sprite) {
     auto [hp, offensive, defensive] = give_random_stats(stats_multiplier * 2);
-    return new Enemy(true, hp, offensive, defensive, "Boss", sprite);
+    return new Enemy(_eid, true, hp, offensive, defensive, "Boss", sprite);
 }
 
 bool Enemy::is_boss() {

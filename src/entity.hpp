@@ -54,6 +54,9 @@ private:
     // if is_inspected is true.
     std::string full_description;
 
+    // Entity type id. Set on object creation, used during save/load/mapgen cycle.
+    int eid;
+
 protected:
     ObjectCategory category;
     std::optional<Event> player_collision_event;
@@ -76,8 +79,13 @@ protected:
     void set_texture(Texture2D* texture);
 
 public:
-    MapObject(bool is_obstacle, ObjectCategory cat, std::string desc);
-    MapObject(bool is_obstacle, ObjectCategory cat, std::string desc, Texture2D* sprite);
+    MapObject(int eid, bool is_obstacle, ObjectCategory cat, std::string desc);
+    MapObject(
+        int eid,
+        bool is_obstacle,
+        ObjectCategory cat,
+        std::string desc,
+        Texture2D* sprite);
 
     // Get object's category
     ObjectCategory get_category();
@@ -98,12 +106,14 @@ public:
 
     // Draw
     void draw(Vector2 pos);
+
+    int get_entity_id();
 };
 
 class Structure : public MapObject {
 public:
-    Structure(bool is_obstacle, std::string desc, Texture2D* sprite);
-    Structure(bool is_obstacle, std::string desc);
+    Structure(int eid, bool is_obstacle, std::string desc, Texture2D* sprite);
+    Structure(int eid, bool is_obstacle, std::string desc);
 };
 
 class Treasure : public Structure {
@@ -119,27 +129,29 @@ private:
     void lock();
 
     Treasure(
+        int eid,
         bool lock_state,
         int money_amount,
         Texture2D* normal_sprite,
         Texture2D* empty_sprite);
 
-    Treasure(Texture2D* sprite);
+    Treasure(int eid, Texture2D* sprite);
 
-    Treasure(int money_amount, Texture2D* sprite);
+    Treasure(int eid, int money_amount, Texture2D* sprite);
 
 public:
     bool destroy_on_empty;
 
     static Treasure* make_chest(
+        int eid,
         bool lock_state,
         int money_amount,
         Texture2D* normal_sprite,
         Texture2D* empty_sprite);
 
-    static Treasure* make_empty_chest(Texture2D* sprite);
+    static Treasure* make_empty_chest(int eid, Texture2D* sprite);
 
-    static Treasure* make_coin_pile(int money_amount, Texture2D* sprite);
+    static Treasure* make_coin_pile(int eid, int money_amount, Texture2D* sprite);
 
     // Return money_amount and set it to 0.
     int get_reward();
@@ -161,6 +173,7 @@ public:
     std::unordered_map<DefensiveStats, int> defensive_stats;
 
     Creature(
+        int eid,
         bool is_player,
         bool is_obstacle,
         int hp,
@@ -191,13 +204,14 @@ public:
 class Player : public Creature {
 public:
     int money_amount;
-    Player(Texture2D* sprite);
+    Player(int eid, Texture2D* sprite);
 };
 
 class Enemy : public Creature {
 private:
     bool _is_boss;
     Enemy(
+        int eid,
         bool is_boss,
         int hp,
         std::unordered_map<OffensiveStats, int> offensive_stats,
@@ -206,8 +220,8 @@ private:
         Texture2D* sprite);
 
 public:
-    static Enemy* make_enemy(int stats_multiplier, Texture2D* sprite);
-    static Enemy* make_boss(int stats_multiplier, Texture2D* sprite);
+    static Enemy* make_enemy(int eid, int stats_multiplier, Texture2D* sprite);
+    static Enemy* make_boss(int eid, int stats_multiplier, Texture2D* sprite);
     bool is_boss();
 };
 

@@ -18,6 +18,32 @@ static constexpr Color GRID_COLOR{63, 63, 116, 255};
 static constexpr Color HIGHLIGHT_COLOR{255, 255, 255, 255};
 static constexpr Color ABYSS_COLOR{0, 0, 0, 255};
 
+enum ENTITY_IDS
+{
+    EID_ABYSS,
+    EID_FLOOR,
+    EID_PLAYER,
+    EID_ENTRANCE,
+    EID_EXIT,
+    EID_ENEMY,
+    EID_CHEST,
+    EID_CHEST_EMPTY,
+    EID_COIN_PILE,
+    EID_BOSS
+};
+
+// Things that can't be spawned via color (e.g abyss and player) are not there
+static const std::unordered_map<int, int> VALID_COLORS = {
+    {ColorToInt(Color{203, 219, 252, 255}), EID_FLOOR},
+    {ColorToInt(Color{0, 255, 9, 255}), EID_ENTRANCE},
+    {ColorToInt(Color{0, 242, 255, 255}), EID_EXIT},
+    {ColorToInt(Color{0, 242, 255, 255}), EID_EXIT},
+    {ColorToInt(Color{255, 0, 0, 255}), EID_ENEMY},
+    {ColorToInt(Color{255, 233, 0, 255}), EID_CHEST},
+    {ColorToInt(Color{211, 83, 50, 255}), EID_CHEST_EMPTY},
+    {ColorToInt(Color{255, 185, 112, 255}), EID_COIN_PILE},
+    {ColorToInt(Color{199, 0, 255, 255}), EID_BOSS}};
+
 GameMap::GameMap(Point _map_size, Point _tile_size)
     : map_size(_map_size)
     , tile_size(_tile_size) {
@@ -164,6 +190,10 @@ Point GameMap::get_map_size() {
     return map_size;
 }
 
+size_t GameMap::get_grid_size() {
+    return grid_size;
+}
+
 int GameMap::get_tile_elements_amount(int grid_index) {
     return grid[grid_index].size();
 }
@@ -275,9 +305,12 @@ GameMap* generate_map(
         "coin_pile_tile_1",
         "coin_pile_tile_2"};
 
-    int abyss_id = gm->add_object(new Structure(true, "Abyss"));
-    int floor_id = gm->add_object(
-        new Structure(false, "Floor", &AssetLoader::loader.sprites["floor_tile"]));
+    int abyss_id = gm->add_object(new Structure(EID_ABYSS, true, "Abyss"));
+    int floor_id = gm->add_object(new Structure(
+        EID_FLOOR,
+        false,
+        "Floor",
+        &AssetLoader::loader.sprites["floor_tile"]));
 
     int grid_index = 0;
     for (auto current_y = 0; current_y < map_size.y; current_y++) {
@@ -291,6 +324,7 @@ GameMap* generate_map(
                 gm->place_object(grid_index, floor_id);
                 gm->add_object(
                     new Structure(
+                        EID_ENTRANCE,
                         false,
                         "Entrance",
                         &AssetLoader::loader.sprites["entrance_tile"]),
@@ -301,6 +335,7 @@ GameMap* generate_map(
                 gm->place_object(grid_index, floor_id);
 
                 MapObject* exit = new Structure(
+                    EID_EXIT,
                     false,
                     "Exit",
                     &AssetLoader::loader.sprites["exit_tile"]);
@@ -313,6 +348,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     Enemy::make_enemy(
+                        EID_ENEMY,
                         dungeon_level,
                         &AssetLoader::loader.sprites["enemy_tile"]),
                     grid_index);
@@ -322,6 +358,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     Treasure::make_chest(
+                        EID_CHEST,
                         randbool(),
                         std::max(std::rand() % 100 * dungeon_level, 10 * dungeon_level),
                         &AssetLoader::loader.sprites["treasure_tile_full"],
@@ -333,6 +370,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     Treasure::make_empty_chest(
+                        EID_CHEST_EMPTY,
                         &AssetLoader::loader.sprites["treasure_tile_empty"]),
                     grid_index);
             }
@@ -341,6 +379,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     Treasure::make_coin_pile(
+                        EID_COIN_PILE,
                         std::max(std::rand() % 20 * dungeon_level, 5 * dungeon_level),
                         &AssetLoader::loader.sprites[coin_sprite_names[std::rand() % 3]]),
                     grid_index);
@@ -350,6 +389,7 @@ GameMap* generate_map(
 
                 gm->add_object(
                     Enemy::make_boss(
+                        EID_BOSS,
                         dungeon_level,
                         &AssetLoader::loader.sprites["boss_tile"]),
                     grid_index);
@@ -366,7 +406,8 @@ GameMap* generate_map(
 }
 
 GameMap* generate_map(Image map_file, Point tile_size) {
-    MapObject* player_object = new Player(&AssetLoader::loader.sprites["player_tile"]);
+    MapObject* player_object =
+        new Player(EID_PLAYER, &AssetLoader::loader.sprites["player_tile"]);
 
     return generate_map(map_file, tile_size, 1, player_object);
 }

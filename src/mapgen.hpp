@@ -74,6 +74,7 @@ public:
 
     Point get_tile_size();
     Point get_map_size();
+    size_t get_grid_size();
 
     // Get first tile that contains specified object, or std::nullopt
     std::optional<Point> find_object_tile(int object_id);
