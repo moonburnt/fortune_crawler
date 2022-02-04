@@ -8,14 +8,11 @@
 #include <algorithm>
 #include <optional>
 #include <raylib.h>
+#include <vector>
 // For basic formatting
 #include <fmt/core.h>
 // For fmt::join
 #include <fmt/format.h>
-// Idk where else to put it - for saving/loading map to json
-#include <json-c/json.h>
-
-static constexpr const char* SAVE_PATH = "./save.json";
 
 EventScreen::EventScreen(Rectangle _bg, Color _bg_color)
     : bg(_bg)
@@ -519,92 +516,45 @@ void Level::draw() {
     }
 }
 
-// Save level into json on SAVE_PATH
-// No autosave available yet. TODO
-bool Level::save() {
-    bool success_state = true;
+SavefileFields Level::get_save_data() {
+    SavefileFields data;
 
-    json_object* data = json_object_new_object();
-    if (!data) return false;
+    data.player_stats = {
+        {"current_hp", player_obj->current_hp},
+        {"max_hp", player_obj->max_hp},
+        {"pdmg", player_obj->offensive_stats[OffensiveStats::pdmg]},
+        {"rdmg", player_obj->offensive_stats[OffensiveStats::rdmg]},
+        {"mdmg", player_obj->offensive_stats[OffensiveStats::mdmg]},
+        {"pdef", player_obj->defensive_stats[DefensiveStats::pdef]},
+        {"rdef", player_obj->defensive_stats[DefensiveStats::rdef]},
+        {"mdef", player_obj->defensive_stats[DefensiveStats::mdef]},
+        {"money", player_obj->money_amount}};
 
-    json_object* player_stats = json_object_new_object();
-    json_object_object_add(
-        player_stats,
-        "current_hp",
-        json_object_new_int(player_obj->current_hp));
-    json_object_object_add(
-        player_stats,
-        "max_hp",
-        json_object_new_int(player_obj->max_hp));
-    json_object_object_add(
-        player_stats,
-        "pdmg",
-        json_object_new_int(player_obj->offensive_stats[OffensiveStats::pdmg]));
-    json_object_object_add(
-        player_stats,
-        "rdmg",
-        json_object_new_int(player_obj->offensive_stats[OffensiveStats::rdmg]));
-    json_object_object_add(
-        player_stats,
-        "mdmg",
-        json_object_new_int(player_obj->offensive_stats[OffensiveStats::mdmg]));
-    json_object_object_add(
-        player_stats,
-        "pdef",
-        json_object_new_int(player_obj->defensive_stats[DefensiveStats::pdef]));
-    json_object_object_add(
-        player_stats,
-        "rdef",
-        json_object_new_int(player_obj->defensive_stats[DefensiveStats::rdef]));
-    json_object_object_add(
-        player_stats,
-        "mdef",
-        json_object_new_int(player_obj->defensive_stats[DefensiveStats::mdef]));
-    json_object_object_add(
-        player_stats,
-        "money",
-        json_object_new_int(player_obj->money_amount));
-
-    json_object* dungeon_stats = json_object_new_object();
-    json_object_object_add(dungeon_stats, "lvl", json_object_new_int(dungeon_lvl));
-    // TODO
-    // json_object_object_add(
-    //     dungeon_stats, "lvl", json_object_new_boolean(is_player_turn));
-    json_object_object_add(
-        dungeon_stats,
-        "current_turn",
-        json_object_new_int(current_turn));
-    json_object_object_add(
-        dungeon_stats,
-        "money_collected",
-        json_object_new_int(money_collected));
-    json_object_object_add(
-        dungeon_stats,
-        "enemies_killed",
-        json_object_new_int(enemies_killed));
     // Not saving game over status, since it should be impossible to exit to
     // menu on gameover screen.
+    // Also not saving is_player_turn, since enemy movement is not implemented.
+    data.dungeon_stats = {
+        {"lvl", dungeon_lvl},
+        {"current_turn", current_turn},
+        {"money_collected", money_collected},
+        {"enemies_killed", enemies_killed}};
 
-    json_object* map_layout = json_object_new_array();
-    std::vector<std::vector<int>> layout = map->get_map_layout();
-    for (size_t grid_id = 0; grid_id < layout.size(); grid_id++) {
-        json_object* tile_array = json_object_new_array();
-        for (size_t tile_id = 0; tile_id < layout[grid_id].size(); tile_id++) {
-            json_object_array_add(
-                tile_array,
-                json_object_new_int(layout[grid_id][tile_id]));
-        }
-        json_object_array_add(map_layout, tile_array);
-    }
+    Point map_size = map->get_map_size();
+    Point tile_size = map->get_tile_size();
 
-    json_object_object_add(data, "player_stats", player_stats);
-    json_object_object_add(data, "dungeon_stats", dungeon_stats);
-    json_object_object_add(data, "map_layout", map_layout);
+    data.map_settings = {
+        {"map_x", map_size.x},
+        {"map_y", map_size.y},
+        {"tile_x", tile_size.x},
+        {"tile_y", tile_size.y}};
 
-    if (json_object_to_file(SAVE_PATH, data)) {
-        success_state = false;
-    }
+    data.map_layout = map->get_map_layout();
 
-    json_object_put(data);
-    return success_state;
+    return data;
+}
+
+bool Level::save() {
+    SavefileFields save_data = get_save_data();
+    SettingsManager::manager.savefile = save_data;
+    return SettingsManager::manager.save_level(save_data);
 }

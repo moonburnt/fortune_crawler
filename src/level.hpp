@@ -3,6 +3,7 @@
 #include "mapgen.hpp"
 #include "raylib.h"
 #include "scenes.hpp"
+#include "settings.hpp"
 #include "ui.hpp"
 #include "utility.hpp"
 #include <optional>
@@ -150,6 +151,9 @@ public:
     void kill_enemy(int tile_id, int entity_id);
     void show_gameover();
 
-    // Save level into json on SAVE_PATH
+    // Return data required to save level on disk
+    SavefileFields get_save_data();
+
+    // Save level on disk.
     bool save();
 };

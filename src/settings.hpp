@@ -1,7 +1,17 @@
 #pragma once
 
+#include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
+#include <vector>
+
+struct SavefileFields {
+    std::unordered_map<std::string, int> player_stats;
+    std::unordered_map<std::string, int> dungeon_stats;
+    std::unordered_map<std::string, int> map_settings;
+    std::vector<std::vector<int>> map_layout;
+};
 
 class SettingsManager {
 private:
@@ -21,6 +31,8 @@ private:
 public:
     SettingsManager();
 
+    std::optional<SavefileFields> savefile;
+
     // Load settings from disk. Returns true on success, false on failure
     bool load_settings();
     // Save settings to disk. Same return principle as in loader.
@@ -36,6 +48,12 @@ public:
     void set_show_fps(bool value);
     void set_show_grid(bool value);
     void set_camera_zoom(float value);
+
+    // Save level's data on disk. Returns success state.
+    bool save_level(SavefileFields level_data);
+    // Load level's data from disk.
+    // Idk where else to put it, will leave there for now.
+    SavefileFields load_level();
 
     static SettingsManager manager;
 };

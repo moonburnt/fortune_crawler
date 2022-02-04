@@ -6,10 +6,10 @@
 #include "utility.hpp"
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include <optional>
 #include <string>
 #include <tuple>
-#include <unordered_map>
 #include <vector>
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
@@ -33,10 +33,9 @@ enum ENTITY_IDS
 };
 
 // Things that can't be spawned via color (e.g abyss and player) are not there
-static const std::unordered_map<int, int> VALID_COLORS = {
-    {ColorToInt(Color{203, 219, 252, 255}), EID_FLOOR},
+static const int FLOOR_COLOR = ColorToInt(Color{203, 219, 252, 255});
+static const std::map<int, int> VALID_COLORS = {
     {ColorToInt(Color{0, 255, 9, 255}), EID_ENTRANCE},
-    {ColorToInt(Color{0, 242, 255, 255}), EID_EXIT},
     {ColorToInt(Color{0, 242, 255, 255}), EID_EXIT},
     {ColorToInt(Color{255, 0, 0, 255}), EID_ENEMY},
     {ColorToInt(Color{255, 233, 0, 255}), EID_CHEST},
@@ -309,9 +308,11 @@ void GameMap::draw() {
 }
 
 GameMap* generate_map(
-    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object) {
-    Point map_size = {map_file.width, map_file.height};
-
+    std::vector<std::vector<int>> map_content,
+    Point map_size,
+    Point tile_size,
+    int dungeon_level,
+    MapObject* player_object) {
     GameMap* gm = new GameMap(map_size, tile_size);
 
     static const std::string coin_sprite_names[3] = {
@@ -326,16 +327,23 @@ GameMap* generate_map(
         "Floor",
         &AssetLoader::loader.sprites["floor_tile"]));
 
-    int grid_index = 0;
-    for (auto current_y = 0; current_y < map_size.y; current_y++) {
-        for (auto current_x = 0; current_x < map_size.x; current_x++) {
-            int pix_color = ColorToInt(GetImageColor(map_file, current_x, current_y));
+    bool player_on_grid = false;
+    int entrance_grid_id = -1;
 
-            if (pix_color == ColorToInt(Color{203, 219, 252, 255})) {
+    int grid_index = 0;
+    for (auto tile : map_content) {
+        for (auto item : tile) {
+            switch (item) {
+            case EID_FLOOR: {
                 gm->place_object(grid_index, floor_id);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{0, 255, 9, 255})) {
-                gm->place_object(grid_index, floor_id);
+            case EID_PLAYER: {
+                gm->add_object(player_object, grid_index);
+                player_on_grid = true;
+                break;
+            }
+            case EID_ENTRANCE: {
                 gm->add_object(
                     new Structure(
                         EID_ENTRANCE,
@@ -343,11 +351,10 @@ GameMap* generate_map(
                         "Entrance",
                         &AssetLoader::loader.sprites["entrance_tile"]),
                     grid_index);
-                gm->add_object(player_object, grid_index);
+                entrance_grid_id = grid_index;
+                break;
             }
-            else if (pix_color == ColorToInt(Color{0, 242, 255, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_EXIT: {
                 MapObject* exit = new Structure(
                     EID_EXIT,
                     false,
@@ -356,20 +363,18 @@ GameMap* generate_map(
                 exit->set_player_collision_event(Event::exit_map);
 
                 gm->add_object(exit, grid_index);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{255, 0, 0, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_ENEMY: {
                 gm->add_object(
                     Enemy::make_enemy(
                         EID_ENEMY,
                         dungeon_level,
                         &AssetLoader::loader.sprites["enemy_tile"]),
                     grid_index);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{255, 233, 0, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_CHEST: {
                 gm->add_object(
                     Treasure::make_chest(
                         EID_CHEST,
@@ -378,45 +383,84 @@ GameMap* generate_map(
                         &AssetLoader::loader.sprites["treasure_tile_full"],
                         &AssetLoader::loader.sprites["treasure_tile_empty"]),
                     grid_index);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{211, 83, 50, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_CHEST_EMPTY: {
                 gm->add_object(
                     Treasure::make_empty_chest(
                         EID_CHEST_EMPTY,
                         &AssetLoader::loader.sprites["treasure_tile_empty"]),
                     grid_index);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{255, 185, 112, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_COIN_PILE: {
                 gm->add_object(
                     Treasure::make_coin_pile(
                         EID_COIN_PILE,
                         std::max(std::rand() % 20 * dungeon_level, 5 * dungeon_level),
                         &AssetLoader::loader.sprites[coin_sprite_names[std::rand() % 3]]),
                     grid_index);
+                break;
             }
-            else if (pix_color == ColorToInt(Color{199, 0, 255, 255})) {
-                gm->place_object(grid_index, floor_id);
-
+            case EID_BOSS: {
                 gm->add_object(
                     Enemy::make_boss(
                         EID_BOSS,
                         dungeon_level,
                         &AssetLoader::loader.sprites["boss_tile"]),
                     grid_index);
+                break;
             }
-            else {
+            default: {
                 gm->place_object(grid_index, abyss_id);
+                break;
             }
-
-            grid_index++;
+            }
         }
+        grid_index++;
+    }
+
+    if (!player_on_grid) {
+        gm->add_object(player_object, entrance_grid_id);
     }
 
     return gm;
+}
+
+GameMap* generate_map(
+    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object) {
+    Point map_size = {map_file.width, map_file.height};
+
+    std::vector<std::vector<int>> map_content = {};
+
+    for (auto current_y = 0; current_y < map_size.y; current_y++) {
+        for (auto current_x = 0; current_x < map_size.x; current_x++) {
+            int pix_color = ColorToInt(GetImageColor(map_file, current_x, current_y));
+
+            std::vector<int> tile_content;
+
+            if (pix_color == FLOOR_COLOR) {
+                tile_content = {EID_FLOOR};
+            }
+            else {
+                bool color_found = false;
+                for (auto& kv : VALID_COLORS) {
+                    if (pix_color == kv.first) {
+                        color_found = true;
+                        tile_content = {EID_FLOOR, kv.second};
+                        break;
+                    }
+                }
+                if (!color_found) {
+                    tile_content = {EID_ABYSS};
+                }
+            }
+
+            map_content.push_back(tile_content);
+        }
+    }
+
+    return generate_map(map_content, map_size, tile_size, dungeon_level, player_object);
 }
 
 GameMap* generate_map(Image map_file, Point tile_size) {

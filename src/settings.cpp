@@ -6,6 +6,7 @@
 #include <optional>
 
 static constexpr const char* SETTINGS_PATH = "./settings.json";
+static constexpr const char* SAVE_PATH = "./save.json";
 
 static const std::string KEY_NAMES[8] = {
     "UPLEFT", "UP", "UPRIGHT", "LEFT", "RIGHT", "DOWNLEFT", "DOWN", "DOWNRIGHT"};
@@ -164,4 +165,56 @@ void SettingsManager::set_camera_zoom(float value) {
     // Sane values would be 1.0 -> 3.0, everything bigger would make things render
     // too close. Everything less makes no sense.
     camera_zoom[SettingsCategory::current] = std::clamp(value, 1.0f, 3.0f);
+}
+
+bool SettingsManager::save_level(SavefileFields level_data) {
+    bool success_state = true;
+
+    json_object* data = json_object_new_object();
+    if (!data) return false;
+
+    json_object* player_stats = json_object_new_object();
+    for (auto& kv : level_data.player_stats) {
+        json_object_object_add(
+            player_stats,
+            kv.first.c_str(),
+            json_object_new_int(kv.second));
+    }
+
+    json_object* dungeon_stats = json_object_new_object();
+    for (auto& kv : level_data.dungeon_stats) {
+        json_object_object_add(
+            dungeon_stats,
+            kv.first.c_str(),
+            json_object_new_int(kv.second));
+    }
+
+    json_object* map_settings = json_object_new_object();
+    for (auto& kv : level_data.map_settings) {
+        json_object_object_add(
+            map_settings,
+            kv.first.c_str(),
+            json_object_new_int(kv.second));
+    }
+
+    json_object* map_layout = json_object_new_array();
+    for (auto item : level_data.map_layout) {
+        json_object* tile_array = json_object_new_array();
+        for (auto elem : item) {
+            json_object_array_add(tile_array, json_object_new_int(elem));
+        }
+        json_object_array_add(map_layout, tile_array);
+    }
+
+    json_object_object_add(data, "player_stats", player_stats);
+    json_object_object_add(data, "dungeon_stats", dungeon_stats);
+    json_object_object_add(data, "map_settings", map_settings);
+    json_object_object_add(data, "map_layout", map_layout);
+
+    if (json_object_to_file(SAVE_PATH, data)) {
+        success_state = false;
+    }
+
+    json_object_put(data);
+    return success_state;
 }
