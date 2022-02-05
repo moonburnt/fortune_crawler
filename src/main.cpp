@@ -20,6 +20,7 @@ int main() {
     AssetLoader::loader.load_sprites();
     AssetLoader::loader.load_sounds();
     AssetLoader::loader.load_maps_list();
+    SettingsManager::manager.load_savefile();
 
     SceneManager::sc_mgr.set_default_scene();
     SceneManager::sc_mgr.run_update_loop();

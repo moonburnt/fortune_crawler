@@ -51,9 +51,9 @@ public:
 
     // Save level's data on disk. Returns success state.
     bool save_level(SavefileFields level_data);
-    // Load level's data from disk.
+    // Load level's data from disk. Returns success state.
     // Idk where else to put it, will leave there for now.
-    SavefileFields load_level();
+    bool load_savefile();
 
     static SettingsManager manager;
 };

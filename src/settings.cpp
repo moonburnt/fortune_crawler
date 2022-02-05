@@ -218,3 +218,112 @@ bool SettingsManager::save_level(SavefileFields level_data) {
     json_object_put(data);
     return success_state;
 }
+
+bool SettingsManager::load_savefile() {
+    bool success_state = true;
+
+    static const std::vector<std::string> player_stat_fields =
+        {"current_hp", "max_hp", "pdmg", "rdmg", "mdmg", "pdef", "rdef", "mdef", "money"};
+    static const std::vector<std::string> dungeon_stat_fields =
+        {"lvl", "current_turn", "money_collected", "enemies_killed"};
+
+    static const std::vector<std::string> map_settings_fields =
+        {"map_x", "map_y", "tile_x", "tile_y"};
+
+    json_object* data = json_object_from_file(SAVE_PATH);
+    if (data) {
+        SavefileFields save_data;
+
+        json_object* player_stats;
+        json_object_object_get_ex(data, "player_stats", &player_stats);
+
+        if (json_object_get_type(player_stats) == json_type_object) {
+            for (auto key : player_stat_fields) {
+                std::optional<int> value = get_key(key, player_stats);
+                if (value) {
+                    save_data.player_stats[key] = value.value();
+                }
+                else {
+                    success_state = false;
+                    break;
+                }
+            }
+        }
+        else success_state = false;
+
+        if (success_state) {
+            json_object* dungeon_stats;
+            json_object_object_get_ex(data, "dungeon_stats", &dungeon_stats);
+
+            if (json_object_get_type(dungeon_stats) == json_type_object) {
+                for (auto key : dungeon_stat_fields) {
+                    std::optional<int> value = get_key(key, dungeon_stats);
+                    if (value) {
+                        save_data.dungeon_stats[key] = value.value();
+                    }
+                    else {
+                        success_state = false;
+                        break;
+                    }
+                }
+            }
+            else success_state = false;
+        }
+
+        if (success_state) {
+            json_object* map_settings;
+            json_object_object_get_ex(data, "map_settings", &map_settings);
+
+            if (json_object_get_type(map_settings) == json_type_object) {
+                for (auto key : map_settings_fields) {
+                    std::optional<int> value = get_key(key, map_settings);
+                    if (value) {
+                        save_data.map_settings[key] = value.value();
+                    }
+                    else {
+                        success_state = false;
+                        break;
+                    }
+                }
+            }
+            else success_state = false;
+        }
+
+        if (success_state) {
+            json_object* map_layout;
+            json_object_object_get_ex(data, "map_layout", &map_layout);
+
+            save_data.map_layout = {};
+
+            if (json_object_get_type(map_layout) == json_type_array) {
+                // TODO: stub, no safety checks in this part.
+                for (size_t i = 0lu; i < json_object_array_length(map_layout); i++) {
+                    // I think this will do?
+                    std::vector<int> tile_items = {};
+                    json_object* tile_content = json_object_array_get_idx(map_layout, i);
+                    for (size_t tile_index = 0lu;
+                         tile_index < json_object_array_length(tile_content);
+                         tile_index++) {
+                        tile_items.push_back(json_object_get_int(
+                            json_object_array_get_idx(tile_content, tile_index)));
+                    }
+
+                    save_data.map_layout.push_back(tile_items);
+                }
+            }
+            else success_state = false;
+        }
+
+        if (success_state) {
+            SettingsManager::manager.savefile = save_data;
+        }
+    }
+
+    else {
+        success_state = false;
+    }
+
+    json_object_put(data);
+
+    return success_state;
+}
