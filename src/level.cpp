@@ -215,7 +215,7 @@ void Level::configure_new_map() {
 
 void Level::show_gameover() {
     // TODO: add more stats, like global kills amount or money collected
-    SettingsManager::manager.savefile = std::nullopt;
+    SettingsManager::manager.reset_save();
     static_cast<NotificationScreen*>(game_over_screen)
         ->set_description(fmt::format("Died on level {}", dungeon_lvl));
     game_over = true;
@@ -296,7 +296,6 @@ Level* Level::new_game(SceneManager* p) {
 }
 
 Level* Level::load_save(SceneManager* p, SavefileFields save_data) {
-    SettingsManager::manager.savefile = std::nullopt;
     return new Level(p, save_data);
 }
 

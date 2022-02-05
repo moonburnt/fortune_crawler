@@ -54,6 +54,8 @@ public:
     // Load level's data from disk. Returns success state.
     // Idk where else to put it, will leave there for now.
     bool load_savefile();
+    // Forget savefile in memory and reset save data on disk.
+    void reset_save();
 
     static SettingsManager manager;
 };

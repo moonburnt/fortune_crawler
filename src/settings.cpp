@@ -296,9 +296,8 @@ bool SettingsManager::load_savefile() {
             save_data.map_layout = {};
 
             if (json_object_get_type(map_layout) == json_type_array) {
-                // TODO: stub, no safety checks in this part.
+                // TODO: add safety checks to this part
                 for (size_t i = 0lu; i < json_object_array_length(map_layout); i++) {
-                    // I think this will do?
                     std::vector<int> tile_items = {};
                     json_object* tile_content = json_object_array_get_idx(map_layout, i);
                     for (size_t tile_index = 0lu;
@@ -315,7 +314,7 @@ bool SettingsManager::load_savefile() {
         }
 
         if (success_state) {
-            SettingsManager::manager.savefile = save_data;
+            savefile = save_data;
         }
     }
 
@@ -326,4 +325,12 @@ bool SettingsManager::load_savefile() {
     json_object_put(data);
 
     return success_state;
+}
+
+void SettingsManager::reset_save() {
+    savefile = std::nullopt;
+
+    json_object* data = json_object_new_object();
+    json_object_to_file(SAVE_PATH, data);
+    json_object_put(data);
 }
