@@ -7,6 +7,20 @@
 #include <tuple>
 #include <unordered_map>
 
+enum ENTITY_IDS
+{
+    EID_ABYSS,
+    EID_FLOOR,
+    EID_PLAYER,
+    EID_ENTRANCE,
+    EID_EXIT,
+    EID_ENEMY,
+    EID_CHEST,
+    EID_CHEST_EMPTY,
+    EID_COIN_PILE,
+    EID_BOSS
+};
+
 enum class ObjectCategory
 {
     structure,
@@ -54,10 +68,10 @@ private:
     // if is_inspected is true.
     std::string full_description;
 
+protected:
     // Entity type id. Set on object creation, used during save/load/mapgen cycle.
     int eid;
 
-protected:
     ObjectCategory category;
     std::optional<Event> player_collision_event;
     std::optional<Event> enemy_collision_event;

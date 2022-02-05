@@ -188,23 +188,29 @@ void Level::update_player_stats_hud() {
             player_obj->defensive_stats[DefensiveStats::mdef]));
 }
 
+void Level::reset_level_stats() {
+    current_turn = 0;
+    money_collected = 0;
+    enemies_killed = 0;
+}
+
 void Level::configure_new_map() {
     dungeon_lvl_label.set_text(fmt::format("Dungeon Level: {}", dungeon_lvl));
-
     // This will fail if no player spawns are available
     set_player_tile(map->find_object_tile(map->get_player_id()).value());
     player_pos = map->tile_to_vec(player_tile);
     player_obj = static_cast<Player*>(map->get_object(map->get_player_id()));
     set_camera();
-    is_player_turn = false;
+    // is_player_turn = false;
     force_description_update = false;
     show_tile_description = true;
     turn_switch_timer = new Timer(0.1f);
-    current_turn = 0;
-    money_collected = 0;
-    enemies_killed = 0;
     last_selected_tile = -1;
-    change_turn();
+    // change_turn();
+    is_player_turn = true;
+    turn_label.set_text("Player's Turn");
+    // This may backfire on multiple players
+    turn_num_label.set_text(fmt::format("Current Turn: {}", current_turn));
 }
 
 void Level::show_gameover() {
@@ -214,7 +220,7 @@ void Level::show_gameover() {
     game_over = true;
 }
 
-Level::Level(SceneManager* p)
+Level::Level(SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
     , pause_menu(new PauseScreen(this))
     , game_over(false)
@@ -242,9 +248,54 @@ Level::Level(SceneManager* p)
     }
 
     configure_hud();
-    map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
-    dungeon_lvl = 1;
+    if (set_new_map) {
+        map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
+        dungeon_lvl = 1;
+        reset_level_stats();
+        configure_new_map();
+        update_player_stats_hud();
+    }
+}
+
+Level::Level(SceneManager* p, SavefileFields savefile_data)
+    : Level(p, false) {
+    current_turn = savefile_data.dungeon_stats["current_turn"];
+    money_collected = savefile_data.dungeon_stats["money_collected"];
+    enemies_killed = savefile_data.dungeon_stats["enemies_killed"];
+    dungeon_lvl = savefile_data.dungeon_stats["lvl"];
+
+    map = generate_map(
+        savefile_data.map_layout,
+        Point{savefile_data.map_settings["map_x"], savefile_data.map_settings["map_y"]},
+        Point{savefile_data.map_settings["tile_x"], savefile_data.map_settings["tile_y"]},
+        savefile_data.dungeon_stats["lvl"]);
     configure_new_map();
+
+    player_obj->current_hp = savefile_data.player_stats["current_hp"];
+    player_obj->max_hp = savefile_data.player_stats["max_hp"];
+    player_obj->offensive_stats[OffensiveStats::pdmg] =
+        savefile_data.player_stats["pdmg"];
+    player_obj->offensive_stats[OffensiveStats::rdmg] =
+        savefile_data.player_stats["rdmg"];
+    player_obj->offensive_stats[OffensiveStats::mdmg] =
+        savefile_data.player_stats["mdmg"];
+    player_obj->defensive_stats[DefensiveStats::pdef] =
+        savefile_data.player_stats["pdef"];
+    player_obj->defensive_stats[DefensiveStats::rdef] =
+        savefile_data.player_stats["rdef"];
+    player_obj->defensive_stats[DefensiveStats::mdef] =
+        savefile_data.player_stats["mdef"];
+    player_obj->money_amount = savefile_data.player_stats["money"];
+
+    update_player_stats_hud();
+}
+
+Level* Level::new_game(SceneManager* p) {
+    return new Level(p, true);
+}
+
+Level* Level::load_save(SceneManager* p, SavefileFields save_data) {
+    return new Level(p, save_data);
 }
 
 Level::~Level() {
@@ -264,7 +315,9 @@ void Level::change_map() {
         Point{32, 32},
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
+    reset_level_stats();
     configure_new_map();
+    update_player_stats_hud();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {

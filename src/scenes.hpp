@@ -46,14 +46,20 @@ public:
 // from "back" buttons of submenus, which caused issues
 class MainMenu : public Scene {
 private:
+    enum MM_BUTTONS
+    {
+        MM_NEWGAME,
+        MM_SETTINGS,
+        MM_EXIT,
+        MM_CONTINUE
+    };
+
     SceneManager* parent;
     ButtonStorage buttons;
-    // TextButton start_button;
-    // TextButton settings_button;
-    // TextButton exit_button;
 
     void call_exit();
-    void start_game();
+    void new_game();
+    void load_game();
     void open_settings();
 
 public:

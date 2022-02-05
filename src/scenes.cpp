@@ -199,8 +199,13 @@ void MainMenu::call_exit() {
     parent->active = false;
 }
 
-void MainMenu::start_game() {
-    parent->set_current_scene(new Level(parent));
+void MainMenu::new_game() {
+    parent->set_current_scene(Level::new_game(parent));
+}
+
+void MainMenu::load_game() {
+    parent->set_current_scene(
+        Level::load_save(parent, SettingsManager::manager.savefile.value()));
 }
 
 void MainMenu::open_settings() {
@@ -218,7 +223,7 @@ MainMenu::MainMenu(SceneManager* p) {
         &AssetLoader::loader.sounds["button_hover"],
         &AssetLoader::loader.sounds["button_clicked"],
         Rectangle{0, 0, 256, 64},
-        "Start"));
+        "New Game"));
     buttons.add_button(new TextButton(
         &AssetLoader::loader.sprites["button_default"],
         &AssetLoader::loader.sprites["button_hover"],
@@ -239,13 +244,29 @@ MainMenu::MainMenu(SceneManager* p) {
     float center_x = GetScreenWidth() / 2.0f;
     float center_y = GetScreenHeight() / 2.0f;
 
-    buttons[0]->set_pos(
-        Vector2{center_x - buttons[0]->get_rect().width / 2, center_y - 100});
+    if (SettingsManager::manager.savefile) {
+        buttons.add_button(new TextButton(
+            &AssetLoader::loader.sprites["button_default"],
+            &AssetLoader::loader.sprites["button_hover"],
+            &AssetLoader::loader.sprites["button_pressed"],
+            &AssetLoader::loader.sounds["button_hover"],
+            &AssetLoader::loader.sounds["button_clicked"],
+            Rectangle{0, 0, 256, 64},
+            "Continue"));
 
-    buttons[1]->set_pos(Vector2{center_x - buttons[1]->get_rect().width / 2, center_y});
+        buttons[MM_CONTINUE]->set_pos(Vector2{
+            center_x - buttons[MM_CONTINUE]->get_rect().width / 2,
+            center_y - 200});
+    }
 
-    buttons[2]->set_pos(
-        Vector2{center_x - buttons[2]->get_rect().width / 2, center_y + 100});
+    buttons[MM_NEWGAME]->set_pos(
+        Vector2{center_x - buttons[MM_NEWGAME]->get_rect().width / 2, center_y - 100});
+
+    buttons[MM_SETTINGS]->set_pos(
+        Vector2{center_x - buttons[MM_SETTINGS]->get_rect().width / 2, center_y});
+
+    buttons[MM_EXIT]->set_pos(
+        Vector2{center_x - buttons[MM_EXIT]->get_rect().width / 2, center_y + 100});
 }
 
 void MainMenu::update(float) {
@@ -253,17 +274,21 @@ void MainMenu::update(float) {
     // depending on what happend the last - some valid key press or mouse movement
     buttons.update();
 
-    if (buttons[0]->is_clicked()) {
-        start_game();
+    if (SettingsManager::manager.savefile && buttons[MM_CONTINUE]->is_clicked()) {
+        load_game();
+        return;
+    }
+    if (buttons[MM_NEWGAME]->is_clicked()) {
+        new_game();
         return;
     }
 
-    if (buttons[1]->is_clicked()) {
+    if (buttons[MM_SETTINGS]->is_clicked()) {
         open_settings();
         return;
     }
 
-    if (buttons[2]->is_clicked()) {
+    if (buttons[MM_EXIT]->is_clicked()) {
         call_exit();
         return;
     }

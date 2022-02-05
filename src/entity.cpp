@@ -172,6 +172,7 @@ int Treasure::get_reward() {
         money_amount = 0;
         set_affix("empty");
         set_texture(empty_texture);
+        eid = EID_CHEST_EMPTY;
         player_collision_event = std::nullopt;
     }
     else {

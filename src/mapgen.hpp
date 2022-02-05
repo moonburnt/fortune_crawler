@@ -122,3 +122,8 @@ GameMap* generate_map(
     Point tile_size,
     int dungeon_level,
     MapObject* player_object);
+GameMap* generate_map(
+    std::vector<std::vector<int>> map_content,
+    Point map_size,
+    Point tile_size,
+    int dungeon_level);

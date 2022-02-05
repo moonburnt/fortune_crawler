@@ -44,6 +44,9 @@ private:
         downright,
     };
 
+    Level(SceneManager* p, bool set_new_map);
+    Level(SceneManager* p, SavefileFields save_data);
+
     SceneManager* parent;
     GameMap* map;
     InputController<MovementDirection> input_controller;
@@ -116,6 +119,9 @@ private:
 
     // Set new map and apply related changes.
     void configure_new_map();
+
+    void reset_level_stats();
+
     // Configure interface parts. This should be called on screen resize
     void configure_hud();
 
@@ -126,7 +132,8 @@ public:
     bool show_hud;
     bool is_paused;
 
-    Level(SceneManager* p);
+    static Level* new_game(SceneManager* p);
+    static Level* load_save(SceneManager* p, SavefileFields save_data);
     ~Level();
 
     void update(float dt) override;

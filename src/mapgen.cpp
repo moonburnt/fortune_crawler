@@ -18,20 +18,6 @@ static constexpr Color GRID_COLOR{63, 63, 116, 255};
 static constexpr Color HIGHLIGHT_COLOR{255, 255, 255, 255};
 static constexpr Color ABYSS_COLOR{0, 0, 0, 255};
 
-enum ENTITY_IDS
-{
-    EID_ABYSS,
-    EID_FLOOR,
-    EID_PLAYER,
-    EID_ENTRANCE,
-    EID_EXIT,
-    EID_ENEMY,
-    EID_CHEST,
-    EID_CHEST_EMPTY,
-    EID_COIN_PILE,
-    EID_BOSS
-};
-
 // Things that can't be spawned via color (e.g abyss and player) are not there
 static const int FLOOR_COLOR = ColorToInt(Color{203, 219, 252, 255});
 static const std::map<int, int> VALID_COLORS = {
@@ -425,6 +411,17 @@ GameMap* generate_map(
     }
 
     return gm;
+}
+
+GameMap* generate_map(
+    std::vector<std::vector<int>> map_content,
+    Point map_size,
+    Point tile_size,
+    int dungeon_level) {
+    MapObject* player_object =
+        new Player(EID_PLAYER, &AssetLoader::loader.sprites["player_tile"]);
+
+    return generate_map(map_content, map_size, tile_size, dungeon_level, player_object);
 }
 
 GameMap* generate_map(
