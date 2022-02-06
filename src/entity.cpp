@@ -88,6 +88,12 @@ Structure::Structure(int _eid, bool is_obstacle, std::string desc)
     : MapObject(_eid, is_obstacle, ObjectCategory::structure, desc) {
 }
 
+Structure* Structure::make_exit(int eid, Texture2D* sprite) {
+    Structure* exit_obj = new Structure(eid, false, "Exit", sprite);
+    exit_obj->set_player_collision_event(Event::exit_map);
+    return exit_obj;
+}
+
 // Treasure
 // Constructor for normal chest
 Treasure::Treasure(

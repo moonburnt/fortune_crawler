@@ -341,14 +341,11 @@ GameMap* generate_map(
                 break;
             }
             case EID_EXIT: {
-                MapObject* exit = new Structure(
-                    EID_EXIT,
-                    false,
-                    "Exit",
-                    &AssetLoader::loader.sprites["exit_tile"]);
-                exit->set_player_collision_event(Event::exit_map);
-
-                gm->add_object(exit, grid_index);
+                gm->add_object(
+                    Structure::make_exit(
+                        EID_EXIT,
+                        &AssetLoader::loader.sprites["exit_tile"]),
+                    grid_index);
                 break;
             }
             case EID_ENEMY: {

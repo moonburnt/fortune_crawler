@@ -32,7 +32,10 @@ enum class Event
     exit_map,
     loot,
     lockpick,
-    fight
+    fight,
+    heal,
+    trade,
+    trap
 };
 
 enum class OffensiveStats
@@ -128,6 +131,8 @@ class Structure : public MapObject {
 public:
     Structure(int eid, bool is_obstacle, std::string desc, Texture2D* sprite);
     Structure(int eid, bool is_obstacle, std::string desc);
+
+    static Structure* make_exit(int eid, Texture2D* sprite);
 };
 
 class Treasure : public Structure {

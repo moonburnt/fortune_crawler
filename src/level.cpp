@@ -107,7 +107,6 @@ bool Level::set_new_event() {
     if (scheduled_events.empty()) {
         // This may be inefficient, but will do for now
         current_event_tile_id = std::nullopt;
-        // purge_current_event_screen();
         return false;
     }
 
@@ -116,11 +115,8 @@ bool Level::set_new_event() {
 
     std::tie(current_event_cause, current_event) = scheduled_events.back();
 
-    // purge_current_event_screen();
-
     switch (current_event) {
     case Event::exit_map: {
-        // show_tile_description = false;
         current_event_screen =
             // + 1 coz turns counter is increased after event's completion.
             new CompletionScreen(this, current_turn + 1, money_collected, enemies_killed);
@@ -168,6 +164,9 @@ bool Level::set_new_event() {
         break;
     }
     }
+
+    // Saving after each event may be inefficient, but will do for now.
+    save();
 
     return true;
 }
@@ -217,7 +216,7 @@ void Level::show_gameover() {
     // TODO: add more stats, like global kills amount or money collected
     SettingsManager::manager.reset_save();
     static_cast<NotificationScreen*>(game_over_screen)
-        ->set_description(fmt::format("Died on level {}", dungeon_lvl));
+        ->set_description(fmt::format("Died on level {}", dungeon_lvl), true);
     game_over = true;
 }
 
@@ -255,6 +254,7 @@ Level::Level(SceneManager* p, bool set_new_map)
         reset_level_stats();
         configure_new_map();
         update_player_stats_hud();
+        save();
     }
 }
 
@@ -319,6 +319,7 @@ void Level::change_map() {
     reset_level_stats();
     configure_new_map();
     update_player_stats_hud();
+    save();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {
