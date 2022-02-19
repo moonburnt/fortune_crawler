@@ -13,15 +13,13 @@
 
 // Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
 // who won.
-enum class RPS
-{
+enum class RPS {
     rock,
     paper,
     scissors
 };
 
-enum class MinigameStatus
-{
+enum class MinigameStatus {
     win,
     tie,
     lose

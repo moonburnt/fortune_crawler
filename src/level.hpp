@@ -30,8 +30,7 @@ public:
 
 class Level : public Scene {
 private:
-    enum class MovementDirection
-    {
+    enum class MovementDirection {
         none,
         upleft,
         up,

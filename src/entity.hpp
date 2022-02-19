@@ -7,8 +7,7 @@
 #include <tuple>
 #include <unordered_map>
 
-enum ENTITY_IDS
-{
+enum ENTITY_IDS {
     EID_ABYSS,
     EID_FLOOR,
     EID_PLAYER,
@@ -21,14 +20,12 @@ enum ENTITY_IDS
     EID_BOSS
 };
 
-enum class ObjectCategory
-{
+enum class ObjectCategory {
     structure,
     creature
 };
 
-enum class Event
-{
+enum class Event {
     exit_map,
     loot,
     lockpick,
@@ -38,8 +35,7 @@ enum class Event
     trap
 };
 
-enum class OffensiveStats
-{
+enum class OffensiveStats {
     // Physical Damage
     pdmg,
     // Ranged Damage
@@ -48,8 +44,7 @@ enum class OffensiveStats
     mdmg
 };
 
-enum class DefensiveStats
-{
+enum class DefensiveStats {
     // Physical Defence
     pdef,
     // Ranged Defence

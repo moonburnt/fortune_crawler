@@ -15,8 +15,7 @@ struct SavefileFields {
 
 class SettingsManager {
 private:
-    enum class SettingsCategory
-    {
+    enum class SettingsCategory {
         standard,
         current
     };

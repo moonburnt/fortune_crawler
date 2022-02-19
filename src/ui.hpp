@@ -9,8 +9,7 @@
 #include <vector>
 
 // UI primitives.
-enum class ButtonStates
-{
+enum class ButtonStates {
     idle,
     hover,
     pressed,

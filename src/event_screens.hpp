@@ -74,8 +74,7 @@ public:
 
 class BattleScreen : public EventScreen {
 private:
-    enum class CompletionResult
-    {
+    enum class CompletionResult {
         none,
         win,
         lose

@@ -46,8 +46,7 @@ public:
 // from "back" buttons of submenus, which caused issues
 class MainMenu : public Scene {
 private:
-    enum MM_BUTTONS
-    {
+    enum MM_BUTTONS {
         MM_NEWGAME,
         MM_SETTINGS,
         MM_EXIT,
