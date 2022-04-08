@@ -1,0 +1,6 @@
+TODO.txt
+build/
+settings.json
+save.json
+compile_commands.json
+.cache
