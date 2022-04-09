@@ -24,8 +24,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Prefer new GLVND over OLD
 set(OpenGL_GL_PREFERENCE GLVND)
 
-add_definitions(-Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers)
-
 add_executable(Game
     src/entity.cpp
     src/entity.hpp
@@ -58,19 +56,25 @@ target_include_directories(Game
 )
 
 # Setup raylib
-find_package(raylib REQUIRED)
-target_link_libraries(Game ${raylib_LIBRARIES})
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
+target_link_libraries(Game raylib)
 target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
 
 # Setup fmt
-find_package(fmt REQUIRED)
-target_link_libraries(Game fmt::fmt)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
+target_link_libraries(Game fmt)
 target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 
 # Setup json-c
-find_package(json-c REQUIRED)
-target_link_libraries(Game json-c::json-c)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/json-c")
+target_link_libraries(Game json-c)
 target_include_directories(Game PUBLIC ${json-c_INCLUDE_DIRS})
+
+# Setup Game's compile definitions.
+# This is at the very bottom, coz it will be applied to everything below (and
+# game is compiled the last).
+# TODO: rework this to target_compile_options, which I couldn't make to work
+add_definitions(-Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers)
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}

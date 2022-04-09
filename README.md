@@ -9,6 +9,3 @@ rock-paper-scissors minigame.
 
 - CMake 3.10+
 - clang++ 13.0.1
-- raylib 4.0
-- fmt 8.1.1
-- json-c 0.15
