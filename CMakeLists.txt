@@ -55,6 +55,12 @@ target_include_directories(Game
     "${CMAKE_SOURCE_DIR}/src"
 )
 
+# This is basically the same as add_definitions(), but to be applied only to Game.
+target_compile_options(Game
+    PUBLIC
+    -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
+)
+
 # Setup raylib
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
 target_link_libraries(Game raylib)
@@ -69,12 +75,6 @@ target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/json-c")
 target_link_libraries(Game json-c)
 target_include_directories(Game PUBLIC ${json-c_INCLUDE_DIRS})
-
-# Setup Game's compile definitions.
-# This is at the very bottom, coz it will be applied to everything below (and
-# game is compiled the last).
-# TODO: rework this to target_compile_options, which I couldn't make to work
-add_definitions(-Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers)
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
