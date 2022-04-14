@@ -1,9 +1,6 @@
-[submodule "dependencies/raylib"]
-	path = dependencies/raylib
-	url = https://github.com/raysan5/raylib.git
-[submodule "dependencies/fmt"]
-	path = dependencies/fmt
-	url = https://github.com/fmtlib/fmt.git
 [submodule "dependencies/json-c"]
 	path = dependencies/json-c
 	url = https://github.com/json-c/json-c.git
+[submodule "dependencies/engine"]
+	path = dependencies/engine
+	url = https://github.com/moonburnt/engine.git

@@ -61,15 +61,10 @@ target_compile_options(Game
     -Wall -Wextra -Wpedantic -Werror -Wextra-semi -Wsuggest-override -Wno-missing-field-initializers
 )
 
-# Setup raylib
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/raylib")
-target_link_libraries(Game raylib)
-target_include_directories(Game PUBLIC ${raylib_INCLUDE_DIRS})
-
-# Setup fmt
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/fmt")
-target_link_libraries(Game fmt)
-target_include_directories(Game PUBLIC ${fmt_INCLUDE_DIRS})
+# Setup engine
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/engine")
+target_link_libraries(Game engine)
+target_include_directories(Game PUBLIC ${engine_INCLUDE_DIRS})
 
 # Setup json-c
 add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/json-c")

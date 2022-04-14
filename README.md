@@ -9,3 +9,18 @@ rock-paper-scissors minigame.
 
 - CMake 3.10+
 - clang++ 13.0.1
+
+## Installation
+
+```
+git submodule update --init
+cd dependencies/engine
+git submodule update --init
+cd ..
+cd ..
+mkdir ./build
+cmake . -B ./build
+cmake --build ./build
+```
+
+Build files and game's executable will be generated into ./build directory
