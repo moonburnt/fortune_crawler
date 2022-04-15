@@ -55,7 +55,7 @@ enum class DefensiveStats {
 
 class MapObject {
 private:
-    Texture2D* texture;
+    const Texture2D* texture;
 
     // These things below can probably be done better. TODO
     // Default description of an object.
@@ -88,7 +88,7 @@ protected:
     void set_affix(std::string affix);
 
     // Change/set object's texture.
-    void set_texture(Texture2D* texture);
+    void set_texture(const Texture2D* texture);
 
 public:
     MapObject(int eid, bool is_obstacle, ObjectCategory cat, std::string desc);
@@ -97,7 +97,7 @@ public:
         bool is_obstacle,
         ObjectCategory cat,
         std::string desc,
-        Texture2D* sprite);
+        const Texture2D* sprite);
 
     // Get object's category
     ObjectCategory get_category();
@@ -124,16 +124,16 @@ public:
 
 class Structure : public MapObject {
 public:
-    Structure(int eid, bool is_obstacle, std::string desc, Texture2D* sprite);
+    Structure(int eid, bool is_obstacle, std::string desc, const Texture2D* sprite);
     Structure(int eid, bool is_obstacle, std::string desc);
 
-    static Structure* make_exit(int eid, Texture2D* sprite);
+    static Structure* make_exit(int eid, const Texture2D* sprite);
 };
 
 class Treasure : public Structure {
 private:
     // Texture for looted treasure
-    Texture2D* empty_texture;
+    const Texture2D* empty_texture;
     // Lock state of treasure.
     bool _is_locked;
     // Amount of money inside chest. Added on init.
@@ -146,12 +146,12 @@ private:
         int eid,
         bool lock_state,
         int money_amount,
-        Texture2D* normal_sprite,
-        Texture2D* empty_sprite);
+        const Texture2D* normal_sprite,
+        const Texture2D* empty_sprite);
 
-    Treasure(int eid, Texture2D* sprite);
+    Treasure(int eid, const Texture2D* sprite);
 
-    Treasure(int eid, int money_amount, Texture2D* sprite);
+    Treasure(int eid, int money_amount, const Texture2D* sprite);
 
 public:
     bool destroy_on_empty;
@@ -160,12 +160,12 @@ public:
         int eid,
         bool lock_state,
         int money_amount,
-        Texture2D* normal_sprite,
-        Texture2D* empty_sprite);
+        const Texture2D* normal_sprite,
+        const Texture2D* empty_sprite);
 
-    static Treasure* make_empty_chest(int eid, Texture2D* sprite);
+    static Treasure* make_empty_chest(int eid, const Texture2D* sprite);
 
-    static Treasure* make_coin_pile(int eid, int money_amount, Texture2D* sprite);
+    static Treasure* make_coin_pile(int eid, int money_amount, const Texture2D* sprite);
 
     // Return money_amount and set it to 0.
     int get_reward();
@@ -194,7 +194,7 @@ public:
         std::unordered_map<OffensiveStats, int> offensive_stats,
         std::unordered_map<DefensiveStats, int> defensive_stats,
         std::string desc,
-        Texture2D* sprite);
+        const Texture2D* sprite);
 
     // Returns true if its player, false otherwise
     bool is_player();
@@ -218,7 +218,7 @@ public:
 class Player : public Creature {
 public:
     int money_amount;
-    Player(int eid, Texture2D* sprite);
+    Player(int eid, const Texture2D* sprite);
 };
 
 class Enemy : public Creature {
@@ -231,11 +231,11 @@ private:
         std::unordered_map<OffensiveStats, int> offensive_stats,
         std::unordered_map<DefensiveStats, int> defensive_stats,
         std::string desc,
-        Texture2D* sprite);
+        const Texture2D* sprite);
 
 public:
-    static Enemy* make_enemy(int eid, int stats_multiplier, Texture2D* sprite);
-    static Enemy* make_boss(int eid, int stats_multiplier, Texture2D* sprite);
+    static Enemy* make_enemy(int eid, int stats_multiplier, const Texture2D* sprite);
+    static Enemy* make_boss(int eid, int stats_multiplier, const Texture2D* sprite);
     bool is_boss();
 };
 

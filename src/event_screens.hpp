@@ -1,6 +1,7 @@
 #pragma once
 
 #include "level.hpp"
+#include "engine/ui.hpp"
 #include "raylib.h"
 
 #include <string>
@@ -12,11 +13,12 @@ class NotificationScreen : public EventScreen {
 private:
     Label title_label;
     Label body_label;
-    TextButton close_button;
+    Button* close_button;
 
 public:
     bool complete;
     NotificationScreen(std::string title, std::string body, std::string button_txt);
+    ~NotificationScreen();
 
     void set_title(std::string txt, bool center);
     void set_title(std::string txt);
@@ -32,12 +34,14 @@ class CompletionScreen : public EventScreen {
 private:
     Level* lvl;
     Label completion_label;
-    TextButton next_level_button;
-    Button close_screen_button;
+    Button* next_level_button;
+    Button* close_screen_button;
 
 public:
     CompletionScreen(
         Level* level, int turns_made, int money_collected, int enemies_killed);
+    ~CompletionScreen();
+
     void update() override;
     void draw() override;
 };
@@ -47,14 +51,16 @@ private:
     Level* lvl;
     Treasure* treasure_obj;
     Label title_label;
-    TextButton rock_button;
-    TextButton paper_button;
-    TextButton scissors_button;
+    Button* rock_button;
+    Button* paper_button;
+    Button* scissors_button;
     NotificationScreen result_screen;
     bool complete;
 
 public:
     LockpickScreen(Level* level, Treasure* _treasure_obj);
+    ~LockpickScreen();
+
     void update() override;
     void draw() override;
 };
@@ -63,11 +69,13 @@ class PauseScreen : public EventScreen {
 private:
     Level* lvl;
     Label title_label;
-    TextButton continue_button;
-    TextButton exit_button;
+    Button* continue_button;
+    Button* exit_button;
 
 public:
     PauseScreen(Level* level);
+    ~PauseScreen();
+
     void update() override;
     void draw() override;
 };
@@ -110,13 +118,13 @@ private:
     bool know_everything;
 
     // Rock is physical, paper is ranged, scissors are magic
-    TextButton pdmg_button;
-    TextButton rdmg_button;
-    TextButton mdmg_button;
+    Button* pdmg_button;
+    Button* rdmg_button;
+    Button* mdmg_button;
 
-    TextButton pdef_button;
-    TextButton rdef_button;
-    TextButton mdef_button;
+    Button* pdef_button;
+    Button* rdef_button;
+    Button* mdef_button;
 
     CompletionResult completion_result;
     NotificationScreen result_screen;
@@ -129,6 +137,8 @@ private:
 public:
     BattleScreen(
         Level* level, Player* player, Enemy* enemy, int enemy_tile_id, int enemy_id);
+    ~BattleScreen();
+
     void update() override;
     void draw() override;
 };

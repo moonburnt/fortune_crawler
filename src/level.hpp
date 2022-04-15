@@ -1,11 +1,11 @@
 #pragma once
 
+#include "engine/core.hpp"
 #include "mapgen.hpp"
 #include "raylib.h"
-#include "scenes.hpp"
-#include "settings.hpp"
-#include "ui.hpp"
-#include "utility.hpp"
+#include "menus.hpp"
+#include "loader.hpp"
+#include "common.hpp"
 #include <optional>
 #include <string>
 #include <vector>

@@ -1,7 +1,7 @@
 #include "event_screens.hpp"
 #include "level.hpp"
 #include "raylib.h"
-#include "ui.hpp"
+#include "common.hpp"
 
 // For rand() in RPS minigame
 #include <cstdlib>
@@ -108,15 +108,19 @@ NotificationScreen::NotificationScreen(
               (GetScreenWidth() + 30) / 2.0f,
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
-    , title_label(Label(title, GetScreenWidth() / 2, 50))
-    , body_label(Label(body, GetScreenWidth() / 2, GetScreenHeight() / 2))
+    , title_label(Label(title, {GetScreenWidth() / 2.0f, 50.0f}))
+    , body_label(Label(body, {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}))
     , close_button(make_text_button(button_txt))
     , complete(false) {
     title_label.center();
     body_label.center();
-    close_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - close_button.get_rect().width / 2,
+    close_button->set_pos(Vector2{
+        GetScreenWidth() / 2.0f - close_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f + 200});
+}
+
+NotificationScreen::~NotificationScreen() {
+    delete close_button;
 }
 
 void NotificationScreen::set_title(std::string txt, bool center) {
@@ -138,24 +142,28 @@ void NotificationScreen::set_description(std::string txt) {
 }
 
 void NotificationScreen::set_button_text(std::string txt) {
-    close_button.set_text(txt);
+    close_button->set_text(txt);
 }
 
 void NotificationScreen::update() {
     if (complete) return;
-    close_button.update();
+    close_button->update();
 
-    if (close_button.is_clicked()) complete = true;
+    if (close_button->is_clicked()) {
+        complete = true;
+    }
 }
 
 void NotificationScreen::draw() {
-    if (complete) return;
+    if (complete) {
+        return;
+    }
 
     DrawRectangleRec(bg, SIDE_BG_COLOR);
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
     title_label.draw();
     body_label.draw();
-    close_button.draw();
+    close_button->draw();
 }
 
 // Completion Screen
@@ -176,33 +184,37 @@ CompletionScreen::CompletionScreen(
               turns_made,
               money_collected,
               enemies_killed),
-          GetScreenWidth() / 2,
-          GetScreenHeight() / 2))
+          {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}))
     , next_level_button(make_text_button("Go Deeper!"))
     , close_screen_button(make_close_button()) {
     completion_label.center();
 
-    next_level_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - next_level_button.get_rect().width / 2,
+    next_level_button->set_pos(Vector2{
+        GetScreenWidth() / 2.0f - next_level_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f + 200});
 
-    close_screen_button.set_pos(
-        Vector2{bg.x + bg.width - close_screen_button.get_rect().width, bg.y});
+    close_screen_button->set_pos(
+        Vector2{bg.x + bg.width - close_screen_button->get_rect().width, bg.y});
+}
+
+CompletionScreen::~CompletionScreen() {
+    delete next_level_button;
+    delete close_screen_button;
 }
 
 void CompletionScreen::update() {
     // TODO: add details to completion screen (amount of turns made,
     // enemies killed, etc)
-    next_level_button.update();
-    close_screen_button.update();
+    next_level_button->update();
+    close_screen_button->update();
 
-    if (next_level_button.is_clicked()) {
+    if (next_level_button->is_clicked()) {
         lvl->change_map();
         lvl->complete_event();
         return;
     }
 
-    if (close_screen_button.is_clicked()) {
+    if (close_screen_button->is_clicked()) {
         lvl->complete_event();
         return;
     }
@@ -212,8 +224,8 @@ void CompletionScreen::draw() {
     DrawRectangleRec(bg, SIDE_BG_COLOR);
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
     completion_label.draw();
-    next_level_button.draw();
-    close_screen_button.draw();
+    next_level_button->draw();
+    close_screen_button->draw();
 }
 
 // Lockpick Screen
@@ -229,8 +241,7 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     , treasure_obj(_treasure_obj)
     , title_label(Label(
           "This chest is locked.\nMaybe it has something pricey inside?",
-          GetScreenWidth() / 2,
-          100))
+          {GetScreenWidth() / 2.0f, 100.0f}))
     , rock_button(make_text_button("Use brute force"))
     , paper_button(make_text_button("Try to lockpick"))
     , scissors_button(make_text_button("Cast unlocking magic"))
@@ -238,9 +249,15 @@ LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
     , complete(false) {
     title_label.center();
     float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
-    rock_button.set_pos(Vector2{button_x, 200.0f});
-    paper_button.set_pos(Vector2{button_x, 300.0f});
-    scissors_button.set_pos(Vector2{button_x, 400.0f});
+    rock_button->set_pos(Vector2{button_x, 200.0f});
+    paper_button->set_pos(Vector2{button_x, 300.0f});
+    scissors_button->set_pos(Vector2{button_x, 400.0f});
+}
+
+LockpickScreen::~LockpickScreen() {
+    delete rock_button;
+    delete paper_button;
+    delete scissors_button;
 }
 
 void LockpickScreen::update() {
@@ -253,22 +270,22 @@ void LockpickScreen::update() {
     }
 
     else {
-        rock_button.update();
-        paper_button.update();
-        scissors_button.update();
+        rock_button->update();
+        paper_button->update();
+        scissors_button->update();
 
         bool button_clicked = false;
         RPS rps_value;
 
-        if (rock_button.is_clicked()) {
+        if (rock_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::rock;
         }
-        else if (paper_button.is_clicked()) {
+        else if (paper_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::paper;
         }
-        else if (scissors_button.is_clicked()) {
+        else if (scissors_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::scissors;
         }
@@ -330,9 +347,9 @@ void LockpickScreen::draw() {
 
         title_label.draw();
 
-        rock_button.draw();
-        paper_button.draw();
-        scissors_button.draw();
+        rock_button->draw();
+        paper_button->draw();
+        scissors_button->draw();
     }
 }
 
@@ -346,28 +363,33 @@ PauseScreen::PauseScreen(Level* level)
               (GetScreenHeight() - 60.0f)},
           {0, 0, 0, 0})
     , lvl(level)
-    , title_label(Label("Game Paused", GetScreenWidth() / 2, 160.0f))
+    , title_label(Label("Game Paused", {GetScreenWidth() / 2.0f, 160.0f}))
     , continue_button(make_text_button("Continue"))
     , exit_button(make_text_button("Back to menu")) {
     title_label.center();
-    continue_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - continue_button.get_rect().width / 2,
+    continue_button->set_pos(Vector2{
+        GetScreenWidth() / 2.0f - continue_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f});
-    exit_button.set_pos(Vector2{
-        GetScreenWidth() / 2.0f - exit_button.get_rect().width / 2,
+    exit_button->set_pos(Vector2{
+        GetScreenWidth() / 2.0f - exit_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f + 100});
 }
 
-void PauseScreen::update() {
-    continue_button.update();
-    exit_button.update();
+PauseScreen::~PauseScreen() {
+    delete continue_button;
+    delete exit_button;
+}
 
-    if (continue_button.is_clicked()) {
+void PauseScreen::update() {
+    continue_button->update();
+    exit_button->update();
+
+    if (continue_button->is_clicked()) {
         lvl->is_paused = false;
-        continue_button.reset_state();
+        continue_button->reset_state();
         return;
     }
-    if (exit_button.is_clicked()) {
+    if (exit_button->is_clicked()) {
         lvl->save();
         lvl->exit_to_menu();
         return;
@@ -379,8 +401,8 @@ void PauseScreen::draw() {
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
 
     title_label.draw();
-    continue_button.draw();
-    exit_button.draw();
+    continue_button->draw();
+    exit_button->draw();
 }
 
 // Battle Screen
@@ -462,10 +484,10 @@ BattleScreen::BattleScreen(
     , enemy_id(_enemy_id)
     , is_bossfight(_enemy->is_boss())
     , turn_num(0)
-    , title_label(Label("Battle", GetScreenWidth() / 2, 60))
-    , turn_num_label(Label("", GetScreenWidth() / 2, 90))
-    , turn_phase_label(Label("", GetScreenWidth() / 2, 120))
-    , turn_phase_description(Label("", GetScreenWidth() / 2, 150))
+    , title_label(Label("Battle", {GetScreenWidth() / 2.0f, 60.0f}))
+    , turn_num_label(Label("", {GetScreenWidth() / 2.0f, 90.0f}))
+    , turn_phase_label(Label("", {GetScreenWidth() / 2.0f, 120.0f}))
+    , turn_phase_description(Label("", {GetScreenWidth() / 2.0f, 150.0f}))
     , turn_result(Label(
           "With your trusted weapon, you\nstand before unholy creature",
           Vector2{0.0f, 0.0f}))
@@ -508,13 +530,22 @@ BattleScreen::BattleScreen(
     float button_x = bg.x + (bg.width / 5.0f);
     float button_y = bg.y + (bg.height / 2.0f) / 1.5f;
 
-    pdmg_button.set_pos(Vector2{button_x, button_y});
-    rdmg_button.set_pos(Vector2{button_x, button_y + 100.0f});
-    mdmg_button.set_pos(Vector2{button_x, button_y + 200.0f});
+    pdmg_button->set_pos(Vector2{button_x, button_y});
+    rdmg_button->set_pos(Vector2{button_x, button_y + 100.0f});
+    mdmg_button->set_pos(Vector2{button_x, button_y + 200.0f});
 
-    pdef_button.set_pos(Vector2{button_x, button_y});
-    rdef_button.set_pos(Vector2{button_x, button_y + 100.0f});
-    mdef_button.set_pos(Vector2{button_x, button_y + 200.0f});
+    pdef_button->set_pos(Vector2{button_x, button_y});
+    rdef_button->set_pos(Vector2{button_x, button_y + 100.0f});
+    mdef_button->set_pos(Vector2{button_x, button_y + 200.0f});
+}
+
+BattleScreen::~BattleScreen() {
+    delete pdmg_button;
+    delete rdmg_button;
+    delete mdmg_button;
+    delete pdef_button;
+    delete rdef_button;
+    delete mdef_button;
 }
 
 void BattleScreen::next_phase() {
@@ -601,37 +632,37 @@ void BattleScreen::update() {
     RPS rps_value;
 
     if (is_player_turn) {
-        pdmg_button.update();
-        rdmg_button.update();
-        mdmg_button.update();
+        pdmg_button->update();
+        rdmg_button->update();
+        mdmg_button->update();
 
-        if (pdmg_button.is_clicked()) {
+        if (pdmg_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::rock;
         }
-        else if (rdmg_button.is_clicked()) {
+        else if (rdmg_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::paper;
         }
-        else if (mdmg_button.is_clicked()) {
+        else if (mdmg_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::scissors;
         }
     }
     else {
-        pdef_button.update();
-        rdef_button.update();
-        mdef_button.update();
+        pdef_button->update();
+        rdef_button->update();
+        mdef_button->update();
 
-        if (pdef_button.is_clicked()) {
+        if (pdef_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::rock;
         }
-        else if (rdef_button.is_clicked()) {
+        else if (rdef_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::paper;
         }
-        else if (mdef_button.is_clicked()) {
+        else if (mdef_button->is_clicked()) {
             button_clicked = true;
             rps_value = RPS::scissors;
         }
@@ -766,13 +797,13 @@ void BattleScreen::draw() {
     turn_result.draw();
 
     if (is_player_turn) {
-        pdmg_button.draw();
-        rdmg_button.draw();
-        mdmg_button.draw();
+        pdmg_button->draw();
+        rdmg_button->draw();
+        mdmg_button->draw();
     }
     else {
-        pdef_button.draw();
-        rdef_button.draw();
-        mdef_button.draw();
+        pdef_button->draw();
+        rdef_button->draw();
+        mdef_button->draw();
     }
 }

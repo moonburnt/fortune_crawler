@@ -25,6 +25,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(OpenGL_GL_PREFERENCE GLVND)
 
 add_executable(Game
+    src/shared.cpp
+    src/shared.hpp
+    src/common.cpp
+    src/common.hpp
     src/entity.cpp
     src/entity.hpp
     src/event_screens.cpp
@@ -35,18 +39,8 @@ add_executable(Game
     src/level.hpp
     src/mapgen.cpp
     src/mapgen.hpp
-    src/scenes.cpp
-    src/scenes.hpp
-    src/settings.cpp
-    src/settings.hpp
-    src/sound.cpp
-    src/sound.hpp
-    src/sprite.cpp
-    src/sprite.hpp
-    src/ui.cpp
-    src/ui.hpp
-    src/utility.cpp
-    src/utility.hpp
+    src/menus.cpp
+    src/menus.hpp
     src/main.cpp
 )
 

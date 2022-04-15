@@ -14,10 +14,7 @@ rock-paper-scissors minigame.
 
 ```
 git submodule update --init
-cd dependencies/engine
-git submodule update --init
-cd ..
-cd ..
+git -C dependencies/engine submodule update --init
 mkdir ./build
 cmake . -B ./build
 cmake --build ./build

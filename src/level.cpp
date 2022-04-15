@@ -1,9 +1,9 @@
 #include "level.hpp"
+#include "shared.hpp"
 #include "entity.hpp"
 #include "event_screens.hpp"
 #include "loader.hpp"
-#include "settings.hpp"
-#include "utility.hpp"
+#include "spdlog/spdlog.h"
 
 #include <algorithm>
 #include <optional>
@@ -26,7 +26,9 @@ void Level::center_camera() {
 void Level::set_camera() {
     center_camera();
     Point tile_size = map->get_tile_size();
-    camera.zoom = SettingsManager::manager.get_camera_zoom();
+    // This may look dumb, but toml lib does not support direct float extraction.
+    camera.zoom = static_cast<float>(
+        shared::config.settings["camera_zoom"].value_exact<double>().value());
     camera.offset = Vector2{
         GetScreenWidth() / 2.0f - tile_size.x / 2.0f * camera.zoom,
         GetScreenHeight() / 2.0f - tile_size.y / 2.0f * camera.zoom};
@@ -55,32 +57,32 @@ void Level::configure_hud() {
     right_bg.height = left_bg.height;
 
     // This is nasty but will do for now
-    int left_bg_txt_x = 30;
-    int right_bg_txt_x = right_bg.x + left_bg_txt_x;
-    int bg_txt_starting_y = 30;
-    int bg_text_vert_gap = 30;
+    float left_bg_txt_x = 30;
+    float right_bg_txt_x = right_bg.x + left_bg_txt_x;
+    float bg_txt_starting_y = 30;
+    float bg_text_vert_gap = 30;
 
-    dungeon_lvl_label = Label("", right_bg_txt_x, bg_txt_starting_y);
-    turn_num_label = Label("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
+    dungeon_lvl_label = Label("", {right_bg_txt_x, bg_txt_starting_y});
+    turn_num_label = Label("", {right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
     // text of this one will be overwritten in change_turn()
-    turn_label = Label("", right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2);
+    turn_label = Label("", {right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2});
 
     playground_vec_start.x = left_bg.width;
     playground_vec_start.y = left_bg.y;
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    selected_tile_label = Label("", right_bg_txt_x, GetScreenHeight() - 200);
+    selected_tile_label = Label("", {right_bg_txt_x, GetScreenHeight() - 200.0f});
 
     tile_content_label =
-        Label("", right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap);
+        Label("", {right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap});
 
-    player_info_label = Label("Player Info:", left_bg_txt_x, bg_txt_starting_y);
+    player_info_label = Label("Player Info:", {left_bg_txt_x, bg_txt_starting_y});
     player_currency_label =
-        Label("", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap);
+        Label("", {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
     player_stats_label =
-        Label("", left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3);
-    player_tile_label = Label("", left_bg_txt_x, GetScreenHeight() - 50.0);
+        Label("", {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3});
+    player_tile_label = Label("", {left_bg_txt_x, GetScreenHeight() - 50.0f});
 }
 
 void Level::purge_current_event_screen() {
@@ -214,7 +216,7 @@ void Level::configure_new_map() {
 
 void Level::show_gameover() {
     // TODO: add more stats, like global kills amount or money collected
-    SettingsManager::manager.reset_save();
+    shared::save.reset();
     static_cast<NotificationScreen*>(game_over_screen)
         ->set_description(fmt::format("Died on level {}", dungeon_lvl), true);
     game_over = true;
@@ -222,6 +224,18 @@ void Level::show_gameover() {
 
 Level::Level(SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
+    // Temporary. TODO: rework hud configuration, maybe make vertical containers
+    // work with labels
+    , turn_label("", {})
+    , turn_num_label("", {})
+    , selected_tile_label("", {})
+    , player_info_label("", {})
+    , player_currency_label("", {})
+    , player_tile_label("", {})
+    , tile_content_label("", {})
+    , dungeon_lvl_label("", {})
+    , player_stats_label("", {})
+    // End of TODO
     , pause_menu(new PauseScreen(this))
     , game_over(false)
     , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu"))
@@ -229,7 +243,9 @@ Level::Level(SceneManager* p, bool set_new_map)
     , is_paused(false) {
     parent = p;
 
-    for (auto& kv : SettingsManager::manager.get_controls()) {
+    spdlog::debug("Configuring controls");
+    // for (auto& kv : SettingsManager::manager.get_controls()) {
+    for (auto& kv : *shared::config.settings["controls"].as_table()) {
         // This is hell of a placeholder.
         MovementDirection direction;
         bool has_direction = true;
@@ -244,12 +260,13 @@ Level::Level(SceneManager* p, bool set_new_map)
         else if (kv.first == "DOWNRIGHT") direction = MovementDirection::downright;
         else has_direction = false;
 
-        if (has_direction) input_controller.add_relationship(kv.second, direction);
+        if (has_direction) input_controller.add_relationship(
+            kv.second.value_exact<int64_t>().value(), direction);
     }
 
     configure_hud();
     if (set_new_map) {
-        map = generate_map(AssetLoader::loader.load_random_map(), Point{32, 32});
+        map = generate_map(shared::assets.maps.load_random_map(), Point{32, 32});
         dungeon_lvl = 1;
         reset_level_stats();
         configure_new_map();
@@ -312,7 +329,7 @@ Level::~Level() {
 void Level::change_map() {
     dungeon_lvl++;
     map = generate_map(
-        AssetLoader::loader.load_random_map(),
+        shared::assets.maps.load_random_map(),
         Point{32, 32},
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
@@ -610,6 +627,6 @@ SavefileFields Level::get_save_data() {
 
 bool Level::save() {
     SavefileFields save_data = get_save_data();
-    SettingsManager::manager.savefile = save_data;
-    return SettingsManager::manager.save_level(save_data);
+    shared::save.savefile = save_data;
+    return shared::save.save_level(save_data);
 }
