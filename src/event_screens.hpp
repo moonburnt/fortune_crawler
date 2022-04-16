@@ -32,15 +32,15 @@ public:
 
 class CompletionScreen : public EventScreen {
 private:
-    Level* lvl;
-    Label completion_label;
-    Button* next_level_button;
-    Button* close_screen_button;
+    Label title_label;
+    Label body_label;
+    ButtonStorage buttons;
 
 public:
     CompletionScreen(
-        Level* level, int turns_made, int money_collected, int enemies_killed);
-    ~CompletionScreen();
+        std::function<void()> next_lvl_callback, std::function<void()> close_callback);
+
+    void set_description(std::string);
 
     void update() override;
     void draw() override;

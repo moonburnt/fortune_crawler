@@ -62,27 +62,24 @@ void Level::configure_hud() {
     float bg_txt_starting_y = 30;
     float bg_text_vert_gap = 30;
 
-    dungeon_lvl_label = Label("", {right_bg_txt_x, bg_txt_starting_y});
-    turn_num_label = Label("", {right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
-    // text of this one will be overwritten in change_turn()
-    turn_label = Label("", {right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2});
+    dungeon_lvl_label.set_pos({right_bg_txt_x, bg_txt_starting_y});
+    turn_num_label.set_pos({right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
+    turn_label.set_pos({right_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 2});
 
     playground_vec_start.x = left_bg.width;
     playground_vec_start.y = left_bg.y;
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    selected_tile_label = Label("", {right_bg_txt_x, GetScreenHeight() - 200.0f});
-
-    tile_content_label =
-        Label("", {right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap});
-
-    player_info_label = Label("Player Info:", {left_bg_txt_x, bg_txt_starting_y});
-    player_currency_label =
-        Label("", {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
-    player_stats_label =
-        Label("", {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3});
-    player_tile_label = Label("", {left_bg_txt_x, GetScreenHeight() - 50.0f});
+    selected_tile_label.set_pos({right_bg_txt_x, GetScreenHeight() - 200.0f});
+    tile_content_label.set_pos(
+        {right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap});
+    player_info_label.set_pos({left_bg_txt_x, bg_txt_starting_y});
+    player_currency_label.set_pos(
+        {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
+    player_stats_label.set_pos(
+        {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3});
+    player_tile_label.set_pos({left_bg_txt_x, GetScreenHeight() - 50.0f});
 }
 
 void Level::purge_current_event_screen() {
@@ -119,9 +116,16 @@ bool Level::set_new_event() {
 
     switch (current_event) {
     case Event::exit_map: {
-        current_event_screen =
-            // + 1 coz turns counter is increased after event's completion.
-            new CompletionScreen(this, current_turn + 1, money_collected, enemies_killed);
+        CompletionScreen* cs = new CompletionScreen(
+            std::bind(&Level::change_level, this),
+            std::bind(&Level::complete_event, this));
+        cs->set_description(fmt::format(
+              "Turns made: {}\nMoney collected: {}\nEnemies killed: {}",
+              // + 1 coz turns counter is increased after event's completion.
+              current_turn + 1,
+              money_collected,
+              enemies_killed));
+        current_event_screen = cs;
         break;
     }
 
@@ -229,13 +233,12 @@ Level::Level(SceneManager* p, bool set_new_map)
     , turn_label("", {})
     , turn_num_label("", {})
     , selected_tile_label("", {})
-    , player_info_label("", {})
+    , player_info_label("Player Info:", {})
     , player_currency_label("", {})
     , player_tile_label("", {})
     , tile_content_label("", {})
     , dungeon_lvl_label("", {})
     , player_stats_label("", {})
-    // End of TODO
     , pause_menu(new PauseScreen(this))
     , game_over(false)
     , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu"))
@@ -337,6 +340,11 @@ void Level::change_map() {
     configure_new_map();
     update_player_stats_hud();
     save();
+}
+
+void Level::change_level() {
+    change_map();
+    complete_event();
 }
 
 bool Level::is_vec_on_playground(Vector2 vec) {

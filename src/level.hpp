@@ -142,6 +142,8 @@ public:
     // event (assuming this has been the completed one) from scheduled_events.
     void complete_event();
 
+    void change_level();
+
     // Change existing map to the new one. This should be called to switch the map
     void change_map();
 

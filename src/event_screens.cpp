@@ -168,64 +168,46 @@ void NotificationScreen::draw() {
 
 // Completion Screen
 CompletionScreen::CompletionScreen(
-    Level* level, int turns_made, int money_collected, int enemies_killed)
-    : EventScreen(
-          Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
-              30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
-          {0, 0, 0, 0})
-    , lvl(level)
-    , completion_label(Label(
-          fmt::format(
-              "Level Completed!\n\n"
-              "Turns made: {}\nMoney collected: {}\nEnemies killed: {}",
-              turns_made,
-              money_collected,
-              enemies_killed),
-          {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}))
-    , next_level_button(make_text_button("Go Deeper!"))
-    , close_screen_button(make_close_button()) {
-    completion_label.center();
+    std::function<void()> next_lvl_callback, std::function<void()> close_callback)
+    : EventScreen({
+            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            30,
+            (GetScreenWidth() + 30) / 2.0f,
+            (GetScreenHeight() - 60.0f)},
+        {0, 0, 0, 0})
+    , title_label("Level Cleared!", {GetScreenWidth() / 2.0f, 50.0f})
+    , body_label("", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}) {
+    title_label.center();
 
-    next_level_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - next_level_button->get_rect().width / 2,
+    Button* next_lvl_button = make_text_button("Go Deeper!");
+    next_lvl_button->set_callback(next_lvl_callback);
+    next_lvl_button->set_pos({
+        GetScreenWidth() / 2.0f - next_lvl_button->get_rect().width / 2,
         GetScreenHeight() / 2.0f + 200});
+    buttons.add_button(next_lvl_button);
 
-    close_screen_button->set_pos(
-        Vector2{bg.x + bg.width - close_screen_button->get_rect().width, bg.y});
+    Button* close_button = make_close_button();
+    close_button->set_callback(close_callback);
+    close_button->set_pos(
+        {bg.x + bg.width - close_button->get_rect().width, bg.y});
+    buttons.add_button(close_button);
 }
 
-CompletionScreen::~CompletionScreen() {
-    delete next_level_button;
-    delete close_screen_button;
+void CompletionScreen::set_description(std::string txt) {
+    body_label.set_text(txt);
+    body_label.center();
 }
 
 void CompletionScreen::update() {
-    // TODO: add details to completion screen (amount of turns made,
-    // enemies killed, etc)
-    next_level_button->update();
-    close_screen_button->update();
-
-    if (next_level_button->is_clicked()) {
-        lvl->change_map();
-        lvl->complete_event();
-        return;
-    }
-
-    if (close_screen_button->is_clicked()) {
-        lvl->complete_event();
-        return;
-    }
+    buttons.update();
 }
 
 void CompletionScreen::draw() {
     DrawRectangleRec(bg, SIDE_BG_COLOR);
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
-    completion_label.draw();
-    next_level_button->draw();
-    close_screen_button->draw();
+    title_label.draw();
+    body_label.draw();
+    buttons.draw();
 }
 
 // Lockpick Screen
