@@ -60,10 +60,16 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/engine")
 target_link_libraries(Game engine)
 target_include_directories(Game PUBLIC ${engine_INCLUDE_DIRS})
 
-# Setup json-c
-add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/json-c")
-target_link_libraries(Game json-c)
-target_include_directories(Game PUBLIC ${json-c_INCLUDE_DIRS})
+# Setup nlohmann_json
+add_library(
+    nlohmann_json
+    "${CMAKE_SOURCE_DIR}/dependencies/nlohmann_json/single_include"
+)
+set_target_properties(nlohmann_json PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(nlohmann_json PUBLIC "${CMAKE_SOURCE_DIR}/dependencies/nlohmann_json/single_include")
+target_link_libraries(Game nlohmann_json)
+target_include_directories(Game PUBLIC ${nlohmann_json_INCLUDE_DIRS})
+
 
 add_custom_target(compile_commands
   WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
