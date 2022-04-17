@@ -144,6 +144,9 @@ public:
 
     void change_level();
 
+    void resume();
+    void save_end_exit();
+
     // Change existing map to the new one. This should be called to switch the map
     void change_map();
 

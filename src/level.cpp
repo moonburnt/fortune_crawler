@@ -160,8 +160,10 @@ bool Level::set_new_event() {
 
     case Event::lockpick: {
         current_event_screen = new LockpickScreen(
-            this,
-            static_cast<Treasure*>(map->get_object(current_event_cause)));
+            static_cast<Treasure*>(map->get_object(current_event_cause)),
+            std::bind(&Level::complete_event, this),
+            std::bind(&Level::give_player_money, this, std::placeholders::_1)
+        );
         break;
     }
 
@@ -226,6 +228,15 @@ void Level::show_gameover() {
     game_over = true;
 }
 
+void Level::resume() {
+    is_paused = false;
+}
+
+void Level::save_end_exit() {
+    save();
+    exit_to_menu();
+}
+
 Level::Level(SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
     // Temporary. TODO: rework hud configuration, maybe make vertical containers
@@ -239,7 +250,9 @@ Level::Level(SceneManager* p, bool set_new_map)
     , tile_content_label("", {})
     , dungeon_lvl_label("", {})
     , player_stats_label("", {})
-    , pause_menu(new PauseScreen(this))
+    , pause_menu(new PauseScreen(
+        std::bind(&Level::resume, this),
+        std::bind(&Level::save_end_exit, this)))
     , game_over(false)
     , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu"))
     , show_hud(true)

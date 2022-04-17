@@ -1,4 +1,5 @@
 #include "event_screens.hpp"
+#include "engine/ui.hpp"
 #include "level.hpp"
 #include "raylib.h"
 #include "common.hpp"
@@ -10,6 +11,12 @@
 // For fmt::dynamic_format_arg_store
 #include <fmt/args.h>
 #include <tuple>
+
+enum RPS_BUTTONS {
+    ROCK = 0,
+    PAPER,
+    SCISSORS
+};
 
 // Play rock-paper-scissors against RNGesus. Returns MinigameStatus, based on
 // who won.
@@ -211,111 +218,105 @@ void CompletionScreen::draw() {
 }
 
 // Lockpick Screen
-LockpickScreen::LockpickScreen(Level* level, Treasure* _treasure_obj)
-    : EventScreen(
-          Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
-              30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
-          {0, 0, 0, 0})
-    , lvl(level)
+LockpickScreen::LockpickScreen(
+    Treasure* _treasure_obj,
+    std::function<void()> complete_cb,
+    std::function<void(int)> reward_cb)
+    : EventScreen({
+            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            30,
+            (GetScreenWidth() + 30) / 2.0f,
+            (GetScreenHeight() - 60.0f)},
+        {0, 0, 0, 0})
     , treasure_obj(_treasure_obj)
     , title_label(Label(
-          "This chest is locked.\nMaybe it has something pricey inside?",
-          {GetScreenWidth() / 2.0f, 100.0f}))
-    , rock_button(make_text_button("Use brute force"))
-    , paper_button(make_text_button("Try to lockpick"))
-    , scissors_button(make_text_button("Cast unlocking magic"))
+        "This chest is locked.\nMaybe it has something pricey inside?",
+        {GetScreenWidth() / 2.0f, 100.0f}))
+    , buttons(32.0f)
     , result_screen(NotificationScreen("Lockpick Result", "", "OK"))
-    , complete(false) {
+    , complete(false)
+    , complete_callback(complete_cb)
+    , reward_callback(reward_cb) {
     title_label.center();
-    float button_x = (GetScreenWidth() - GetScreenHeight()) / 2.0f + 30 * 2.0f;
-    rock_button->set_pos(Vector2{button_x, 200.0f});
-    paper_button->set_pos(Vector2{button_x, 300.0f});
-    scissors_button->set_pos(Vector2{button_x, 400.0f});
-}
 
-LockpickScreen::~LockpickScreen() {
-    delete rock_button;
-    delete paper_button;
-    delete scissors_button;
+    buttons.set_pos({GetScreenWidth()/2.0f, GetScreenHeight() / 2.0f});
+
+    buttons.add_button(make_text_button("Use brute force"));
+    buttons.add_button(make_text_button("Try to lockpick"));
+    buttons.add_button(make_text_button("Cast unlocking magic"));
+
+    buttons.center();
 }
 
 void LockpickScreen::update() {
     if (complete) {
         result_screen.update();
         if (result_screen.complete) {
-            lvl->complete_event();
+            complete_callback();
             return;
         }
     }
 
     else {
-        rock_button->update();
-        paper_button->update();
-        scissors_button->update();
+        buttons.update();
 
-        bool button_clicked = false;
         RPS rps_value;
-
-        if (rock_button->is_clicked()) {
-            button_clicked = true;
+        if (buttons[RPS_BUTTONS::ROCK]->is_clicked()) {
             rps_value = RPS::rock;
         }
-        else if (paper_button->is_clicked()) {
-            button_clicked = true;
+        else if (buttons[RPS_BUTTONS::PAPER]->is_clicked()) {
             rps_value = RPS::paper;
         }
-        else if (scissors_button->is_clicked()) {
-            button_clicked = true;
+        else if (buttons[RPS_BUTTONS::SCISSORS]->is_clicked()) {
             rps_value = RPS::scissors;
         }
-
-        if (button_clicked) {
-            auto [status, _] = play_rps(rps_value);
-            switch (status) {
-            case MinigameStatus::win: {
-                int value = treasure_obj->get_reward();
-                result_screen.set_description(
-                    fmt::format(
-                        "With no issues, you've flawlessly unlocked the chest.\n"
-                        "{} coins lying inside were totally worth it!",
-                        value),
-                    true);
-                lvl->give_player_money(value);
-                break;
-            }
-
-            case MinigameStatus::tie: {
-                int value = treasure_obj->get_reward() / 2;
-                result_screen.set_description(
-                    fmt::format(
-                        "You've spent quite a while to unlock the chest, but\n"
-                        "it felt like something has jammed inside. Out of anger,\n"
-                        "you kick it in the back. As chest falls, you hear \n"
-                        "something clicking inside - the very next second, it\n"
-                        "finally opens up. Sadly, you can also hear the sound\n"
-                        "of something metal rolling into darkness...\n"
-                        "But, well - you've still got {} gold from it.",
-                        value),
-                    true);
-                lvl->give_player_money(value);
-                break;
-            }
-
-            case MinigameStatus::lose: {
-                treasure_obj->get_reward();
-                result_screen.set_description(
-                    "You've been busy unlocking the chest for what felt as hours.\n"
-                    "Sadly, when you've finally got inside, you was dissapointed:\n"
-                    "there was nothing but pair of someone's smelly socks.",
-                    true);
-                break;
-            }
-            }
-            complete = true;
+        else {
+            return;
         }
+
+        auto [status, _] = play_rps(rps_value);
+        switch (status) {
+        case MinigameStatus::win: {
+            int value = treasure_obj->get_reward();
+            result_screen.set_description(
+                fmt::format(
+                    "With no issues, you've flawlessly unlocked the chest.\n"
+                    "{} coins lying inside were totally worth it!",
+                    value),
+                true);
+            reward_callback(value);
+            break;
+        }
+
+        case MinigameStatus::tie: {
+            int value = treasure_obj->get_reward() / 2;
+            result_screen.set_description(
+                fmt::format(
+                    "You've spent quite a while to unlock the chest, but\n"
+                    "it felt like something has jammed inside. Out of anger,\n"
+                    "you kick it in the back. As chest falls, you hear \n"
+                    "something clicking inside - the very next second, it\n"
+                    "finally opens up. Sadly, you can also hear the sound\n"
+                    "of something metal rolling into darkness...\n"
+                    "But, well - you've still got {} gold from it.",
+                    value),
+                true);
+            reward_callback(value);
+            break;
+        }
+
+        case MinigameStatus::lose: {
+            treasure_obj->get_reward();
+            result_screen.set_description(
+                "You've been busy unlocking the chest for what felt as hours.\n"
+                "Sadly, when you've finally got inside, you was dissapointed:\n"
+                "there was nothing but pair of someone's smelly socks.",
+                true);
+            break;
+        }
+        }
+        complete = true;
+
     }
 }
 
@@ -328,54 +329,37 @@ void LockpickScreen::draw() {
         DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
 
         title_label.draw();
-
-        rock_button->draw();
-        paper_button->draw();
-        scissors_button->draw();
+        buttons.draw();
     }
 }
 
 // Pause Screen
-PauseScreen::PauseScreen(Level* level)
+PauseScreen::PauseScreen(std::function<void()> resume_cb, std::function<void()> exit_cb)
     : EventScreen(
-          Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
-              30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
-          {0, 0, 0, 0})
-    , lvl(level)
+        {
+            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            30,
+            (GetScreenWidth() + 30) / 2.0f,
+            (GetScreenHeight() - 60.0f)},
+        {0, 0, 0, 0})
     , title_label(Label("Game Paused", {GetScreenWidth() / 2.0f, 160.0f}))
-    , continue_button(make_text_button("Continue"))
-    , exit_button(make_text_button("Back to menu")) {
+    , buttons(32.0f) {
     title_label.center();
-    continue_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - continue_button->get_rect().width / 2,
-        GetScreenHeight() / 2.0f});
-    exit_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - exit_button->get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 100});
-}
 
-PauseScreen::~PauseScreen() {
-    delete continue_button;
-    delete exit_button;
+    Button* resume_button = make_text_button("Continue");
+    resume_button->set_callback(resume_cb);
+    buttons.add_button(resume_button);
+
+    Button* exit_button = make_text_button("Back to menu");
+    exit_button->set_callback(exit_cb);
+    buttons.add_button(exit_button);
+
+    buttons.set_pos({GetScreenWidth()/2.0f, GetScreenHeight() / 2.0f});
+    buttons.center();
 }
 
 void PauseScreen::update() {
-    continue_button->update();
-    exit_button->update();
-
-    if (continue_button->is_clicked()) {
-        lvl->is_paused = false;
-        continue_button->reset_state();
-        return;
-    }
-    if (exit_button->is_clicked()) {
-        lvl->save();
-        lvl->exit_to_menu();
-        return;
-    }
+    buttons.update();
 }
 
 void PauseScreen::draw() {
@@ -383,8 +367,7 @@ void PauseScreen::draw() {
     DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
 
     title_label.draw();
-    continue_button->draw();
-    exit_button->draw();
+    buttons.draw();
 }
 
 // Battle Screen
@@ -483,12 +466,8 @@ BattleScreen::BattleScreen(
     , know_rdef(false)
     , know_mdef(false)
     , know_everything(false)
-    , pdmg_button(make_text_button("Use sword (Physical)"))
-    , rdmg_button(make_text_button("Use bow (Ranged)"))
-    , mdmg_button(make_text_button("Use magic (Magical)"))
-    , pdef_button(make_text_button("Raise shield (Physical)"))
-    , rdef_button(make_text_button("Try to evade (Ranged)"))
-    , mdef_button(make_text_button("Cast protection (Magical)"))
+    , dmg_buttons(32.0f)
+    , def_buttons(32.0f)
     , completion_result(CompletionResult::none)
     , result_screen(NotificationScreen("", "", "")) {
     // TODO: add ambushes where enemy actually start first
@@ -498,36 +477,28 @@ BattleScreen::BattleScreen(
     turn_phase_label.center();
     turn_phase_description.center();
 
-    player_stats.set_pos(Vector2{bg.x + (bg.width / 10.0f), bg.y + bg.height / 2.0f});
-    enemy_stats.set_pos(
-        Vector2{bg.x + (bg.width / 10.0f) * 9.0f, bg.y + bg.height / 2.0f});
+    player_stats.set_pos({bg.x + (bg.width / 10.0f), bg.y + bg.height / 2.0f});
+    enemy_stats.set_pos({bg.x + (bg.width / 10.0f) * 9.0f, bg.y + bg.height / 2.0f});
     update_stats_hud();
     player_stats.center();
     enemy_stats.center();
 
-    turn_result.set_pos(
-        Vector2{bg.x + (bg.width / 5.0f) * 3.0f, bg.y + bg.height / 2.0f});
+    turn_result.set_pos({bg.x + (bg.width / 5.0f) * 3.0f, bg.y + bg.height / 2.0f});
     turn_result.center();
 
     float button_x = bg.x + (bg.width / 5.0f);
     float button_y = bg.y + (bg.height / 2.0f) / 1.5f;
 
-    pdmg_button->set_pos(Vector2{button_x, button_y});
-    rdmg_button->set_pos(Vector2{button_x, button_y + 100.0f});
-    mdmg_button->set_pos(Vector2{button_x, button_y + 200.0f});
+    dmg_buttons.add_button(make_text_button("Use sword (Physical)"));
+    dmg_buttons.add_button(make_text_button("Use bow (Ranged)"));
+    dmg_buttons.add_button(make_text_button("Use magic (Magical)"));
 
-    pdef_button->set_pos(Vector2{button_x, button_y});
-    rdef_button->set_pos(Vector2{button_x, button_y + 100.0f});
-    mdef_button->set_pos(Vector2{button_x, button_y + 200.0f});
-}
+    def_buttons.add_button(make_text_button("Raise shield (Physical)"));
+    def_buttons.add_button(make_text_button("Try to evade (Ranged)"));
+    def_buttons.add_button(make_text_button("Cast protection (Magical)"));
 
-BattleScreen::~BattleScreen() {
-    delete pdmg_button;
-    delete rdmg_button;
-    delete mdmg_button;
-    delete pdef_button;
-    delete rdef_button;
-    delete mdef_button;
+    dmg_buttons.set_pos({button_x, button_y});
+    def_buttons.set_pos({button_x, button_y});
 }
 
 void BattleScreen::next_phase() {
@@ -610,157 +581,140 @@ void BattleScreen::update() {
         return;
     }
 
-    bool button_clicked = false;
     RPS rps_value;
+    ButtonStorage* current_buttons;
 
     if (is_player_turn) {
-        pdmg_button->update();
-        rdmg_button->update();
-        mdmg_button->update();
-
-        if (pdmg_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::rock;
-        }
-        else if (rdmg_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::paper;
-        }
-        else if (mdmg_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::scissors;
-        }
+        current_buttons = &dmg_buttons;
     }
     else {
-        pdef_button->update();
-        rdef_button->update();
-        mdef_button->update();
-
-        if (pdef_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::rock;
-        }
-        else if (rdef_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::paper;
-        }
-        else if (mdef_button->is_clicked()) {
-            button_clicked = true;
-            rps_value = RPS::scissors;
-        }
+        current_buttons = &def_buttons;
     }
 
-    if (button_clicked) {
-        auto [status, their_throw] = play_rps(rps_value);
-        // TODO: result text based on damage type used.
-        std::string result;
-        switch (status) {
-        case MinigameStatus::win: {
-            OffensiveStats dmg_stat = rps_to_offensive(rps_value);
-            int dmg_value;
-            if (is_player_turn) {
-                dmg_value = enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
-                result = fmt::format("You smash the monster for {} dmg!", dmg_value);
-            }
-            else {
-                dmg_value =
-                    enemy->damage(player->offensive_stats[dmg_stat] / 2, dmg_stat);
-                result = fmt::format(
-                    "While creature tries to hit you,\n"
-                    "you find an opening and counter\n"
-                    "its attack, dealing {} dmg to it!\n",
-                    dmg_value);
-            }
-
-            if (!know_everything) {
-                switch (dmg_stat) {
-                case OffensiveStats::pdmg: {
-                    know_pdef = true;
-                    break;
-                }
-                case OffensiveStats::rdmg: {
-                    know_rdef = true;
-                    break;
-                }
-                case OffensiveStats::mdmg: {
-                    know_mdef = true;
-                    break;
-                }
-                }
-            }
-            break;
-        }
-
-        case MinigameStatus::tie: {
-            if (is_player_turn) {
-                result = "You try to hit the beast, but\n"
-                         "it easily shields the strike.";
-            }
-            else {
-                result = "You've guessed enemy's intentions\n"
-                         "correctly and avoided getting hurt.";
-            }
-            break;
-        }
-
-        case MinigameStatus::lose: {
-            OffensiveStats dmg_stat = rps_to_offensive(their_throw);
-            int dmg_value;
-            if (is_player_turn) {
-                dmg_value =
-                    player->damage(enemy->offensive_stats[dmg_stat] / 2, dmg_stat);
-                result = fmt::format(
-                    "As you try to land a perfect hit,\n"
-                    "enemy suddenly strikes back, dealing\n"
-                    "{} damage to you.",
-                    dmg_value);
-            }
-            else {
-                dmg_value = player->damage(enemy->offensive_stats[dmg_stat], dmg_stat);
-                result = fmt::format(
-                    "Your attempt to protect youself\n"
-                    "fails miserably, as beast strikes\n"
-                    "you for {} damage. Shame.",
-                    dmg_value);
-            }
-
-            if (!know_everything) {
-                switch (dmg_stat) {
-                case OffensiveStats::pdmg: {
-                    know_pdmg = true;
-                    break;
-                }
-                case OffensiveStats::rdmg: {
-                    know_rdmg = true;
-                    break;
-                }
-                case OffensiveStats::mdmg: {
-                    know_mdmg = true;
-                    break;
-                }
-                }
-            }
-            break;
-        }
-        }
-
-        update_stats_hud();
-
-        if (player->is_dead()) {
-            show_gameover();
-            return;
-        }
-        else if (enemy->is_dead()) {
-            get_reward();
-            return;
-        }
-
-        result += "\n\nYour enemy stands still.";
-        turn_result.set_text(result);
-        turn_result.center();
-        next_phase();
+    current_buttons->update();
+    if (current_buttons->at(RPS_BUTTONS::ROCK)->is_clicked()) {
+        rps_value = RPS::rock;
     }
+    else if (current_buttons->at(RPS_BUTTONS::PAPER)->is_clicked()) {
+        rps_value = RPS::paper;
+    }
+    else if (current_buttons->at(RPS_BUTTONS::SCISSORS)->is_clicked()) {
+        rps_value = RPS::scissors;
+    }
+    else {
+        return;
+    }
+
+    auto [status, their_throw] = play_rps(rps_value);
+    // TODO: result text based on damage type used.
+    std::string result;
+    switch (status) {
+    case MinigameStatus::win: {
+        OffensiveStats dmg_stat = rps_to_offensive(rps_value);
+        int dmg_value;
+        if (is_player_turn) {
+            dmg_value = enemy->damage(player->offensive_stats[dmg_stat], dmg_stat);
+            result = fmt::format("You smash the monster for {} dmg!", dmg_value);
+        }
+        else {
+            dmg_value =
+                enemy->damage(player->offensive_stats[dmg_stat] / 2, dmg_stat);
+            result = fmt::format(
+                "While creature tries to hit you,\n"
+                "you find an opening and counter\n"
+                "its attack, dealing {} dmg to it!\n",
+                dmg_value);
+        }
+
+        if (!know_everything) {
+            switch (dmg_stat) {
+            case OffensiveStats::pdmg: {
+                know_pdef = true;
+                break;
+            }
+            case OffensiveStats::rdmg: {
+                know_rdef = true;
+                break;
+            }
+            case OffensiveStats::mdmg: {
+                know_mdef = true;
+                break;
+            }
+            }
+        }
+        break;
+    }
+
+    case MinigameStatus::tie: {
+        if (is_player_turn) {
+            result = "You try to hit the beast, but\n"
+                        "it easily shields the strike.";
+        }
+        else {
+            result = "You've guessed enemy's intentions\n"
+                        "correctly and avoided getting hurt.";
+        }
+        break;
+    }
+
+    case MinigameStatus::lose: {
+        OffensiveStats dmg_stat = rps_to_offensive(their_throw);
+        int dmg_value;
+        if (is_player_turn) {
+            dmg_value =
+                player->damage(enemy->offensive_stats[dmg_stat] / 2, dmg_stat);
+            result = fmt::format(
+                "As you try to land a perfect hit,\n"
+                "enemy suddenly strikes back, dealing\n"
+                "{} damage to you.",
+                dmg_value);
+        }
+        else {
+            dmg_value = player->damage(enemy->offensive_stats[dmg_stat], dmg_stat);
+            result = fmt::format(
+                "Your attempt to protect youself\n"
+                "fails miserably, as beast strikes\n"
+                "you for {} damage. Shame.",
+                dmg_value);
+        }
+
+        if (!know_everything) {
+            switch (dmg_stat) {
+            case OffensiveStats::pdmg: {
+                know_pdmg = true;
+                break;
+            }
+            case OffensiveStats::rdmg: {
+                know_rdmg = true;
+                break;
+            }
+            case OffensiveStats::mdmg: {
+                know_mdmg = true;
+                break;
+            }
+            }
+        }
+        break;
+    }
+    }
+
+    update_stats_hud();
+
+    if (player->is_dead()) {
+        show_gameover();
+        return;
+    }
+    else if (enemy->is_dead()) {
+        get_reward();
+        return;
+    }
+
+    result += "\n\nYour enemy stands still.";
+    turn_result.set_text(result);
+    turn_result.center();
+    next_phase();
 }
+
 void BattleScreen::draw() {
     if (completion_result != CompletionResult::none) {
         result_screen.draw();
@@ -779,13 +733,9 @@ void BattleScreen::draw() {
     turn_result.draw();
 
     if (is_player_turn) {
-        pdmg_button->draw();
-        rdmg_button->draw();
-        mdmg_button->draw();
+        dmg_buttons.draw();
     }
     else {
-        pdef_button->draw();
-        rdef_button->draw();
-        mdef_button->draw();
+        def_buttons.draw();
     }
 }

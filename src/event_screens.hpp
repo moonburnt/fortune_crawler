@@ -48,18 +48,19 @@ public:
 
 class LockpickScreen : public EventScreen {
 private:
-    Level* lvl;
     Treasure* treasure_obj;
     Label title_label;
-    Button* rock_button;
-    Button* paper_button;
-    Button* scissors_button;
+    VerticalContainer buttons;
     NotificationScreen result_screen;
     bool complete;
+    std::function<void()> complete_callback;
+    std::function<void(int)> reward_callback;
 
 public:
-    LockpickScreen(Level* level, Treasure* _treasure_obj);
-    ~LockpickScreen();
+    LockpickScreen(
+        Treasure* _treasure_obj,
+        std::function<void()> complete_cb,
+        std::function<void(int)> reward_cb);
 
     void update() override;
     void draw() override;
@@ -67,14 +68,11 @@ public:
 
 class PauseScreen : public EventScreen {
 private:
-    Level* lvl;
     Label title_label;
-    Button* continue_button;
-    Button* exit_button;
+    VerticalContainer buttons;
 
 public:
-    PauseScreen(Level* level);
-    ~PauseScreen();
+    PauseScreen(std::function<void()> resume_cb, std::function<void()> exit_cb);
 
     void update() override;
     void draw() override;
@@ -118,13 +116,15 @@ private:
     bool know_everything;
 
     // Rock is physical, paper is ranged, scissors are magic
-    Button* pdmg_button;
-    Button* rdmg_button;
-    Button* mdmg_button;
+    // Button* pdmg_button;
+    // Button* rdmg_button;
+    // Button* mdmg_button;
 
-    Button* pdef_button;
-    Button* rdef_button;
-    Button* mdef_button;
+    // Button* pdef_button;
+    // Button* rdef_button;
+    // Button* mdef_button;
+    VerticalContainer dmg_buttons;
+    VerticalContainer def_buttons;
 
     CompletionResult completion_result;
     NotificationScreen result_screen;
@@ -135,9 +135,11 @@ private:
     void next_phase();
 
 public:
+    // This still use old pointer access method, coz I didn't find profits from
+    // switching to callbacks to be sufficient enough.
     BattleScreen(
         Level* level, Player* player, Enemy* enemy, int enemy_tile_id, int enemy_id);
-    ~BattleScreen();
+    // ~BattleScreen();
 
     void update() override;
     void draw() override;
