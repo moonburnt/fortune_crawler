@@ -74,8 +74,9 @@ target_include_directories(Game PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 
 
 # Custom command to be used after Game is built
+# This should copy assets and maps into the directory with game's binary
 add_custom_command(TARGET Game POST_BUILD
-    COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
+    COMMAND cp -r ./Assets ./maps "${CMAKE_BINARY_DIR}/game"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
 )
