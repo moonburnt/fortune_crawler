@@ -1,6 +1,6 @@
 # Fortune Crawler
 
-[![Linux Build](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml/badge.svg)](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml)
+[![Linux Build](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml/badge.svg)](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml) [![Windows Build](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_windows.yml/badge.svg)](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_windows.yml)
 
 ## Description
 

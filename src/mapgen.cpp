@@ -7,6 +7,7 @@
 // #include "loader.hpp"
 // #include "utility.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <optional>
@@ -91,13 +92,14 @@ int GameMap::get_player_id() {
 
 std::vector<int>* GameMap::get_tile_content(size_t grid_index) {
     // Protection against out-of-bounds index values
-    grid_index = std::clamp(grid_index, 0lu, grid_size - 1);
+    // I HATE PLATFORM-SPECIFIC SIZES, I HATE PLATFORM-SPECIFIC SIZES
+    grid_index = std::clamp(grid_index, static_cast<size_t>(0), grid_size - 1);
 
     return &grid[grid_index];
 }
 
 std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
-    grid_index = std::clamp(grid_index, 0lu, grid_size - 1);
+    grid_index = std::clamp(grid_index, static_cast<size_t>(0), grid_size - 1);
 
     std::vector<std::string> descriptions;
 
