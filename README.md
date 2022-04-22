@@ -20,4 +20,5 @@ cmake . -B ./build
 cmake --build ./build
 ```
 
-Build files and game's executable will be generated into ./build directory
+Build files will be generated into ./build directory, and Game executable - into
+./build/game (assets will be copied there too)

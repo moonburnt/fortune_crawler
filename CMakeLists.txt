@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# Directory to build executable into
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/game")
 
 # set project name and version
 project(Game
@@ -71,13 +73,22 @@ target_link_libraries(Game nlohmann_json)
 target_include_directories(Game PUBLIC ${nlohmann_json_INCLUDE_DIRS})
 
 
+# Custom command to be used after Game is built
+add_custom_command(TARGET Game POST_BUILD
+    COMMAND cp -r ./Assets "${CMAKE_BINARY_DIR}/game"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMENT "Copying assets to ${CMAKE_BINARY_DIR}/game"
+)
+
+
+# Custom targets to be used instead of --build
 add_custom_target(compile_commands
-  WORKING_DIRECTORY ${CMAKE_BUILD_DIR}
-  BYPRODUCTS ${CMAKE_SOURCE_DIR}/compile_commands.json
-  COMMAND cp -f ./compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json
-  VERBATIM)
+    WORKING_DIRECTORY "${CMAKE_BUILD_DIR}"
+    BYPRODUCTS ${CMAKE_SOURCE_DIR}/compile_commands.json
+    COMMAND cp -f ./compile_commands.json ${CMAKE_SOURCE_DIR}/compile_commands.json
+    VERBATIM)
 
 add_custom_target(format
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-  COMMAND find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
-  VERBATIM)
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    COMMAND find src \( -name '*.cpp' -o -name '*.hpp' \) -exec clang-format -style=file -i {} \;
+    VERBATIM)
