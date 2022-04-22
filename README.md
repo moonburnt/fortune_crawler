@@ -1,5 +1,7 @@
 # Fortune Crawler
 
+[![Linux Build](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml/badge.svg)](https://github.com/moonburnt/fortune_crawler/actions/workflows/build_linux.yml)
+
 ## Description
 
 **Fortune Crawler** - conceptual dungeon crawler where every event is solved via
