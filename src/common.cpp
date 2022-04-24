@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "raylib.h"
 #include "shared.hpp"
 
 Button* make_close_button() {
@@ -34,4 +35,22 @@ Checkbox* make_checkbox(bool default_state) {
         shared::assets.sounds["button_clicked"],
         Rectangle{0, 0, 32, 32},
         default_state);
+}
+
+int get_window_width() {
+    if (IsWindowFullscreen()) {
+        return GetMonitorWidth(GetCurrentMonitor());
+    }
+    else {
+        return GetScreenWidth();
+    }
+}
+
+int get_window_height() {
+    if (IsWindowFullscreen()) {
+        return GetMonitorHeight(GetCurrentMonitor());
+    }
+    else {
+        return GetScreenHeight();
+    }
 }

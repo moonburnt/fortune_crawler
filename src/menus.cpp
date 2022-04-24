@@ -4,6 +4,7 @@
 #include "level.hpp"
 #include "shared.hpp"
 #include "spdlog/spdlog.h"
+#include <array>
 #include <raylib.h>
 #include <functional>
 
@@ -11,7 +12,9 @@
 TitleScreen::TitleScreen(SceneManager* p)
     : parent(p)
     , timer(new Timer(2.0f))
-    , greeter("This game has been made with raylib", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}) {
+    , greeter(
+        "This game has been made with raylib",
+        {get_window_width() / 2.0f, get_window_height() / 2.0f}) {
 
     greeter.center();
     timer->start();
@@ -61,16 +64,14 @@ private:
         save_button->reset_state();
         if (!settings_changed) return;
 
-        shared::config.settings = current_settings;
-        shared::config.save();
-
         fps_cb->reset_state();
         grid_cb->reset_state();
         fullscreen_cb->reset_state();
 
+        spdlog::info("Attempting to apply new settings");
         settings_changed = false;
 
-        if (shared::config.settings["show_fps"].value_exact<bool>().value()) {
+        if (current_settings["show_fps"].value_exact<bool>().value()) {
             if (shared::window.sc_mgr.nodes.count("fps_counter") == 0) {
                 shared::window.sc_mgr.nodes["fps_counter"] = new FrameCounter();
             }
@@ -79,33 +80,43 @@ private:
             shared::window.sc_mgr.nodes.erase("fps_counter");
         }
 
-        if (shared::config.settings["fullscreen"].value_or(false)) {
+        if (current_settings["fullscreen"].value_exact<bool>().value()) {
             if (!IsWindowFullscreen()) {
                 const int current_screen = GetCurrentMonitor();
+                const int screen_width = GetMonitorWidth(current_screen);
+                const int screen_height = GetMonitorHeight(current_screen);
+
                 ToggleFullscreen();
-                SetWindowSize(
-                    GetMonitorWidth(current_screen),
-                    GetMonitorHeight(current_screen));
+                SetWindowSize(screen_width, screen_height);
+
+                // current_settings.insert_or_assign(
+                //     "fullscreen_resolution", toml::array{screen_width, screen_height});
             };
         }
         else {
             if (IsWindowFullscreen()) {
                 SetWindowSize(
-                    shared::config.settings["resolution"][0].value_or(1280),
-                    shared::config.settings["resolution"][1].value_or(720));
+                    current_settings["resolution"][0].value_or(1280),
+                    current_settings["resolution"][1].value_or(720));
                 ToggleFullscreen();
             };
         }
+
+        shared::config.settings = current_settings;
+        shared::config.save();
+
+        spdlog::info("Resetting settings screen");
+        parent->set_current_scene(new SettingsScreen(parent));
     }
 
 public:
     SettingsScreen(SceneManager* p)
         : parent(p)
         , current_settings(shared::config.settings) // this should get copied
-        , title("Settings", {GetScreenWidth() / 2.0f, 30.0f})
+        , title("Settings", {get_window_width() / 2.0f, 30.0f})
         , unsaved_changes_msg(
               "Settings changed. Press save to apply!",
-              {GetScreenWidth() / 2.0f, 60.0f})
+              {get_window_width() / 2.0f, 60.0f})
         , settings_changed(false)
         , save_button(make_text_button("Save"))
         , exit_button(make_close_button())
@@ -123,9 +134,9 @@ public:
         unsaved_changes_msg.center();
 
         save_button->set_pos(
-            {GetScreenWidth() / 2.0f - save_button->get_rect().width / 2.0f,
-             GetScreenHeight() - 100.0f});
-        exit_button->set_pos({static_cast<float>(GetScreenWidth() - (30 + 64)), 30.0f});
+            {get_window_width() / 2.0f - save_button->get_rect().width / 2.0f,
+             get_window_height() - 100.0f});
+        exit_button->set_pos({static_cast<float>(get_window_width() - (30 + 64)), 30.0f});
 
         const float cb_x = 200.0f;
         grid_cb->set_pos({cb_x, 100.0f});
@@ -215,7 +226,7 @@ MainMenu::MainMenu(SceneManager* p)
     : parent(p)
     , buttons(32.0f) {
 
-    buttons.set_pos({GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
 
     if (shared::save.savefile) {
         Button* cont_button = make_text_button("Continue");

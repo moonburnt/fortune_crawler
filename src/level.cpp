@@ -30,8 +30,8 @@ void Level::set_camera() {
     camera.zoom = static_cast<float>(
         shared::config.settings["camera_zoom"].value_exact<double>().value());
     camera.offset = Vector2{
-        GetScreenWidth() / 2.0f - tile_size.x / 2.0f * camera.zoom,
-        GetScreenHeight() / 2.0f - tile_size.y / 2.0f * camera.zoom};
+        get_window_width() / 2.0f - tile_size.x / 2.0f * camera.zoom,
+        get_window_height() / 2.0f - tile_size.y / 2.0f * camera.zoom};
     camera.rotation = 0.0f;
 }
 
@@ -48,10 +48,10 @@ void Level::configure_hud() {
     // Idk how to solve it for now. TODO
     left_bg.x = 0.0f;
     left_bg.y = 0.0f;
-    left_bg.width = (GetScreenWidth() - GetScreenHeight()) / 2.0f;
-    left_bg.height = GetScreenHeight();
+    left_bg.width = (get_window_width() - get_window_height()) / 2.0f;
+    left_bg.height = get_window_height();
 
-    right_bg.x = GetScreenWidth() - left_bg.width;
+    right_bg.x = get_window_width() - left_bg.width;
     right_bg.y = 0.0f;
     right_bg.width = left_bg.width;
     right_bg.height = left_bg.height;
@@ -71,15 +71,15 @@ void Level::configure_hud() {
     playground_vec_end.x = playground_vec_start.x + left_bg.height;
     playground_vec_end.y = playground_vec_start.y + left_bg.height;
 
-    selected_tile_label.set_pos({right_bg_txt_x, GetScreenHeight() - 200.0f});
+    selected_tile_label.set_pos({right_bg_txt_x, get_window_height() - 200.0f});
     tile_content_label.set_pos(
-        {right_bg_txt_x, GetScreenHeight() - 200 + bg_text_vert_gap});
+        {right_bg_txt_x, get_window_height() - 200 + bg_text_vert_gap});
     player_info_label.set_pos({left_bg_txt_x, bg_txt_starting_y});
     player_currency_label.set_pos(
         {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap});
     player_stats_label.set_pos(
         {left_bg_txt_x, bg_txt_starting_y + bg_text_vert_gap * 3});
-    player_tile_label.set_pos({left_bg_txt_x, GetScreenHeight() - 50.0f});
+    player_tile_label.set_pos({left_bg_txt_x, get_window_height() - 50.0f});
 }
 
 void Level::purge_current_event_screen() {

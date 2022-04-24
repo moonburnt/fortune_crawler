@@ -110,20 +110,20 @@ NotificationScreen::NotificationScreen(
     std::string title, std::string body, std::string button_txt)
     : EventScreen(
           Rectangle{
-              ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+              ((get_window_width() - get_window_height()) / 2.0f + 30),
               30,
-              (GetScreenWidth() + 30) / 2.0f,
-              (GetScreenHeight() - 60.0f)},
+              (get_window_width() + 30) / 2.0f,
+              (get_window_height() - 60.0f)},
           {0, 0, 0, 0})
-    , title_label(Label(title, {GetScreenWidth() / 2.0f, 50.0f}))
-    , body_label(Label(body, {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}))
+    , title_label(Label(title, {get_window_width() / 2.0f, 50.0f}))
+    , body_label(Label(body, {get_window_width() / 2.0f, get_window_height() / 2.0f}))
     , close_button(make_text_button(button_txt))
     , complete(false) {
     title_label.center();
     body_label.center();
     close_button->set_pos(Vector2{
-        GetScreenWidth() / 2.0f - close_button->get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 200});
+        get_window_width() / 2.0f - close_button->get_rect().width / 2,
+        get_window_height() / 2.0f + 200});
 }
 
 NotificationScreen::~NotificationScreen() {
@@ -177,20 +177,20 @@ void NotificationScreen::draw() {
 CompletionScreen::CompletionScreen(
     std::function<void()> next_lvl_callback, std::function<void()> close_callback)
     : EventScreen({
-            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
-            (GetScreenWidth() + 30) / 2.0f,
-            (GetScreenHeight() - 60.0f)},
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
         {0, 0, 0, 0})
-    , title_label("Level Cleared!", {GetScreenWidth() / 2.0f, 50.0f})
-    , body_label("", {GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f}) {
+    , title_label("Level Cleared!", {get_window_width() / 2.0f, 50.0f})
+    , body_label("", {get_window_width() / 2.0f, get_window_height() / 2.0f}) {
     title_label.center();
 
     Button* next_lvl_button = make_text_button("Go Deeper!");
     next_lvl_button->set_callback(next_lvl_callback);
     next_lvl_button->set_pos({
-        GetScreenWidth() / 2.0f - next_lvl_button->get_rect().width / 2,
-        GetScreenHeight() / 2.0f + 200});
+        get_window_width() / 2.0f - next_lvl_button->get_rect().width / 2,
+        get_window_height() / 2.0f + 200});
     buttons.add_button(next_lvl_button);
 
     Button* close_button = make_close_button();
@@ -223,15 +223,15 @@ LockpickScreen::LockpickScreen(
     std::function<void()> complete_cb,
     std::function<void(int)> reward_cb)
     : EventScreen({
-            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
-            (GetScreenWidth() + 30) / 2.0f,
-            (GetScreenHeight() - 60.0f)},
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
         {0, 0, 0, 0})
     , treasure_obj(_treasure_obj)
     , title_label(Label(
         "This chest is locked.\nMaybe it has something pricey inside?",
-        {GetScreenWidth() / 2.0f, 100.0f}))
+        {get_window_width() / 2.0f, 100.0f}))
     , buttons(32.0f)
     , result_screen(NotificationScreen("Lockpick Result", "", "OK"))
     , complete(false)
@@ -239,7 +239,7 @@ LockpickScreen::LockpickScreen(
     , reward_callback(reward_cb) {
     title_label.center();
 
-    buttons.set_pos({GetScreenWidth()/2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width()/2.0f, get_window_height() / 2.0f});
 
     buttons.add_button(make_text_button("Use brute force"));
     buttons.add_button(make_text_button("Try to lockpick"));
@@ -337,12 +337,12 @@ void LockpickScreen::draw() {
 PauseScreen::PauseScreen(std::function<void()> resume_cb, std::function<void()> exit_cb)
     : EventScreen(
         {
-            ((GetScreenWidth() - GetScreenHeight()) / 2.0f + 30),
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
-            (GetScreenWidth() + 30) / 2.0f,
-            (GetScreenHeight() - 60.0f)},
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
         {0, 0, 0, 0})
-    , title_label(Label("Game Paused", {GetScreenWidth() / 2.0f, 160.0f}))
+    , title_label(Label("Game Paused", {get_window_width() / 2.0f, 160.0f}))
     , buttons(32.0f) {
     title_label.center();
 
@@ -354,7 +354,7 @@ PauseScreen::PauseScreen(std::function<void()> resume_cb, std::function<void()> 
     exit_button->set_callback(exit_cb);
     buttons.add_button(exit_button);
 
-    buttons.set_pos({GetScreenWidth()/2.0f, GetScreenHeight() / 2.0f});
+    buttons.set_pos({get_window_width()/2.0f, get_window_height() / 2.0f});
     buttons.center();
 }
 
@@ -440,7 +440,7 @@ void BattleScreen::update_stats_hud() {
 BattleScreen::BattleScreen(
     Level* level, Player* _player, Enemy* _enemy, int _enemy_tile_id, int _enemy_id)
     : EventScreen(
-          Rectangle{30.0f, 30.0f, GetScreenWidth() - 60.0f, GetScreenHeight() - 60.0f},
+          Rectangle{30.0f, 30.0f, get_window_width() - 60.0f, get_window_height() - 60.0f},
           {0, 0, 0, 0})
     , lvl(level)
     , player(_player)
@@ -449,10 +449,10 @@ BattleScreen::BattleScreen(
     , enemy_id(_enemy_id)
     , is_bossfight(_enemy->is_boss())
     , turn_num(0)
-    , title_label(Label("Battle", {GetScreenWidth() / 2.0f, 60.0f}))
-    , turn_num_label(Label("", {GetScreenWidth() / 2.0f, 90.0f}))
-    , turn_phase_label(Label("", {GetScreenWidth() / 2.0f, 120.0f}))
-    , turn_phase_description(Label("", {GetScreenWidth() / 2.0f, 150.0f}))
+    , title_label(Label("Battle", {get_window_width() / 2.0f, 60.0f}))
+    , turn_num_label(Label("", {get_window_width() / 2.0f, 90.0f}))
+    , turn_phase_label(Label("", {get_window_width() / 2.0f, 120.0f}))
+    , turn_phase_description(Label("", {get_window_width() / 2.0f, 150.0f}))
     , turn_result(Label(
           "With your trusted weapon, you\nstand before unholy creature",
           Vector2{0.0f, 0.0f}))
