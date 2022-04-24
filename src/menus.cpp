@@ -64,9 +64,13 @@ private:
         save_button->reset_state();
         if (!settings_changed) return;
 
-        fps_cb->reset_state();
-        grid_cb->reset_state();
-        fullscreen_cb->reset_state();
+        current_settings.insert_or_assign("show_grid", grid_cb->get_toggle());
+        current_settings.insert_or_assign("show_fps", fps_cb->get_toggle());
+        current_settings.insert_or_assign("fullscreen", fullscreen_cb->get_toggle());
+
+        // fps_cb->reset_state();
+        // grid_cb->reset_state();
+        // fullscreen_cb->reset_state();
 
         spdlog::info("Attempting to apply new settings");
         settings_changed = false;
@@ -168,19 +172,12 @@ public:
             return;
         }
 
-        if (grid_cb->is_clicked()) {
-            current_settings.insert_or_assign("show_grid", grid_cb->get_toggle());
+        if (grid_cb->is_clicked() || fps_cb->is_clicked() || fullscreen_cb->is_clicked()) {
             settings_changed = true;
         }
-        else if (fps_cb->is_clicked()) {
-            current_settings.insert_or_assign("show_fps", fps_cb->get_toggle());
-            settings_changed = true;
+        else {
+            settings_changed = false;
         }
-        else if (fullscreen_cb->is_clicked()) {
-            current_settings.insert_or_assign("fullscreen", fullscreen_cb->get_toggle());
-            settings_changed = true;
-        }
-        else settings_changed = false;
     }
 
     void draw() override {
