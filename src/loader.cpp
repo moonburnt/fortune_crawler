@@ -89,14 +89,22 @@ bool SaveManager::load() {
 
     try {
         file >> data;
+    }
+    catch (const nlohmann::detail::parse_error& err) {
+        spdlog::warn(err.what());
 
+        return false;
+    }
+
+    try {
         save_data = {
             data["player_stats"],
             data["dungeon_stats"],
             data["map_settings"],
             data["map_layout"]
         };
-    } catch (const nlohmann::detail::parse_error& err) {
+    }
+    catch (const nlohmann::detail::type_error& err) {
         spdlog::warn(err.what());
 
         return false;
