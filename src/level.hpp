@@ -146,6 +146,7 @@ public:
 
     void resume();
     void save_end_exit();
+    void restart();
 
     // Change existing map to the new one. This should be called to switch the map
     void change_map();

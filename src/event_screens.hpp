@@ -40,11 +40,28 @@ public:
     CompletionScreen(
         std::function<void()> next_lvl_callback, std::function<void()> close_callback);
 
-    void set_description(std::string);
+    void set_description(std::string txt);
 
     void update() override;
     void draw() override;
 };
+
+class GameoverScreen : public EventScreen {
+private:
+    Label title_label;
+    Label body_label;
+    VerticalContainer buttons;
+
+public:
+    GameoverScreen(
+        std::function<void()> restart_callback, std::function<void()> close_callback);
+
+    void set_description(std::string txt);
+
+    void update() override;
+    void draw() override;
+};
+
 
 class LockpickScreen : public EventScreen {
 private:

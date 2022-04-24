@@ -6,6 +6,7 @@
 #include "spdlog/spdlog.h"
 
 #include <algorithm>
+#include <functional>
 #include <optional>
 #include <raylib.h>
 #include <vector>
@@ -223,8 +224,8 @@ void Level::configure_new_map() {
 void Level::show_gameover() {
     // TODO: add more stats, like global kills amount or money collected
     shared::save.reset();
-    static_cast<NotificationScreen*>(game_over_screen)
-        ->set_description(fmt::format("Died on level {}", dungeon_lvl), true);
+    static_cast<GameoverScreen*>(game_over_screen)
+        ->set_description(fmt::format("Died on level {}", dungeon_lvl));
     game_over = true;
 }
 
@@ -235,6 +236,11 @@ void Level::resume() {
 void Level::save_end_exit() {
     save();
     exit_to_menu();
+}
+
+void Level::restart() {
+    spdlog::info("Resetting the game");
+    parent->set_current_scene(Level::new_game(parent));
 }
 
 Level::Level(SceneManager* p, bool set_new_map)
@@ -254,7 +260,10 @@ Level::Level(SceneManager* p, bool set_new_map)
         std::bind(&Level::resume, this),
         std::bind(&Level::save_end_exit, this)))
     , game_over(false)
-    , game_over_screen(new NotificationScreen("Game Over", "", "Back to Menu"))
+    , game_over_screen(new GameoverScreen(
+        std::bind(&Level::restart, this),
+        std::bind(&Level::exit_to_menu, this)
+    ))
     , show_hud(true)
     , is_paused(false) {
     parent = p;
@@ -493,10 +502,7 @@ void Level::handle_player_movement() {
 void Level::update(float dt) {
     if (game_over) {
         game_over_screen->update();
-        if (static_cast<NotificationScreen*>(game_over_screen)->complete) {
-            exit_to_menu();
-            return;
-        }
+        return;
     }
 
     if (IsKeyPressed(KEY_ESCAPE)) {

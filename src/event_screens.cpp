@@ -217,6 +217,53 @@ void CompletionScreen::draw() {
     buttons.draw();
 }
 
+// Gameover Screen
+// TODO: maybe merge it with some other, or something
+// I did not reuse CompletionScreen on purpose, since this one may also include
+// additional elements later, such as leaderboard
+GameoverScreen::GameoverScreen(
+    std::function<void()> restart_callback, std::function<void()> close_callback)
+    : EventScreen({
+            ((get_window_width() - get_window_height()) / 2.0f + 30),
+            30,
+            (get_window_width() + 30) / 2.0f,
+            (get_window_height() - 60.0f)},
+        {0, 0, 0, 0})
+    , title_label("Game Over", {get_window_width() / 2.0f, 50.0f})
+    , body_label("", {get_window_width() / 2.0f, get_window_height() / 2.0f})
+    , buttons(32.0f) {
+    title_label.center();
+
+    buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f + 200});
+
+    Button* restart_button = make_text_button("Restart");
+    restart_button->set_callback(restart_callback);
+    buttons.add_button(restart_button);
+
+    Button* close_button = make_text_button("Back to Menu");
+    close_button->set_callback(close_callback);
+    buttons.add_button(close_button);
+
+    buttons.center();
+}
+
+void GameoverScreen::set_description(std::string txt) {
+    body_label.set_text(txt);
+    body_label.center();
+}
+
+void GameoverScreen::update() {
+    buttons.update();
+}
+
+void GameoverScreen::draw() {
+    DrawRectangleRec(bg, SIDE_BG_COLOR);
+    DrawRectangleLinesEx(bg, 1.0f, CORNER_COLOR);
+    title_label.draw();
+    body_label.draw();
+    buttons.draw();
+}
+
 // Lockpick Screen
 LockpickScreen::LockpickScreen(
     Treasure* _treasure_obj,
