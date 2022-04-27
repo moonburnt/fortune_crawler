@@ -22,6 +22,8 @@ class MainMenu : public Scene {
 private:
     SceneManager* parent;
     VerticalContainer buttons;
+    const Texture2D* logo;
+    Vector2 logo_pos;
 
     void call_exit();
     void load_game();

@@ -16,7 +16,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-O2)
 else()
     message("---- DEBUG MODE ----")
-    add_definitions(-DDEBUG -O0 -g)
+    #add_definitions(-DDEBUG -O0 -g)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
