@@ -13,17 +13,17 @@ const float logo_scale = 2.0f;
 // Title Screen
 TitleScreen::TitleScreen(SceneManager* p)
     : parent(p)
-    , timer(new Timer(2.0f))
+    , timer(Timer(2.0f))
     , greeter(
         "This game has been made with raylib",
         {get_window_width() / 2.0f, get_window_height() / 2.0f}) {
 
     greeter.center();
-    timer->start();
+    timer.start();
 }
 
 void TitleScreen::update(float dt) {
-    if (timer->tick(dt)) {
+    if (timer.tick(dt)) {
         parent->set_current_scene(new MainMenu(parent));
     }
 }

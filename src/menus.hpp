@@ -8,7 +8,7 @@
 class TitleScreen : public Scene {
 private:
     SceneManager* parent;
-    Timer* timer;
+    Timer timer;
     Label greeter;
 
 public:
