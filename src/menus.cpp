@@ -8,7 +8,7 @@
 #include <raylib.h>
 #include <functional>
 
-const float logo_scale = 2.0f;
+const float logo_scale = 1.0f;
 
 // Title Screen
 TitleScreen::TitleScreen(App* app, SceneManager* p)
@@ -231,7 +231,12 @@ MainMenu::MainMenu(App* app, SceneManager* p)
     , parent(p)
     , buttons(32.0f)
     , logo(app->assets.sprites["logo"])
-    , logo_pos({(get_window_width() - logo->width * logo_scale) / 2.0f, 0.0f}) {
+    , logo_pos({(get_window_width() - logo->width * logo_scale) / 2.0f, 10.0f})
+    , copyright(
+        "", // TODO
+        {get_window_width() / 2.0f, get_window_height() - 30.0f}) {
+
+    copyright.center();
 
     buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
 
@@ -267,6 +272,7 @@ void MainMenu::update(float) {
 
 void MainMenu::draw() {
     DrawTextureEx(*logo, logo_pos, 0.0f, logo_scale, WHITE);
+    copyright.draw();
     buttons.draw();
 }
 

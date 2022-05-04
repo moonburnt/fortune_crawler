@@ -28,6 +28,7 @@ private:
     VerticalContainer buttons;
     const Texture2D* logo;
     Vector2 logo_pos;
+    Label copyright;
 
     void call_exit();
     void load_game();
