@@ -12,6 +12,7 @@
 struct AssetLoader {
     SpriteStorage sprites;
     SoundStorage sounds;
+    MusicStorage music;
     MapLoader maps;
 };
 

@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include <optional>
+#include "engine/storage.hpp"
 
 // TODO: maybe rework it to storage-based thingy?
 class MapLoader {
@@ -50,3 +51,8 @@ public:
     void reset();
 };
 
+class MusicStorage : public Storage<Music> {
+public:
+    void load(std::string path, std::string extension) override;
+    ~MusicStorage();
+};

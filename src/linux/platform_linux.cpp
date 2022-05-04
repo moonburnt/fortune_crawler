@@ -16,6 +16,10 @@ std::string PlatformLinux::get_sounds_dir() {
     return get_resource_dir() + "SFX/";
 }
 
+std::string PlatformLinux::get_music_dir() {
+    return get_resource_dir() + "Music/";
+}
+
 std::string PlatformLinux::get_settings_dir() {
     return "./";
 }

@@ -6,6 +6,7 @@
 #include "spdlog/spdlog.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <raylib.h>
@@ -249,6 +250,7 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
     , app(app)
     , parent(p)
+    , soundtrack(app->assets.music["level"])
     // Temporary. TODO: rework hud configuration, maybe make vertical containers
     // work with labels
     , turn_label("", {})
@@ -295,6 +297,11 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
     }
 
     configure_hud();
+
+    if (!IsMusicStreamPlaying(*soundtrack)) {
+        PlayMusicStream(*soundtrack);
+    }
+
     if (set_new_map) {
         map = generate_map(app, app->assets.maps.load_random_map(), {32, 32});
         dungeon_lvl = 1;
@@ -303,6 +310,18 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
         update_player_stats_hud();
         save();
     }
+
+    // Set music stream's volume
+    float volume = std::clamp(
+        static_cast<int>(
+            app->config->settings["music_volume"].value_exact<int64_t>().value()),
+        0, 100) / 100.0f;
+
+    SetMusicVolume(*soundtrack, volume);
+
+    spdlog::debug("Soundtrack's volume has been set to {}", volume);
+    // Reset music stream to the beginning
+    SeekMusicStream(*soundtrack, 0.0f);
 }
 
 Level::Level(App* app, SceneManager* p, SavefileFields savefile_data)
@@ -506,6 +525,8 @@ void Level::handle_player_movement() {
 }
 
 void Level::update(float dt) {
+    UpdateMusicStream(*soundtrack);
+
     if (game_over) {
         game_over_screen->update();
         return;

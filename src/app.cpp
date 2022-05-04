@@ -55,6 +55,7 @@ App::App() {
 
     assets.sprites.load(platform->get_sprites_dir(), ".png");
     assets.sounds.load(platform->get_sounds_dir(), ".ogg");
+    assets.music.load(platform->get_music_dir(), ".ogg");
     assets.maps.fetch_maps(platform->get_maps_dir(), ".png");
     save->load();
 }

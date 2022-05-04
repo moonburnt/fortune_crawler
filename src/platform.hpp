@@ -11,6 +11,7 @@ public:
     virtual std::string get_maps_dir() = 0;
     virtual std::string get_sprites_dir() = 0;
     virtual std::string get_sounds_dir() = 0;
+    virtual std::string get_music_dir() = 0;
     virtual std::string get_settings_dir() = 0;
 
     virtual ~Platform() = default;
