@@ -14,6 +14,8 @@ static constexpr Color SIDE_BG_COLOR{203, 219, 252, 255};
 static constexpr Color CORNER_COLOR{34, 32, 52, 255};
 static constexpr Color BG_COLOR{63, 63, 116, 255};
 
+class App;
+
 // This may be an overkill, but its starting to get hard to get through level's
 // items, so I've needed to move these primitives somewhere
 class EventScreen {
@@ -43,9 +45,10 @@ private:
         downright,
     };
 
-    Level(SceneManager* p, bool set_new_map);
-    Level(SceneManager* p, SavefileFields save_data);
+    Level(App* app, SceneManager* p, bool set_new_map);
+    Level(App* app, SceneManager* p, SavefileFields save_data);
 
+    App* app;
     SceneManager* parent;
     GameMap* map;
     InputController<MovementDirection> input_controller;
@@ -77,7 +80,7 @@ private:
 
     void update_tile_description();
 
-    Timer* turn_switch_timer;
+    Timer turn_switch_timer;
 
     Point player_tile;
     Vector2 player_pos;
@@ -131,8 +134,8 @@ public:
     bool show_hud;
     bool is_paused;
 
-    static Level* new_game(SceneManager* p);
-    static Level* load_save(SceneManager* p, SavefileFields save_data);
+    static Level* new_game(App* app, SceneManager* p);
+    static Level* load_save(App* app, SceneManager* p, SavefileFields save_data);
     ~Level();
 
     void update(float dt) override;

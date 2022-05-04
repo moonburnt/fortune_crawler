@@ -107,7 +107,7 @@ std::tuple<MinigameStatus, RPS> play_rps(RPS your_throw) {
 // Notification
 
 NotificationScreen::NotificationScreen(
-    std::string title, std::string body, std::string button_txt)
+    App* app, std::string title, std::string body, std::string button_txt)
     : EventScreen(
           Rectangle{
               ((get_window_width() - get_window_height()) / 2.0f + 30),
@@ -117,8 +117,12 @@ NotificationScreen::NotificationScreen(
           {0, 0, 0, 0})
     , title_label(Label(title, {get_window_width() / 2.0f, 50.0f}))
     , body_label(Label(body, {get_window_width() / 2.0f, get_window_height() / 2.0f}))
-    , close_button(make_text_button(button_txt))
     , complete(false) {
+
+    GuiBuilder gb = GuiBuilder(app);
+
+    close_button = gb.make_text_button(button_txt);
+
     title_label.center();
     body_label.center();
     close_button->set_pos(Vector2{
@@ -175,7 +179,9 @@ void NotificationScreen::draw() {
 
 // Completion Screen
 CompletionScreen::CompletionScreen(
-    std::function<void()> next_lvl_callback, std::function<void()> close_callback)
+    App* app,
+    std::function<void()> next_lvl_callback,
+    std::function<void()> close_callback)
     : EventScreen({
             ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
@@ -184,16 +190,19 @@ CompletionScreen::CompletionScreen(
         {0, 0, 0, 0})
     , title_label("Level Cleared!", {get_window_width() / 2.0f, 50.0f})
     , body_label("", {get_window_width() / 2.0f, get_window_height() / 2.0f}) {
+
+    GuiBuilder gb = GuiBuilder(app);
+
     title_label.center();
 
-    Button* next_lvl_button = make_text_button("Go Deeper!");
+    Button* next_lvl_button = gb.make_text_button("Go Deeper!");
     next_lvl_button->set_callback(next_lvl_callback);
     next_lvl_button->set_pos({
         get_window_width() / 2.0f - next_lvl_button->get_rect().width / 2,
         get_window_height() / 2.0f + 200});
     buttons.add_button(next_lvl_button);
 
-    Button* close_button = make_close_button();
+    Button* close_button = gb.make_close_button();
     close_button->set_callback(close_callback);
     close_button->set_pos(
         {bg.x + bg.width - close_button->get_rect().width, bg.y});
@@ -222,7 +231,9 @@ void CompletionScreen::draw() {
 // I did not reuse CompletionScreen on purpose, since this one may also include
 // additional elements later, such as leaderboard
 GameoverScreen::GameoverScreen(
-    std::function<void()> restart_callback, std::function<void()> close_callback)
+    App* app,
+    std::function<void()> restart_callback,
+    std::function<void()> close_callback)
     : EventScreen({
             ((get_window_width() - get_window_height()) / 2.0f + 30),
             30,
@@ -234,13 +245,15 @@ GameoverScreen::GameoverScreen(
     , buttons(32.0f) {
     title_label.center();
 
+    GuiBuilder gb = GuiBuilder(app);
+
     buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f + 200});
 
-    Button* restart_button = make_text_button("Restart");
+    Button* restart_button = gb.make_text_button("Restart");
     restart_button->set_callback(restart_callback);
     buttons.add_button(restart_button);
 
-    Button* close_button = make_text_button("Back to Menu");
+    Button* close_button = gb.make_text_button("Back to Menu");
     close_button->set_callback(close_callback);
     buttons.add_button(close_button);
 
@@ -266,6 +279,7 @@ void GameoverScreen::draw() {
 
 // Lockpick Screen
 LockpickScreen::LockpickScreen(
+    App* app,
     Treasure* _treasure_obj,
     std::function<void()> complete_cb,
     std::function<void(int)> reward_cb)
@@ -280,17 +294,19 @@ LockpickScreen::LockpickScreen(
         "This chest is locked.\nMaybe it has something pricey inside?",
         {get_window_width() / 2.0f, 100.0f}))
     , buttons(32.0f)
-    , result_screen(NotificationScreen("Lockpick Result", "", "OK"))
+    , result_screen(NotificationScreen(app, "Lockpick Result", "", "OK"))
     , complete(false)
     , complete_callback(complete_cb)
     , reward_callback(reward_cb) {
     title_label.center();
 
+    GuiBuilder gb = GuiBuilder(app);
+
     buttons.set_pos({get_window_width()/2.0f, get_window_height() / 2.0f});
 
-    buttons.add_button(make_text_button("Use brute force"));
-    buttons.add_button(make_text_button("Try to lockpick"));
-    buttons.add_button(make_text_button("Cast unlocking magic"));
+    buttons.add_button(gb.make_text_button("Use brute force"));
+    buttons.add_button(gb.make_text_button("Try to lockpick"));
+    buttons.add_button(gb.make_text_button("Cast unlocking magic"));
 
     buttons.center();
 }
@@ -381,7 +397,10 @@ void LockpickScreen::draw() {
 }
 
 // Pause Screen
-PauseScreen::PauseScreen(std::function<void()> resume_cb, std::function<void()> exit_cb)
+PauseScreen::PauseScreen(
+    App* app,
+    std::function<void()> resume_cb,
+    std::function<void()> exit_cb)
     : EventScreen(
         {
             ((get_window_width() - get_window_height()) / 2.0f + 30),
@@ -393,11 +412,13 @@ PauseScreen::PauseScreen(std::function<void()> resume_cb, std::function<void()> 
     , buttons(32.0f) {
     title_label.center();
 
-    Button* resume_button = make_text_button("Continue");
+    GuiBuilder gb = GuiBuilder(app);
+
+    Button* resume_button = gb.make_text_button("Continue");
     resume_button->set_callback(resume_cb);
     buttons.add_button(resume_button);
 
-    Button* exit_button = make_text_button("Back to menu");
+    Button* exit_button = gb.make_text_button("Back to menu");
     exit_button->set_callback(exit_cb);
     buttons.add_button(exit_button);
 
@@ -485,7 +506,12 @@ void BattleScreen::update_stats_hud() {
 }
 
 BattleScreen::BattleScreen(
-    Level* level, Player* _player, Enemy* _enemy, int _enemy_tile_id, int _enemy_id)
+    App* app,
+    Level* level,
+    Player* _player,
+    Enemy* _enemy,
+    int _enemy_tile_id,
+    int _enemy_id)
     : EventScreen(
           Rectangle{30.0f, 30.0f, get_window_width() - 60.0f, get_window_height() - 60.0f},
           {0, 0, 0, 0})
@@ -516,7 +542,10 @@ BattleScreen::BattleScreen(
     , dmg_buttons(32.0f)
     , def_buttons(32.0f)
     , completion_result(CompletionResult::none)
-    , result_screen(NotificationScreen("", "", "")) {
+    , result_screen(NotificationScreen(app, "", "", "")) {
+
+    GuiBuilder gb = GuiBuilder(app);
+
     // TODO: add ambushes where enemy actually start first
     next_phase();
     title_label.center();
@@ -536,13 +565,13 @@ BattleScreen::BattleScreen(
     float button_x = bg.x + (bg.width / 5.0f);
     float button_y = bg.y + (bg.height / 2.0f) / 1.5f;
 
-    dmg_buttons.add_button(make_text_button("Use sword (Physical)"));
-    dmg_buttons.add_button(make_text_button("Use bow (Ranged)"));
-    dmg_buttons.add_button(make_text_button("Use magic (Magical)"));
+    dmg_buttons.add_button(gb.make_text_button("Use sword (Physical)"));
+    dmg_buttons.add_button(gb.make_text_button("Use bow (Ranged)"));
+    dmg_buttons.add_button(gb.make_text_button("Use magic (Magical)"));
 
-    def_buttons.add_button(make_text_button("Raise shield (Physical)"));
-    def_buttons.add_button(make_text_button("Try to evade (Ranged)"));
-    def_buttons.add_button(make_text_button("Cast protection (Magical)"));
+    def_buttons.add_button(gb.make_text_button("Raise shield (Physical)"));
+    def_buttons.add_button(gb.make_text_button("Try to evade (Ranged)"));
+    def_buttons.add_button(gb.make_text_button("Cast protection (Magical)"));
 
     dmg_buttons.set_pos({button_x, button_y});
     def_buttons.set_pos({button_x, button_y});

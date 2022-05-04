@@ -1,5 +1,5 @@
 #include "level.hpp"
-#include "shared.hpp"
+#include "app.hpp"
 #include "entity.hpp"
 #include "event_screens.hpp"
 #include "loader.hpp"
@@ -29,7 +29,7 @@ void Level::set_camera() {
     Point tile_size = map->get_tile_size();
     // This may look dumb, but toml lib does not support direct float extraction.
     camera.zoom = static_cast<float>(
-        shared::config.settings["camera_zoom"].value_exact<double>().value());
+        app->config->settings["camera_zoom"].value_exact<double>().value());
     camera.offset = Vector2{
         get_window_width() / 2.0f - tile_size.x / 2.0f * camera.zoom,
         get_window_height() / 2.0f - tile_size.y / 2.0f * camera.zoom};
@@ -118,6 +118,7 @@ bool Level::set_new_event() {
     switch (current_event) {
     case Event::exit_map: {
         CompletionScreen* cs = new CompletionScreen(
+            app,
             std::bind(&Level::change_level, this),
             std::bind(&Level::complete_event, this));
         cs->set_description(fmt::format(
@@ -132,6 +133,7 @@ bool Level::set_new_event() {
 
     case Event::fight: {
         current_event_screen = new BattleScreen(
+            app,
             this,
             player_obj,
             static_cast<Enemy*>(map->get_object(current_event_cause)),
@@ -161,6 +163,7 @@ bool Level::set_new_event() {
 
     case Event::lockpick: {
         current_event_screen = new LockpickScreen(
+            app,
             static_cast<Treasure*>(map->get_object(current_event_cause)),
             std::bind(&Level::complete_event, this),
             std::bind(&Level::give_player_money, this, std::placeholders::_1)
@@ -212,7 +215,6 @@ void Level::configure_new_map() {
     // is_player_turn = false;
     force_description_update = false;
     show_tile_description = true;
-    turn_switch_timer = new Timer(0.1f);
     last_selected_tile = -1;
     // change_turn();
     is_player_turn = true;
@@ -223,7 +225,7 @@ void Level::configure_new_map() {
 
 void Level::show_gameover() {
     // TODO: add more stats, like global kills amount or money collected
-    shared::save.reset();
+    app->save.reset();
     static_cast<GameoverScreen*>(game_over_screen)
         ->set_description(fmt::format("Died on level {}", dungeon_lvl));
     game_over = true;
@@ -240,11 +242,13 @@ void Level::save_end_exit() {
 
 void Level::restart() {
     spdlog::info("Resetting the game");
-    parent->set_current_scene(Level::new_game(parent));
+    parent->set_current_scene(Level::new_game(app, parent));
 }
 
-Level::Level(SceneManager* p, bool set_new_map)
+Level::Level(App* app, SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
+    , app(app)
+    , parent(p)
     // Temporary. TODO: rework hud configuration, maybe make vertical containers
     // work with labels
     , turn_label("", {})
@@ -256,21 +260,22 @@ Level::Level(SceneManager* p, bool set_new_map)
     , tile_content_label("", {})
     , dungeon_lvl_label("", {})
     , player_stats_label("", {})
+    , turn_switch_timer(0.1f)
     , pause_menu(new PauseScreen(
+        app,
         std::bind(&Level::resume, this),
         std::bind(&Level::save_end_exit, this)))
     , game_over(false)
     , game_over_screen(new GameoverScreen(
+        app,
         std::bind(&Level::restart, this),
         std::bind(&Level::exit_to_menu, this)
     ))
     , show_hud(true)
     , is_paused(false) {
-    parent = p;
-
     spdlog::debug("Configuring controls");
     // for (auto& kv : SettingsManager::manager.get_controls()) {
-    for (auto& kv : *shared::config.settings["controls"].as_table()) {
+    for (auto& kv : *app->config->settings["controls"].as_table()) {
         // This is hell of a placeholder.
         MovementDirection direction;
         bool has_direction = true;
@@ -291,7 +296,7 @@ Level::Level(SceneManager* p, bool set_new_map)
 
     configure_hud();
     if (set_new_map) {
-        map = generate_map(shared::assets.maps.load_random_map(), Point{32, 32});
+        map = generate_map(app, app->assets.maps.load_random_map(), {32, 32});
         dungeon_lvl = 1;
         reset_level_stats();
         configure_new_map();
@@ -300,14 +305,15 @@ Level::Level(SceneManager* p, bool set_new_map)
     }
 }
 
-Level::Level(SceneManager* p, SavefileFields savefile_data)
-    : Level(p, false) {
+Level::Level(App* app, SceneManager* p, SavefileFields savefile_data)
+    : Level(app, p, false) {
     current_turn = savefile_data.dungeon_stats["current_turn"];
     money_collected = savefile_data.dungeon_stats["money_collected"];
     enemies_killed = savefile_data.dungeon_stats["enemies_killed"];
     dungeon_lvl = savefile_data.dungeon_stats["lvl"];
 
     map = generate_map(
+        app,
         savefile_data.map_layout,
         Point{savefile_data.map_settings["map_x"], savefile_data.map_settings["map_y"]},
         Point{savefile_data.map_settings["tile_x"], savefile_data.map_settings["tile_y"]},
@@ -333,17 +339,16 @@ Level::Level(SceneManager* p, SavefileFields savefile_data)
     update_player_stats_hud();
 }
 
-Level* Level::new_game(SceneManager* p) {
-    return new Level(p, true);
+Level* Level::new_game(App* app, SceneManager* p) {
+    return new Level(app, p, true);
 }
 
-Level* Level::load_save(SceneManager* p, SavefileFields save_data) {
-    return new Level(p, save_data);
+Level* Level::load_save(App* app, SceneManager* p, SavefileFields save_data) {
+    return new Level(app, p, save_data);
 }
 
 Level::~Level() {
     delete map;
-    delete turn_switch_timer;
     delete player_obj;
     delete pause_menu;
     delete game_over_screen;
@@ -354,7 +359,8 @@ Level::~Level() {
 void Level::change_map() {
     dungeon_lvl++;
     map = generate_map(
-        shared::assets.maps.load_random_map(),
+        app,
+        app->assets.maps.load_random_map(),
         Point{32, 32},
         dungeon_lvl,
         static_cast<MapObject*>(player_obj));
@@ -375,7 +381,7 @@ bool Level::is_vec_on_playground(Vector2 vec) {
 }
 
 void Level::exit_to_menu() {
-    parent->set_current_scene(new MainMenu(parent));
+    parent->set_current_scene(new MainMenu(app, parent));
 }
 
 void Level::kill_enemy(int tile_id, int entity_id) {
@@ -400,7 +406,7 @@ void Level::change_turn() {
         // TODO: move this somewhere else
         update_player_stats_hud();
     }
-    turn_switch_timer->start();
+    turn_switch_timer.start();
 }
 
 void Level::update_tile_description() {
@@ -514,9 +520,13 @@ void Level::update(float dt) {
         return;
     }
 
-    if (turn_switch_timer->is_started()) {
-        if (turn_switch_timer->tick(dt)) turn_switch_timer->stop();
-        else return;
+    if (turn_switch_timer.is_started()) {
+        if (turn_switch_timer.tick(dt)) {
+            turn_switch_timer.stop();
+        }
+        else {
+            return;
+        }
     }
 
     show_tile_description = true;
@@ -654,6 +664,6 @@ SavefileFields Level::get_save_data() {
 
 bool Level::save() {
     SavefileFields save_data = get_save_data();
-    shared::save.savefile = save_data;
-    return shared::save.save_level(save_data);
+    app->save->savefile = save_data;
+    return app->save->save_level(save_data);
 }

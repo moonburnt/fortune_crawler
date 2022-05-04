@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <vector>
 
+class App;
+
 struct Point {
     int x;
     int y;
@@ -30,9 +32,10 @@ private:
     Vector2 selected_pos;
 
     int player_id;
+    bool show_grid;
 
 public:
-    GameMap(Point map_size, Point tile_size);
+    GameMap(Point map_size, Point tile_size, bool show_grid);
 
     // Place specific object from storage on specified space, without removing it
     // from any other place. May be used to spawn items and to place items that
@@ -113,16 +116,25 @@ public:
     void draw();
 };
 
-GameMap* generate_map(Image map_file, Point tile_size);
+GameMap* generate_map(App* app, Image map_file, Point tile_size);
+
 GameMap* generate_map(
-    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object);
+    App* app,
+    Image map_file,
+    Point tile_size,
+    int dungeon_level,
+    MapObject* player_object);
+
 GameMap* generate_map(
+    App* app,
     std::vector<std::vector<int>> map_content,
     Point map_size,
     Point tile_size,
     int dungeon_level,
     MapObject* player_object);
+
 GameMap* generate_map(
+    App* app,
     std::vector<std::vector<int>> map_content,
     Point map_size,
     Point tile_size,

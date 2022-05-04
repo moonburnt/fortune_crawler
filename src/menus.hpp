@@ -5,14 +5,17 @@
 #include "engine/utility.hpp"
 #include "raylib.h"
 
+class App;
+
 class TitleScreen : public Scene {
 private:
+    App* app;
     SceneManager* parent;
     Timer timer;
     Label greeter;
 
 public:
-    TitleScreen(SceneManager* p);
+    TitleScreen(App* app, SceneManager* p);
 
     void update(float dt) override;
     void draw() override;
@@ -20,6 +23,7 @@ public:
 
 class MainMenu : public Scene {
 private:
+    App* app;
     SceneManager* parent;
     VerticalContainer buttons;
     const Texture2D* logo;
@@ -31,7 +35,7 @@ private:
     void open_settings();
 
 public:
-    MainMenu(SceneManager* p);
+    MainMenu(App* app, SceneManager* p);
 
     void update(float) override;
     void draw() override;

@@ -1,11 +1,9 @@
 #include "mapgen.hpp"
 #include "engine/utility.hpp"
-#include "shared.hpp"
+#include "app.hpp"
 #include "entity.hpp"
 #include "loader.hpp"
 #include "raylib.h"
-// #include "loader.hpp"
-// #include "utility.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
@@ -32,9 +30,10 @@ static const std::map<int, int> VALID_COLORS = {
     {ColorToInt(Color{255, 185, 112, 255}), EID_COIN_PILE},
     {ColorToInt(Color{199, 0, 255, 255}), EID_BOSS}};
 
-GameMap::GameMap(Point _map_size, Point _tile_size)
+GameMap::GameMap(Point _map_size, Point _tile_size, bool show_grid)
     : map_size(_map_size)
-    , tile_size(_tile_size) {
+    , tile_size(_tile_size)
+    , show_grid(show_grid) {
     grid_size = map_size.x * map_size.y;
     map_real_size = Vector2{
         static_cast<float>(map_size.x * tile_size.x),
@@ -282,7 +281,7 @@ void GameMap::draw() {
         for (auto item : grid[current_tile]) {
             map_objects[item]->draw(index_to_vec(current_tile));
         }
-        if (shared::config.settings["show_grid"].value_exact<bool>().value()) {
+        if (show_grid) {
             Vector2 vec = index_to_vec(current_tile);
             DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
         }
@@ -298,12 +297,16 @@ void GameMap::draw() {
 }
 
 GameMap* generate_map(
+    App* app,
     std::vector<std::vector<int>> map_content,
     Point map_size,
     Point tile_size,
     int dungeon_level,
     MapObject* player_object) {
-    GameMap* gm = new GameMap(map_size, tile_size);
+    GameMap* gm = new GameMap(
+        map_size,
+        tile_size,
+        app->config->settings["show_grid"].value_exact<bool>().value());
 
     static const std::string coin_sprite_names[3] = {
         "coin_pile_tile_0",
@@ -315,7 +318,7 @@ GameMap* generate_map(
         EID_FLOOR,
         false,
         "Floor",
-        shared::assets.sprites["floor_tile"]));
+        app->assets.sprites["floor_tile"]));
 
     bool player_on_grid = false;
     int entrance_grid_id = -1;
@@ -339,7 +342,7 @@ GameMap* generate_map(
                         EID_ENTRANCE,
                         false,
                         "Entrance",
-                        shared::assets.sprites["entrance_tile"]),
+                        app->assets.sprites["entrance_tile"]),
                     grid_index);
                 entrance_grid_id = grid_index;
                 break;
@@ -348,7 +351,7 @@ GameMap* generate_map(
                 gm->add_object(
                     Structure::make_exit(
                         EID_EXIT,
-                        shared::assets.sprites["exit_tile"]),
+                        app->assets.sprites["exit_tile"]),
                     grid_index);
                 break;
             }
@@ -357,7 +360,7 @@ GameMap* generate_map(
                     Enemy::make_enemy(
                         EID_ENEMY,
                         dungeon_level,
-                        shared::assets.sprites["enemy_tile"]),
+                        app->assets.sprites["enemy_tile"]),
                     grid_index);
                 break;
             }
@@ -367,8 +370,8 @@ GameMap* generate_map(
                         EID_CHEST,
                         randbool(),
                         std::max(std::rand() % 100 * dungeon_level, 10 * dungeon_level),
-                        shared::assets.sprites["treasure_tile_full"],
-                        shared::assets.sprites["treasure_tile_empty"]),
+                        app->assets.sprites["treasure_tile_full"],
+                        app->assets.sprites["treasure_tile_empty"]),
                     grid_index);
                 break;
             }
@@ -376,7 +379,7 @@ GameMap* generate_map(
                 gm->add_object(
                     Treasure::make_empty_chest(
                         EID_CHEST_EMPTY,
-                        shared::assets.sprites["treasure_tile_empty"]),
+                        app->assets.sprites["treasure_tile_empty"]),
                     grid_index);
                 break;
             }
@@ -385,7 +388,7 @@ GameMap* generate_map(
                     Treasure::make_coin_pile(
                         EID_COIN_PILE,
                         std::max(std::rand() % 20 * dungeon_level, 5 * dungeon_level),
-                        shared::assets.sprites[coin_sprite_names[std::rand() % 3]]),
+                        app->assets.sprites[coin_sprite_names[std::rand() % 3]]),
                     grid_index);
                 break;
             }
@@ -394,7 +397,7 @@ GameMap* generate_map(
                     Enemy::make_boss(
                         EID_BOSS,
                         dungeon_level,
-                        shared::assets.sprites["boss_tile"]),
+                        app->assets.sprites["boss_tile"]),
                     grid_index);
                 break;
             }
@@ -415,18 +418,24 @@ GameMap* generate_map(
 }
 
 GameMap* generate_map(
+    App* app,
     std::vector<std::vector<int>> map_content,
     Point map_size,
     Point tile_size,
     int dungeon_level) {
     MapObject* player_object =
-        new Player(EID_PLAYER, shared::assets.sprites["player_tile"]);
+        new Player(EID_PLAYER, app->assets.sprites["player_tile"]);
 
-    return generate_map(map_content, map_size, tile_size, dungeon_level, player_object);
+    return generate_map(
+        app, map_content, map_size, tile_size, dungeon_level, player_object);
 }
 
 GameMap* generate_map(
-    Image map_file, Point tile_size, int dungeon_level, MapObject* player_object) {
+    App* app,
+    Image map_file,
+    Point tile_size,
+    int dungeon_level,
+    MapObject* player_object) {
     Point map_size = {map_file.width, map_file.height};
 
     std::vector<std::vector<int>> map_content = {};
@@ -458,12 +467,13 @@ GameMap* generate_map(
         }
     }
 
-    return generate_map(map_content, map_size, tile_size, dungeon_level, player_object);
+    return generate_map(
+        app, map_content, map_size, tile_size, dungeon_level, player_object);
 }
 
-GameMap* generate_map(Image map_file, Point tile_size) {
+GameMap* generate_map(App* app, Image map_file, Point tile_size) {
     MapObject* player_object =
-        new Player(EID_PLAYER, shared::assets.sprites["player_tile"]);
+        new Player(EID_PLAYER, app->assets.sprites["player_tile"]);
 
-    return generate_map(map_file, tile_size, 1, player_object);
+    return generate_map(app, map_file, tile_size, 1, player_object);
 }

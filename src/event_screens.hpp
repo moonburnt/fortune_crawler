@@ -6,6 +6,8 @@
 
 #include <string>
 
+class App;
+
 // This contains various EventScreen implementations, to de-bloat level.cpp
 // Abstract EventScreen is still part of level.hpp, due to dependency resolution.
 
@@ -17,7 +19,7 @@ private:
 
 public:
     bool complete;
-    NotificationScreen(std::string title, std::string body, std::string button_txt);
+    NotificationScreen(App* app, std::string title, std::string body, std::string button_txt);
     ~NotificationScreen();
 
     void set_title(std::string txt, bool center);
@@ -38,7 +40,9 @@ private:
 
 public:
     CompletionScreen(
-        std::function<void()> next_lvl_callback, std::function<void()> close_callback);
+        App* app,
+        std::function<void()> next_lvl_callback,
+        std::function<void()> close_callback);
 
     void set_description(std::string txt);
 
@@ -54,7 +58,9 @@ private:
 
 public:
     GameoverScreen(
-        std::function<void()> restart_callback, std::function<void()> close_callback);
+        App* app,
+        std::function<void()> restart_callback,
+        std::function<void()> close_callback);
 
     void set_description(std::string txt);
 
@@ -75,6 +81,7 @@ private:
 
 public:
     LockpickScreen(
+        App* app,
         Treasure* _treasure_obj,
         std::function<void()> complete_cb,
         std::function<void(int)> reward_cb);
@@ -89,7 +96,10 @@ private:
     VerticalContainer buttons;
 
 public:
-    PauseScreen(std::function<void()> resume_cb, std::function<void()> exit_cb);
+    PauseScreen(
+        App* app,
+        std::function<void()> resume_cb,
+        std::function<void()> exit_cb);
 
     void update() override;
     void draw() override;
@@ -155,7 +165,12 @@ public:
     // This still use old pointer access method, coz I didn't find profits from
     // switching to callbacks to be sufficient enough.
     BattleScreen(
-        Level* level, Player* player, Enemy* enemy, int enemy_tile_id, int enemy_id);
+        App* app,
+        Level* level,
+        Player* player,
+        Enemy* enemy,
+        int enemy_tile_id,
+        int enemy_id);
     // ~BattleScreen();
 
     void update() override;

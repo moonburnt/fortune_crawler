@@ -2,7 +2,7 @@
 #include "common.hpp"
 #include "engine/ui.hpp"
 #include "level.hpp"
-#include "shared.hpp"
+#include "app.hpp"
 #include "spdlog/spdlog.h"
 #include <array>
 #include <raylib.h>
@@ -11,8 +11,9 @@
 const float logo_scale = 2.0f;
 
 // Title Screen
-TitleScreen::TitleScreen(SceneManager* p)
-    : parent(p)
+TitleScreen::TitleScreen(App* app, SceneManager* p)
+    : app(app)
+    , parent(p)
     , timer(Timer(2.0f))
     , greeter(
         "This game has been made with raylib",
@@ -24,7 +25,7 @@ TitleScreen::TitleScreen(SceneManager* p)
 
 void TitleScreen::update(float dt) {
     if (timer.tick(dt)) {
-        parent->set_current_scene(new MainMenu(parent));
+        parent->set_current_scene(new MainMenu(app, parent));
     }
 }
 
@@ -35,6 +36,7 @@ void TitleScreen::draw() {
 // Settings Screen
 class SettingsScreen : public Scene {
 private:
+    App* app;
     SceneManager* parent;
 
     // It may be done without this thing, but will do for now
@@ -59,7 +61,7 @@ private:
     void exit_to_menu() {
         spdlog::info("Switching to main menu");
         exit_button->reset_state();
-        parent->set_current_scene(new MainMenu(parent));
+        parent->set_current_scene(new MainMenu(app, parent));
     }
 
     void save_settings() {
@@ -78,12 +80,12 @@ private:
         settings_changed = false;
 
         if (current_settings["show_fps"].value_exact<bool>().value()) {
-            if (shared::window.sc_mgr.nodes.count("fps_counter") == 0) {
-                shared::window.sc_mgr.nodes["fps_counter"] = new FrameCounter();
+            if (app->window.sc_mgr.nodes.count("fps_counter") == 0) {
+                app->window.sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
             }
         }
         else {
-            shared::window.sc_mgr.nodes.erase("fps_counter");
+            app->window.sc_mgr.nodes.erase("fps_counter");
         }
 
         if (current_settings["fullscreen"].value_exact<bool>().value()) {
@@ -108,33 +110,36 @@ private:
             };
         }
 
-        shared::config.settings = current_settings;
-        shared::config.save();
+        app->config->settings = current_settings;
+        app->config->save();
 
         spdlog::info("Resetting settings screen");
-        parent->set_current_scene(new SettingsScreen(parent));
+        parent->set_current_scene(new SettingsScreen(app, parent));
     }
 
 public:
-    SettingsScreen(SceneManager* p)
-        : parent(p)
-        , current_settings(shared::config.settings) // this should get copied
+    SettingsScreen(App* app, SceneManager* p)
+        : app(app)
+        , parent(p)
+        , current_settings(app->config->settings) // this should get copied
         , title("Settings", {get_window_width() / 2.0f, 30.0f})
         , unsaved_changes_msg(
               "Settings changed. Press save to apply!",
               {get_window_width() / 2.0f, 60.0f})
         , settings_changed(false)
-        , save_button(make_text_button("Save"))
-        , exit_button(make_close_button())
         , show_grid_title("Show Grid:", {30.0f, 100.0f})
-        , grid_cb(make_checkbox(
-            shared::config.settings["show_grid"].value_exact<bool>().value()))
         , show_fps_title("Show FPS:", {30.0f, 150.0f})
-        , fps_cb(make_checkbox(
-            shared::config.settings["show_fps"].value_exact<bool>().value()))
-        , fullscreen_title("Fullscreen:", {30.0f, 200.0f})
-        , fullscreen_cb(make_checkbox(
-            shared::config.settings["fullscreen"].value_exact<bool>().value())) {
+        , fullscreen_title("Fullscreen:", {30.0f, 200.0f}) {
+
+        GuiBuilder gb = GuiBuilder(app);
+        save_button = gb.make_text_button("Save");
+        exit_button = gb.make_close_button();
+        grid_cb = gb.make_checkbox(
+            app->config->settings["show_grid"].value_exact<bool>().value());
+        fps_cb = gb.make_checkbox(
+            app->config->settings["show_fps"].value_exact<bool>().value());
+        fullscreen_cb = gb.make_checkbox(
+            app->config->settings["fullscreen"].value_exact<bool>().value());
 
         title.center();
         unsaved_changes_msg.center();
@@ -208,40 +213,43 @@ void MainMenu::call_exit() {
 
 void MainMenu::load_game() {
     spdlog::info("Loading savefile");
-    parent->set_current_scene(Level::load_save(parent, shared::save.savefile.value()));
+    parent->set_current_scene(Level::load_save(app, parent, app->save->savefile.value()));
 }
 
 void MainMenu::new_game() {
     spdlog::info("Switching to level");
-    parent->set_current_scene(Level::new_game(parent));
+    parent->set_current_scene(Level::new_game(app, parent));
 }
 
 void MainMenu::open_settings() {
     spdlog::info("Switching to settings");
-    parent->set_current_scene(new SettingsScreen(parent));
+    parent->set_current_scene(new SettingsScreen(app, parent));
 }
 
-MainMenu::MainMenu(SceneManager* p)
-    : parent(p)
+MainMenu::MainMenu(App* app, SceneManager* p)
+    : app(app)
+    , parent(p)
     , buttons(32.0f)
-    , logo(shared::assets.sprites["logo"])
+    , logo(app->assets.sprites["logo"])
     , logo_pos({(get_window_width() - logo->width * logo_scale) / 2.0f, 0.0f}) {
 
     buttons.set_pos({get_window_width() / 2.0f, get_window_height() / 2.0f});
 
-    if (shared::save.savefile) {
-        Button* cont_button = make_text_button("Continue");
+    GuiBuilder gb = GuiBuilder(app);
+
+    if (app->save->savefile) {
+        Button* cont_button = gb.make_text_button("Continue");
         cont_button->set_callback(std::bind(&MainMenu::load_game, this));
         buttons.add_button(cont_button);
     }
 
-    Button* ng_button = make_text_button("New Game");
+    Button* ng_button = gb.make_text_button("New Game");
     ng_button->set_callback(std::bind(&MainMenu::new_game, this));
 
-    Button* settings_button = make_text_button("Settings");
+    Button* settings_button = gb.make_text_button("Settings");
     settings_button->set_callback(std::bind(&MainMenu::open_settings, this));
 
-    Button* exit_button = make_text_button("Exit");
+    Button* exit_button = gb.make_text_button("Exit");
     exit_button->set_callback(std::bind(&MainMenu::call_exit, this));
 
     buttons.add_button(ng_button);
