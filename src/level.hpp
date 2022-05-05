@@ -53,9 +53,6 @@ private:
     GameMap* map;
     InputController<MovementDirection> input_controller;
 
-    // TODO: implement some sort of audio handler. Maybe
-    const Music* soundtrack;
-
     int current_turn;
     int money_collected;
     int enemies_killed;

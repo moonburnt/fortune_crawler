@@ -250,7 +250,6 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
     : Scene(BG_COLOR)
     , app(app)
     , parent(p)
-    , soundtrack(app->assets.music["level"])
     // Temporary. TODO: rework hud configuration, maybe make vertical containers
     // work with labels
     , turn_label("", {})
@@ -298,9 +297,7 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
 
     configure_hud();
 
-    if (!IsMusicStreamPlaying(*soundtrack)) {
-        PlayMusicStream(*soundtrack);
-    }
+    app->window->music_mgr.play(*app->assets.music["level"], true);
 
     if (set_new_map) {
         map = generate_map(app, app->assets.maps.load_random_map(), {32, 32});
@@ -310,18 +307,6 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
         update_player_stats_hud();
         save();
     }
-
-    // Set music stream's volume
-    float volume = std::clamp(
-        static_cast<int>(
-            app->config->settings["music_volume"].value_exact<int64_t>().value()),
-        0, 100) / 100.0f;
-
-    SetMusicVolume(*soundtrack, volume);
-
-    spdlog::debug("Soundtrack's volume has been set to {}", volume);
-    // Reset music stream to the beginning
-    SeekMusicStream(*soundtrack, 0.0f);
 }
 
 Level::Level(App* app, SceneManager* p, SavefileFields savefile_data)
@@ -400,6 +385,8 @@ bool Level::is_vec_on_playground(Vector2 vec) {
 }
 
 void Level::exit_to_menu() {
+    // TODO: add ability to pause specific track by name and/or id
+    app->window->music_mgr.stop_all();
     parent->set_current_scene(new MainMenu(app, parent));
 }
 
@@ -525,8 +512,6 @@ void Level::handle_player_movement() {
 }
 
 void Level::update(float dt) {
-    UpdateMusicStream(*soundtrack);
-
     if (game_over) {
         game_over_screen->update();
         return;

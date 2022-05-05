@@ -50,9 +50,3 @@ public:
     // Forget savefile in memory and reset save data on disk.
     void reset();
 };
-
-class MusicStorage : public Storage<Music> {
-public:
-    void load(std::string path, std::string extension) override;
-    ~MusicStorage();
-};
