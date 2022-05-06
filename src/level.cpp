@@ -297,7 +297,7 @@ Level::Level(App* app, SceneManager* p, bool set_new_map)
 
     configure_hud();
 
-    app->window->music_mgr.play(*app->assets.music["level"], true);
+    app->window.music_mgr.play(*app->assets.music["level"], true);
 
     if (set_new_map) {
         map = generate_map(app, app->assets.maps.load_random_map(), {32, 32});
@@ -386,7 +386,7 @@ bool Level::is_vec_on_playground(Vector2 vec) {
 
 void Level::exit_to_menu() {
     // TODO: add ability to pause specific track by name and/or id
-    app->window->music_mgr.stop_all();
+    app->window.music_mgr.stop_all();
     parent->set_current_scene(new MainMenu(app, parent));
 }
 

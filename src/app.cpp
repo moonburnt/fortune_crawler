@@ -39,21 +39,19 @@ App::App() {
 
     config->load();
 
+    window.init(
+        std::max(config->settings["resolution"][0].value_or(1280), 1280),
+        std::max(config->settings["resolution"][1].value_or(720), 720),
+        "Fortune Crawler");
+
     // Set music stream's volume
     float volume = std::clamp(
         static_cast<int>(
             config->settings["music_volume"].value_exact<int64_t>().value()),
         0, 100) / 100.0f;
 
-    window = std::make_unique<GameWindow>(
-        SceneManager(),
-        MusicManager(1, volume)
-    );
-
-    window->init(
-        std::max(config->settings["resolution"][0].value_or(1280), 1280),
-        std::max(config->settings["resolution"][1].value_or(720), 720),
-        "Fortune Crawler");
+    window.music_mgr.set_concurrent_sounds_limit(1);
+    window.music_mgr.set_volume(volume);
 
     if (config->settings["fullscreen"].value_or(false) && !IsWindowFullscreen()) {
         // TODO: add ability to specify active monitor
@@ -73,9 +71,9 @@ App::App() {
 
 void App::run() {
     if (config->settings["show_fps"].value_or(false)) {
-        window->sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
+        window.sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
     };
 
-    window->sc_mgr.set_current_scene(new TitleScreen(this, &window->sc_mgr));
-    window->run();
+    window.sc_mgr.set_current_scene(new TitleScreen(this, &window.sc_mgr));
+    window.run();
 }

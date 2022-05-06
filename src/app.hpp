@@ -22,7 +22,7 @@ public:
 
     void run();
 
-    std::unique_ptr<GameWindow> window;
+    GameWindow window;
     AssetLoader assets;
     std::unique_ptr<SaveManager> save;
     std::unique_ptr<SettingsManager> config;

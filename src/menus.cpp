@@ -80,12 +80,12 @@ private:
         settings_changed = false;
 
         if (current_settings["show_fps"].value_exact<bool>().value()) {
-            if (app->window->sc_mgr.nodes.count("fps_counter") == 0) {
-                app->window->sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
+            if (app->window.sc_mgr.nodes.count("fps_counter") == 0) {
+                app->window.sc_mgr.nodes["fps_counter"] = new FrameCounter({4.0f, 4.0f});
             }
         }
         else {
-            app->window->sc_mgr.nodes.erase("fps_counter");
+            app->window.sc_mgr.nodes.erase("fps_counter");
         }
 
         if (current_settings["fullscreen"].value_exact<bool>().value()) {
@@ -209,7 +209,7 @@ public:
 // Main menu
 void MainMenu::call_exit() {
     // parent->active = false;
-    app->window->quit();
+    app->window.quit();
 }
 
 void MainMenu::load_game() {
