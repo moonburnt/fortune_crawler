@@ -218,7 +218,7 @@ int Creature::damage(int dmg_amount, OffensiveStats dmg_type) {
     if (is_dead()) return 0;
 
     // Actual amount of damage, dealt to creature after all defences.
-    int clear_dmg;
+    int clear_dmg = 0;
 
     switch (dmg_type) {
     case OffensiveStats::pdmg: {

@@ -150,7 +150,7 @@ bool GameMap::is_vec_on_map(Vector2 vec) {
 }
 
 bool GameMap::is_index_on_map(size_t grid_index) {
-    return ((0 <= grid_index) && (grid_index < grid_size));
+    return grid_index < grid_size;
 }
 
 bool GameMap::is_tile_on_map(Point tile) {
