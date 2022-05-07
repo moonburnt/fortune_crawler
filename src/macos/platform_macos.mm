@@ -18,7 +18,9 @@ std::string PlatformMacos::get_resource_dir() {
     return std::string(bundle_str) + "/";
 }
 
-// TODO: add get_maps_dir() override
+std::string PlatformMacos::get_maps_dir() {
+    return get_resource_dir();
+}
 
 std::string PlatformMacos::get_sprites_dir() {
     return get_resource_dir();
