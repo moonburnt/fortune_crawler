@@ -33,7 +33,7 @@ enum class MinigameStatus {
 };
 
 int rps_to_int(RPS value) {
-    int result_value;
+    int result_value = 0;
     switch (value) {
     case RPS::rock: {
         result_value = 0;
@@ -52,7 +52,7 @@ int rps_to_int(RPS value) {
 }
 
 OffensiveStats rps_to_offensive(RPS value) {
-    OffensiveStats stat;
+    OffensiveStats stat = OffensiveStats::pdmg;
     switch (value) {
     case RPS::rock: {
         stat = OffensiveStats::pdmg;
@@ -71,7 +71,7 @@ OffensiveStats rps_to_offensive(RPS value) {
 }
 
 DefensiveStats rps_to_defensive(RPS value) {
-    DefensiveStats stat;
+    DefensiveStats stat = DefensiveStats::pdef;
     switch (value) {
     case RPS::rock: {
         stat = DefensiveStats::pdef;
