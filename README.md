@@ -24,3 +24,10 @@ cmake --build ./build
 
 Build files will be generated into ./build directory, and Game executable - into
 ./build/game (assets will be copied there too)
+
+## LICENSE
+
+[GPLv3](https://github.com/moonburnt/fortune_crawler/blob/master/LICENSE)
+
+For licenses of individual media files used in this game - check *.txt files in
+Assets directory.
