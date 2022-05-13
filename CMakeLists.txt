@@ -123,14 +123,9 @@ target_link_libraries(Game engine)
 target_include_directories(Game PRIVATE ${engine_INCLUDE_DIRS})
 
 # Setup nlohmann_json
-add_library(
-    nlohmann_json
-    "${CMAKE_SOURCE_DIR}/dependencies/nlohmann_json/single_include"
-)
+add_subdirectory("${CMAKE_SOURCE_DIR}/dependencies/nlohmann_json")
 set_target_properties(nlohmann_json PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(nlohmann_json PUBLIC "${CMAKE_SOURCE_DIR}/dependencies/nlohmann_json/single_include")
-target_link_libraries(Game nlohmann_json)
-target_include_directories(Game PRIVATE ${nlohmann_json_INCLUDE_DIRS})
+target_link_libraries(Game nlohmann_json::nlohmann_json)
 
 
 # Custom targets to be used instead of --build
