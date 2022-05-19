@@ -101,7 +101,10 @@ private:
             }
         }
         else {
-            app->window.sc_mgr.nodes.erase("fps_counter");
+            if (app->window.sc_mgr.nodes.count("fps_counter") != 0) {
+                delete app->window.sc_mgr.nodes["fps_counter"];
+                app->window.sc_mgr.nodes.erase("fps_counter");
+            }
         }
 
         if (current_settings["fullscreen"].value_exact<bool>().value()) {
@@ -175,6 +178,7 @@ public:
         delete grid_cb;
         delete fps_cb;
         delete fullscreen_cb;
+        delete save_button;
         delete exit_button;
     }
 
