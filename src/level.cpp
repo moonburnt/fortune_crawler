@@ -153,7 +153,7 @@ bool Level::set_new_event() {
             app,
             this,
             player_obj,
-            static_cast<Enemy*>(map->get_object(current_event_cause)),
+            static_cast<Enemy*>(map->get_object_by_id(current_event_cause)),
             current_event_tile_id.value(),
             current_event_cause);
         show_hud = false;
@@ -161,7 +161,8 @@ bool Level::set_new_event() {
     }
 
     case Event::loot: {
-        Treasure* treasure = static_cast<Treasure*>(map->get_object(current_event_cause));
+        Treasure* treasure = static_cast<Treasure*>(
+            map->get_object_by_id(current_event_cause));
         give_player_money(treasure->get_reward());
 
         if (treasure->destroy_on_empty) {
@@ -181,7 +182,7 @@ bool Level::set_new_event() {
     case Event::lockpick: {
         current_event_screen = new LockpickScreen(
             app,
-            static_cast<Treasure*>(map->get_object(current_event_cause)),
+            static_cast<Treasure*>(map->get_object_by_id(current_event_cause)),
             std::bind(&Level::complete_event, this),
             std::bind(&Level::give_player_money, this, std::placeholders::_1)
         );
@@ -227,7 +228,7 @@ void Level::configure_new_map() {
     // This will fail if no player spawns are available
     set_player_tile(map->find_object_tile(map->get_player_id()).value());
     player_pos = map->tile_to_vec(player_tile);
-    player_obj = static_cast<Player*>(map->get_object(map->get_player_id()));
+    player_obj = static_cast<Player*>(map->get_object_by_id(map->get_player_id()));
     set_camera();
     // is_player_turn = false;
     force_description_update = false;
@@ -338,6 +339,7 @@ Level::Level(App* app, SceneManager* p, SavefileFields savefile_data)
         Point{savefile_data.map_settings["map_x"], savefile_data.map_settings["map_y"]},
         Point{savefile_data.map_settings["tile_x"], savefile_data.map_settings["tile_y"]},
         savefile_data.dungeon_stats["lvl"]);
+
     configure_new_map();
 
     player_obj->current_hp = savefile_data.player_stats["current_hp"];

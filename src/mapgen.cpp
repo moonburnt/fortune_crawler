@@ -31,9 +31,6 @@
 
 // Map generator. For now, valid colors and their relations to events are hardcoded,
 // but it may be changed it future. TODO
-static constexpr Color GRID_COLOR{63, 63, 116, 255};
-static constexpr Color HIGHLIGHT_COLOR{255, 255, 255, 255};
-static constexpr Color ABYSS_COLOR{0, 0, 0, 255};
 
 // Things that can't be spawned via color (e.g abyss and player) are not there
 static const int FLOOR_COLOR = ColorToInt(Color{203, 219, 252, 255});
@@ -47,70 +44,21 @@ static const std::map<int, int> VALID_COLORS = {
     {ColorToInt(Color{199, 0, 255, 255}), EID_BOSS}};
 
 GameMap::GameMap(Point _map_size, Point _tile_size, bool show_grid)
-    : map_size(_map_size)
-    , tile_size(_tile_size)
-    , show_grid(show_grid) {
-    grid_size = map_size.x * map_size.y;
-    map_real_size = Vector2{
-        static_cast<float>(map_size.x * tile_size.x),
-        static_cast<float>(map_size.y * tile_size.y)};
-    map_objects_amount = 0;
+    : TiledMapDeep(_map_size, _tile_size)
+    , show_grid(show_grid) {}
 
-    // There may be a better way to do that
-    grid = {};
-    for (size_t i = 0; i < grid_size; i++) {
-        grid.push_back({});
-    };
-
-    has_selected_pos = false;
-}
-
-void GameMap::place_object(int grid_index, int object_id) {
-    grid[grid_index].push_back(object_id);
-}
-
-int GameMap::add_object(MapObject* object) {
-    map_objects[map_objects_amount] = object;
-
-    // some additional checks, that may be removed from here later
-    if (object->get_category() == ObjectCategory::creature &&
-        static_cast<Creature*>(object)->is_player()) {
-        player_id = map_objects_amount;
-    }
-
-    map_objects_amount++;
-    return map_objects_amount - 1;
-}
-
-int GameMap::add_object(MapObject* object, int grid_index) {
-    int object_id = add_object(object);
-    place_object(grid_index, object_id);
-    return object_id;
-}
-
-void GameMap::delete_object(int grid_index, int tile_index, bool delete_from_storage) {
-    if (delete_from_storage) {
-        map_objects.erase(grid[grid_index][tile_index]);
-    }
-    grid[grid_index].erase(grid[grid_index].begin() + tile_index);
-}
-
-void GameMap::move_object(int grid_index, int tile_index, int new_grid_index) {
-    int object_id = grid[grid_index][tile_index];
-    delete_object(grid_index, tile_index, false);
-    place_object(new_grid_index, object_id);
+void GameMap::set_player_id(int object_id) {
+    player_id = object_id;
 }
 
 int GameMap::get_player_id() {
     return player_id;
 }
 
-std::vector<int>* GameMap::get_tile_content(size_t grid_index) {
-    // Protection against out-of-bounds index values
-    // I HATE PLATFORM-SPECIFIC SIZES, I HATE PLATFORM-SPECIFIC SIZES
-    grid_index = std::clamp(grid_index, static_cast<size_t>(0), grid_size - 1);
-
-    return &grid[grid_index];
+int GameMap::add_and_place(MapObject* object, size_t grid_index) {
+    int object_id = add_object(object);
+    place_object(grid_index, object_id);
+    return object_id;
 }
 
 std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
@@ -122,106 +70,6 @@ std::vector<std::string> GameMap::get_tile_descriptions(size_t grid_index) {
         descriptions.push_back(map_objects[item]->get_description());
     }
     return descriptions;
-}
-
-Point GameMap::index_to_tile(size_t index) {
-    int y = index / map_size.x;
-    int x = index % map_size.x;
-    return Point{x, y};
-}
-
-int GameMap::tile_to_index(Point pos) {
-    return static_cast<size_t>(pos.y * map_size.x + pos.x);
-}
-
-Point GameMap::vec_to_tile(Vector2 vec) {
-    return Point{
-        static_cast<int>(vec.x) / tile_size.x,
-        static_cast<int>(vec.y) / tile_size.y};
-}
-
-Vector2 GameMap::tile_to_vec(Point tile) {
-    return Vector2{
-        static_cast<float>(tile.x * tile_size.x),
-        static_cast<float>(tile.y * tile_size.y)};
-}
-
-Vector2 GameMap::index_to_vec(size_t index) {
-    auto tile = index_to_tile(index);
-    return Vector2{
-        static_cast<float>(tile.x * tile_size.x),
-        static_cast<float>(tile.y * tile_size.y)};
-}
-
-int GameMap::vec_to_index(Vector2 vec) {
-    int x = vec.x / tile_size.x;
-    int y = vec.y / tile_size.y;
-    return static_cast<size_t>(y * map_size.x + x);
-}
-
-bool GameMap::is_vec_on_map(Vector2 vec) {
-    return (
-        (0 <= vec.x) && (vec.x < map_real_size.x) && (0 <= vec.y) &&
-        (vec.y < map_real_size.y));
-}
-
-bool GameMap::is_index_on_map(size_t grid_index) {
-    return grid_index < grid_size;
-}
-
-bool GameMap::is_tile_on_map(Point tile) {
-    return (
-        (0 <= tile.x) && (tile.x < map_size.x) && (0 <= tile.y) && (tile.y < map_size.y));
-}
-
-std::optional<Point> GameMap::find_object_tile(int object_id) {
-    for (auto index = 0u; index < grid_size; index++) {
-        for (auto tile_i = 0u; tile_i < grid[index].size(); tile_i++) {
-            if (grid[index][tile_i] == object_id) {
-                return index_to_tile(index);
-            }
-        }
-    }
-
-    return std::nullopt;
-}
-
-Point GameMap::get_tile_size() {
-    return tile_size;
-}
-
-Point GameMap::get_map_size() {
-    return map_size;
-}
-
-size_t GameMap::get_grid_size() {
-    return grid_size;
-}
-
-std::vector<std::vector<int>> GameMap::get_map_layout() {
-    std::vector<std::vector<int>> layout = {};
-
-    for (size_t grid_id = 0; grid_id < grid_size; grid_id++) {
-        std::vector<int> tile_layout = {};
-        for (size_t tile_id = 0; tile_id < grid[grid_id].size(); tile_id++) {
-            tile_layout.push_back(map_objects[grid[grid_id][tile_id]]->get_entity_id());
-        }
-        layout.push_back(tile_layout);
-    }
-
-    return layout;
-}
-
-int GameMap::get_tile_elements_amount(int grid_index) {
-    return grid[grid_index].size();
-}
-
-MapObject* GameMap::get_object(int object_id) {
-    return map_objects[object_id];
-}
-
-MapObject* GameMap::get_object(int grid_index, int tile_index) {
-    return get_object(grid[grid_index][tile_index]);
 }
 
 bool GameMap::is_tile_blocked(Point tile) {
@@ -237,25 +85,6 @@ bool GameMap::is_tile_blocked(Point tile) {
         if (map_objects[item]->is_obstacle()) return true;
     }
     return false;
-}
-
-bool GameMap::is_tile_occupied(int grid_index) {
-    return (grid[grid_index].size() > 1);
-}
-
-bool GameMap::is_tile_occupied(Point tile) {
-    return is_tile_occupied(tile_to_index(tile));
-}
-
-std::optional<int> GameMap::find_object_in_tile(int grid_index, int object_id) {
-    std::vector<int>::iterator object_iterator;
-    object_iterator =
-        std::find(grid[grid_index].begin(), grid[grid_index].end(), object_id);
-
-    if (object_iterator != grid[grid_index].end()) {
-        return std::distance(grid[grid_index].begin(), object_iterator);
-    }
-    return std::nullopt;
 }
 
 std::vector<std::tuple<int, Event>> GameMap::get_player_events(int grid_index) {
@@ -291,7 +120,8 @@ void GameMap::deselect_tile() {
 }
 
 void GameMap::draw() {
-    DrawRectangle(0, 0, map_real_size.x, map_real_size.y, ABYSS_COLOR);
+    DrawRectangle(
+        0, 0, map_real_size.x, map_real_size.y, {0, 0, 0, 255});
 
     for (auto current_tile = 0u; current_tile < grid_size; current_tile++) {
         for (auto item : grid[current_tile]) {
@@ -299,7 +129,8 @@ void GameMap::draw() {
         }
         if (show_grid) {
             Vector2 vec = index_to_vec(current_tile);
-            DrawRectangleLines(vec.x, vec.y, tile_size.x, tile_size.y, GRID_COLOR);
+            DrawRectangleLines(
+                vec.x, vec.y, tile_size.x, tile_size.y, {63, 63, 116, 255});
         }
     }
 
@@ -309,7 +140,7 @@ void GameMap::draw() {
             selected_pos.y,
             tile_size.x,
             tile_size.y,
-            HIGHLIGHT_COLOR);
+            {255, 255, 255, 255});
 }
 
 GameMap* generate_map(
@@ -348,12 +179,14 @@ GameMap* generate_map(
                 break;
             }
             case EID_PLAYER: {
-                gm->add_object(player_object, grid_index);
+                // I'm not sure if this works correctly *derp*
+                int player_id = gm->add_and_place(player_object, grid_index);
+                gm->set_player_id(player_id);
                 player_on_grid = true;
                 break;
             }
             case EID_ENTRANCE: {
-                gm->add_object(
+                gm->add_and_place(
                     new Structure(
                         EID_ENTRANCE,
                         false,
@@ -364,7 +197,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_EXIT: {
-                gm->add_object(
+                gm->add_and_place(
                     Structure::make_exit(
                         EID_EXIT,
                         app->assets.sprites["exit_tile"]),
@@ -372,7 +205,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_ENEMY: {
-                gm->add_object(
+                gm->add_and_place(
                     Enemy::make_enemy(
                         EID_ENEMY,
                         dungeon_level,
@@ -381,7 +214,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_CHEST: {
-                gm->add_object(
+                gm->add_and_place(
                     Treasure::make_chest(
                         EID_CHEST,
                         randbool(),
@@ -392,7 +225,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_CHEST_EMPTY: {
-                gm->add_object(
+                gm->add_and_place(
                     Treasure::make_empty_chest(
                         EID_CHEST_EMPTY,
                         app->assets.sprites["treasure_tile_empty"]),
@@ -400,7 +233,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_COIN_PILE: {
-                gm->add_object(
+                gm->add_and_place(
                     Treasure::make_coin_pile(
                         EID_COIN_PILE,
                         std::max(std::rand() % 20 * dungeon_level, 5 * dungeon_level),
@@ -409,7 +242,7 @@ GameMap* generate_map(
                 break;
             }
             case EID_BOSS: {
-                gm->add_object(
+                gm->add_and_place(
                     Enemy::make_boss(
                         EID_BOSS,
                         dungeon_level,
@@ -427,7 +260,13 @@ GameMap* generate_map(
     }
 
     if (!player_on_grid) {
-        gm->add_object(player_object, entrance_grid_id);
+        if (entrance_grid_id == -1) {
+            throw std::range_error("entrance_grid_id must be set to something");
+        }
+        int player_id = gm->add_and_place(
+            player_object,
+            entrance_grid_id);
+        gm->set_player_id(player_id);
     }
 
     return gm;
