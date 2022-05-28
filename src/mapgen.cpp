@@ -44,7 +44,7 @@ static const std::map<int, int> VALID_COLORS = {
     {ColorToInt(Color{199, 0, 255, 255}), EID_BOSS}};
 
 GameMap::GameMap(Point _map_size, Point _tile_size, bool show_grid)
-    : TiledMapDeep(_map_size, _tile_size)
+    : TileMapDeep(_map_size, _tile_size)
     , show_grid(show_grid) {}
 
 void GameMap::set_player_id(int object_id) {

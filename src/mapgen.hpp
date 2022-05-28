@@ -31,7 +31,7 @@
 
 class App;
 
-class GameMap : public TiledMapDeep<MapObject*> {
+class GameMap : public TileMapDeep<MapObject*> {
 private:
     bool show_grid;
     // TODO: merge these two into std::optional<Vector2>
@@ -43,7 +43,6 @@ private:
 
 public:
     GameMap(Point _map_size, Point _tile_size, bool show_grid);
-    ~GameMap() = default;
 
     // WIP; TODO: remove this garbage
     void set_player_id(int object_id);
