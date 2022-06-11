@@ -29,5 +29,4 @@ Build files will be generated into ./build directory, and Game executable - into
 
 [GPLv3](https://github.com/moonburnt/fortune_crawler/blob/master/LICENSE)
 
-For licenses of individual media files used in this game - check *.txt files in
-Assets directory.
+For licenses of individual media files used in this game - check [Assets/license.txt](Assets/license.txt)
